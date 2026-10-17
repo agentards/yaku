@@ -1,0 +1,4 @@
+node_modules
+dist/
+results/qr-png
+deploy/*.js

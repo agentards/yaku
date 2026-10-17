@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b3d5c" />
+  <link rel="icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <title>Yaku Relay — prototipo offline/QR</title>
+</head>
+<body>
+  <header>
+    <h1>Yaku Relay <small>prototipo de validación</small></h1>
+    <div id="net" class="net">…</div>
+  </header>
+  <main>
+    <p class="disclaimer">Prototipo técnico desechable. Los reportes ciudadanos <strong>no están verificados</strong>, no son alertas oficiales y no indican qué caminos tomar.</p>
+
+    <section class="official" id="official-template">
+      <span class="badge-official">FUENTE OFICIAL</span>
+      <strong>Plantilla de estilo para capas oficiales</strong>
+      <p>En este prototipo no se carga ningún dato oficial. Aquí irían capas CENEPRED/ENFEN con fuente y fecha.</p>
+    </section>
+
+    <section>
+      <h2>1 · Nueva observación</h2>
+      <form id="form">
+        <label>Tipo <select id="f-type"></select></label>
+        <label>Severidad <select id="f-sev"><option value="1">1 · baja</option><option value="2" selected>2 · media</option><option value="3">3 · alta</option></select></label>
+        <div class="row">
+          <label>Lat <input id="f-lat" type="number" step="0.00001" min="-90" max="90" required /></label>
+          <label>Lon <input id="f-lon" type="number" step="0.00001" min="-180" max="180" required /></label>
+          <button type="button" id="gps">Usar GPS</button>
+        </div>
+        <small id="gps-status"></small>
+        <label>Nota <input id="f-note" maxlength="140" placeholder="máx. 140 caracteres" /></label>
+        <button type="submit" id="save">Guardar (NO VERIFICADO)</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>2 · Registros locales (<span id="count">0</span>)</h2>
+      <div class="toolbar"><label><input type="checkbox" id="sel-all" checked /> seleccionar todo</label> <button id="clear" type="button" class="danger">Borrar todo (local)</button></div>
+      <ul id="list"></ul>
+    </section>
+
+    <section>
+      <h2>3 · Emitir por QR</h2>
+      <label>Chars por QR <input id="chunk" type="number" value="450" min="100" max="2000" step="50" /></label>
+      <button id="emit" type="button">Generar QR de seleccionados</button>
+      <div id="emit-info" class="mono"></div>
+      <div class="qrwrap"><canvas id="qr"></canvas></div>
+      <div class="row"><button id="qr-prev" type="button">◀</button><span id="qr-idx" class="mono"></span><button id="qr-next" type="button">▶</button><button id="qr-play" type="button">⏯ animar</button></div>
+      <h3>Enlace relay (alternativa sin cámara)</h3>
+      <input id="link" readonly class="mono" />
+      <button id="copy-link" type="button">Copiar enlace</button>
+    </section>
+
+    <section>
+      <h2>4 · Recibir</h2>
+      <div class="row">
+        <select id="cams"><option value="">Cámara por defecto (trasera)</option></select>
+        <button id="cam-start" type="button">Iniciar cámara</button>
+        <button id="cam-stop" type="button">Detener</button>
+      </div>
+      <video id="video" muted playsinline></video>
+      <label>…o subir imagen/captura del QR (varias para QR fragmentado): <input id="file" type="file" accept="image/*" multiple /></label>
+      <div id="recv-status" class="mono"></div>
+    </section>
+
+    <section>
+      <h2>5 · Sincronización diferida</h2>
+      <label>Endpoint <input id="endpoint" class="mono" /></label>
+      <small>“mock:local” = servidor simulado en este navegador (idempotente por id).</small>
+      <button id="sync" type="button">Sincronizar ahora</button>
+      <div id="sync-status" class="mono"></div>
+    </section>
+  </main>
+  <footer class="mono" id="build"></footer>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
