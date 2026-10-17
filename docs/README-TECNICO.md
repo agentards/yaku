@@ -29,7 +29,7 @@ E2E: usa `/usr/bin/google-chrome` (o `CHROME=…`). Las pruebas locales intercep
 - **Registrar**: al abrir la pestaña y al guardar se toma el GPS de forma automática. El punto se ajusta arrastrando el marcador; las coordenadas manuales quedan plegadas como respaldo. Botones grandes para elegir tipo y severidad, más una nota opcional.
 - **Relevo**: QR (animado si no cabe en uno solo), enlace `#p=…` plegado, cámara (selector de cámara; el video aparece solo al iniciarla), subida de imagen o captura del QR y **barra de progreso** de fragmentos.
 - **Sync**: contadores **en relevo → consolidado**; consolida sola al volver la red. Ajustes y diagnóstico plegados: endpoint (`/api/sync` por defecto; `mock:local` solo aquí), caracteres por QR, deviceId, build, estado del service worker.
-- Los reportes ciudadanos llevan borde discontinuo ámbar y la etiqueta **NO VERIFICADO**; en el mapa son un punto ámbar con halo. La insignia de fuente solo aparece junto a las capas oficiales reales (leyenda y popups). Ya no hay plantilla «FUENTE OFICIAL». No se implementaron «zonas sin evaluar», que dependen de una decisión de producto.
+- Los reportes ciudadanos llevan borde discontinuo ámbar y la etiqueta **NO VERIFICADO**; en el mapa son un punto ámbar con halo. La insignia de fuente solo aparece junto a las capas oficiales reales (leyenda y popups). Ya no hay plantilla «FUENTE OFICIAL». Las «zonas sin evaluar» ya están aprobadas y en construcción.
 
 ## Capas (results/data-prep.json)
 | Capa | Fuente | Fecha | Original → empaquetado |
