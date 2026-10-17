@@ -1,0 +1,31 @@
+:root { font-family: system-ui, sans-serif; color: #1b1b1b; background: #f4f6f8; }
+body { margin: 0; }
+header { background: #0b3d5c; color: #fff; padding: .6rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+header h1 { font-size: 1.1rem; margin: 0; } header small { font-weight: 400; opacity: .8; }
+main { max-width: 720px; margin: auto; padding: .5rem 1rem 3rem; }
+section { background: #fff; border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; box-shadow: 0 1px 2px #0002; }
+h2 { font-size: 1rem; margin: .2rem 0 .6rem; }
+label { display: block; margin: .3rem 0; }
+.row { display: flex; gap: .5rem; align-items: end; flex-wrap: wrap; }
+input, select, button { font: inherit; padding: .35rem .5rem; }
+input.mono, #link, #endpoint { width: 100%; box-sizing: border-box; }
+button { cursor: pointer; } .danger { color: #a00; }
+.mono { font-family: ui-monospace, monospace; font-size: .8rem; word-break: break-all; }
+.net { font-weight: 700; padding: .2rem .5rem; border-radius: 4px; font-size: .8rem; }
+.net.on { background: #2e7d32; } .net.off { background: #c62828; }
+.disclaimer { background: #fff3cd; border-left: 4px solid #b26a00; padding: .5rem .8rem; font-size: .9rem; }
+/* Datos oficiales: sólido, azul institucional */
+.official { border: 2px solid #0b3d5c; background: #e8f1f8; }
+.badge-official { background: #0b3d5c; color: #fff; font-weight: 700; font-size: .7rem; padding: .15rem .4rem; border-radius: 3px; margin-right: .4rem; }
+/* Reportes ciudadanos: discontinuo, ámbar, rayado — nunca confundible con oficial */
+#list { list-style: none; padding: 0; margin: 0; }
+.citizen { display: flex; gap: .5rem; border: 2px dashed #b26a00; border-radius: 6px; margin: .4rem 0; padding: .5rem;
+  background: repeating-linear-gradient(135deg, #fffaf0 0 10px, #fff3dd 10px 20px); }
+.badge-unverified { background: #b26a00; color: #fff; font-weight: 800; font-size: .7rem; padding: .15rem .4rem; border-radius: 3px; letter-spacing: .03em; }
+.kind { font-style: italic; font-size: .8rem; margin: 0 .3rem; }
+.sync { font-size: .7rem; padding: .1rem .3rem; border-radius: 3px; }
+.sync.ok { background: #c8e6c9; } .sync.pend { background: #eee; }
+.note { font-size: .9rem; margin: .2rem 0; }
+.qrwrap { text-align: center; } #qr { max-width: 100%; image-rendering: pixelated; }
+video { width: 100%; max-height: 50vh; background: #000; margin: .4rem 0; }
+footer { text-align: center; padding: 1rem; color: #666; }
