@@ -1,0 +1,6 @@
+#!/bin/sh
+# Los commits salen a nombre de GeorgeTech20: sin atribución a Claude ni a otras IA.
+if grep -qiE 'co-authored-by:.*(claude|anthropic|cursor|copilot|noreply@anthropic)|generated with.*claude' "$1"; then
+  echo "commit-msg: quita la línea Co-Authored-By / Generated with (autoría = GeorgeTech20)." >&2
+  exit 1
+fi
