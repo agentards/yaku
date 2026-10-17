@@ -89,7 +89,7 @@ export function montarInterfaz3D(opc: OpcionesVista3D) {
 
   // ---------- módulos ----------
   const linea = montarLinea($('[data-linea]'), raiz, tienda, abrirCajon);
-  montarPortal(escenaEl, escena, tienda);
+  const portal = montarPortal(escenaEl, escena, tienda);
   const relevo = montarRelevo(escenaEl, escena, tienda, aviso);
   montarPanel($('#v3d-panel'), tienda, escena, {
     cerrarCajon,
@@ -200,7 +200,7 @@ export function montarInterfaz3D(opc: OpcionesVista3D) {
     map.once('idle', () => { const a = raiz.querySelector('.maplibregl-ctrl-attrib'); a?.classList.remove('maplibregl-compact-show'); a?.removeAttribute('open'); });
   });
 
-  const api = { tienda, escena, linea, relevo, volver, salir, raiz };
+  const api = { tienda, escena, linea, relevo, portal, volver, salir, raiz };
   (window as unknown as { __yaku3dUI: typeof api }).__yaku3dUI = api;
   return api;
 }

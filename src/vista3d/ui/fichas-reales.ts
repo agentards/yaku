@@ -23,7 +23,7 @@ export function diferencia(previo: Map<string, boolean>, fs: Ficha[]) {
 
 export function vigilarFichas(tienda: Tienda, alCambiar: (nuevas: Ficha[], consolidadas: Ficha[]) => void, cadaMs = 2500) {
   let previo = leerVistos();
-  let firma = '';
+  let firma: string | null = null; // null: aún no hubo lectura (una lista vacía también es línea base)
   let leyendo = false;
   async function leer() {
     if (leyendo) return;
