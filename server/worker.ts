@@ -43,6 +43,22 @@ async function api(req: Request, env: Env, url: URL): Promise<Response> {
     // accepted = ids válidos (nuevos o ya existentes): el cliente puede marcarlos consolidados.
     return json({ accepted: valid.map((o) => o.id), inserted, duplicates: valid.length - inserted, rejected, persisted: true });
   }
+  if (url.pathname === '/api/stats' && req.method === 'GET') {
+    const t = await DB.prepare('SELECT COUNT(*) AS total, COUNT(DISTINCT id) AS unique_ids, MAX(received_at) AS last FROM reports').first<any>();
+    const byType = (await DB.prepare('SELECT type, COUNT(*) AS n FROM reports GROUP BY type').all<any>()).results;
+    return json({ ...t, byType, verified: false });
+  }
+  if (url.pathname === '/api/reports' && req.method === 'GET') {
+    const ids = url.searchParams.get('ids');
+    if (ids) {
+      const list = ids.split(',').filter((x) => /^[0-9a-z]{11}$/.test(x)).slice(0, 200);
+      const rows = list.length ? (await DB.prepare(`SELECT * FROM reports WHERE id IN (${list.map(() => '?').join(',')})`).bind(...list).all<any>()).results : [];
+      return json({ count: rows.length, reports: rows });
+    }
+    const limit = Math.min(200, Math.max(1, +(url.searchParams.get('limit') || 50)));
+    const rows = (await DB.prepare('SELECT * FROM reports ORDER BY received_at DESC LIMIT ?').bind(limit).all<any>()).results;
+    return json({ count: rows.length, reports: rows, note: 'Reportes ciudadanos NO VERIFICADOS' });
+  }
   return json({ error: 'no encontrado' }, 404);
 }
 
