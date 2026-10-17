@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-17T17:14:58.081Z",
+  "base": "http://localhost:4173/",
+  "chrome": "/usr/bin/google-chrome",
+  "results": [
+    {
+      "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
+      "ok": true,
+      "firstVisitMs": 188,
+      "precachedEntries": 7,
+      "offlineReloadMs": 47,
+      "offlineNewTabMs": 79,
+      "recordsAfterReload": 3,
+      "recordsNewTab": 3,
+      "net": "SIN RED",
+      "pendingSync": 3
+    },
+    {
+      "name": "estilo: cada reporte con etiqueta NO VERIFICADO y borde distinto al oficial",
+      "ok": true,
+      "badges": [
+        "NO VERIFICADO",
+        "NO VERIFICADO",
+        "NO VERIFICADO"
+      ],
+      "citizenBorder": "dashed rgb(178, 106, 0)",
+      "officialBorder": "solid rgb(11, 61, 92)"
+    },
+    {
+      "name": "(b) enlace relay #p= entre contextos, offline, con dedup",
+      "ok": true,
+      "linkChars": 192,
+      "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
+      "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
+      "recordsB": 3,
+      "hashCleared": true
+    },
+    {
+      "name": "(c) subir imágenes QR (fragmentado, en orden inverso) offline",
+      "ok": true,
+      "fragments": 2,
+      "emitInfo": "3 registros · JSON 211 B → deflate 120 B → base45 180 chars · 2 QR (v7 máx, ECC M) · CRC32 20aaca99",
+      "status": "Mensaje AWT5 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+    },
+    {
+      "name": "(d) cámara simulada: QR animado leído y reensamblado offline",
+      "ok": true,
+      "fragments": 2,
+      "msToComplete": 591,
+      "engine": "jsQR",
+      "cameraOptions": 2,
+      "status": "Mensaje AWT5 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+    },
+    {
+      "name": "(e) sync: nada sin red; auto-flush en evento online; reintento no reenvía; servidor sin duplicados",
+      "ok": true,
+      "postsWhileOffline": 0,
+      "postsAfterOnlineEvent": 1,
+      "postsAfterManualResync": 1,
+      "syncedAfterReload": 3,
+      "totalPosts": 2,
+      "idsReceived": 6,
+      "uniqueIdsOnServer": 3
+    },
+    {
+      "name": "(f) servidor de origen apagado: nueva pestaña carga desde SW y lee IndexedDB",
+      "ok": true,
+      "serverDown": true,
+      "loadMs": 111,
+      "records": 3
+    }
+  ]
+}

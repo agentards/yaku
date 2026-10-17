@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-17T17:09:35.079Z",
+  "chunk": 450,
+  "ecc": "M",
+  "rows": [
+    {
+      "N": 1,
+      "verboseJsonBytes": 183,
+      "positionalJsonBytes": 108,
+      "deflateBytes": 98,
+      "base45Chars": 147,
+      "linkHashChars": 140,
+      "singleQR_base45_alnum": 7,
+      "singleQR_b64url_byte": 8,
+      "singleQR_rawJson_byte": 7,
+      "fragments": 1,
+      "fragVersionMax": 7,
+      "fragChars": [
+        167
+      ],
+      "decodeOK_scale4": true,
+      "decodeOK_scale2": true,
+      "reassembledOK": true,
+      "jsqrMsTotal": 27.4,
+      "pngPx": 212
+    },
+    {
+      "N": 5,
+      "verboseJsonBytes": 854,
+      "positionalJsonBytes": 422,
+      "deflateBytes": 280,
+      "base45Chars": 420,
+      "linkHashChars": 383,
+      "singleQR_base45_alnum": 13,
+      "singleQR_b64url_byte": 15,
+      "singleQR_rawJson_byte": 16,
+      "fragments": 1,
+      "fragVersionMax": 13,
+      "fragChars": [
+        440
+      ],
+      "decodeOK_scale4": true,
+      "decodeOK_scale2": true,
+      "reassembledOK": true,
+      "jsqrMsTotal": 16.8,
+      "pngPx": 308
+    },
+    {
+      "N": 10,
+      "verboseJsonBytes": 1705,
+      "positionalJsonBytes": 830,
+      "deflateBytes": 412,
+      "base45Chars": 618,
+      "linkHashChars": 559,
+      "singleQR_base45_alnum": 16,
+      "singleQR_b64url_byte": 18,
+      "singleQR_rawJson_byte": 23,
+      "fragments": 2,
+      "fragVersionMax": 13,
+      "fragChars": [
+        470,
+        188
+      ],
+      "decodeOK_scale4": true,
+      "decodeOK_scale2": true,
+      "reassembledOK": true,
+      "jsqrMsTotal": 15.4,
+      "pngPx": 308
+    },
+    {
+      "N": 20,
+      "verboseJsonBytes": 3406,
+      "positionalJsonBytes": 1650,
+      "deflateBytes": 655,
+      "base45Chars": 983,
+      "linkHashChars": 883,
+      "singleQR_base45_alnum": 21,
+      "singleQR_b64url_byte": 24,
+      "singleQR_rawJson_byte": 34,
+      "fragments": 3,
+      "fragVersionMax": 13,
+      "fragChars": [
+        470,
+        470,
+        103
+      ],
+      "decodeOK_scale4": true,
+      "decodeOK_scale2": true,
+      "reassembledOK": true,
+      "jsqrMsTotal": 19.6,
+      "pngPx": 308
+    },
+    {
+      "N": 50,
+      "verboseJsonBytes": 8519,
+      "positionalJsonBytes": 4110,
+      "deflateBytes": 1326,
+      "base45Chars": 1989,
+      "linkHashChars": 1776,
+      "singleQR_base45_alnum": 31,
+      "singleQR_b64url_byte": 35,
+      "singleQR_rawJson_byte": null,
+      "fragments": 5,
+      "fragVersionMax": 13,
+      "fragChars": [
+        469,
+        469,
+        469,
+        469,
+        208
+      ],
+      "decodeOK_scale4": true,
+      "decodeOK_scale2": true,
+      "reassembledOK": true,
+      "jsqrMsTotal": 36,
+      "pngPx": 308
+    }
+  ]
+}
