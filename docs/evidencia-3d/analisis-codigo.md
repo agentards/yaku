@@ -50,3 +50,21 @@ Regresión: `npm test` 67/67, `npm run typecheck` sin errores en los archivos de
 
 ## 6. Evidencia
 `01`–`07-*.jpg` (escritorio y celular) y `recorrido-3d-15s.mp4` (vuelo regional → acercamiento → órbita → vuelta a 2D).
+
+## 7. Preset «Ver desde la cuenca» (C3, «por qué 3D»)
+- **Qué hace:** un botón vuela la cámara a una vista río abajo: sobre el río Piura aguas arriba (tramo de Tambogrande, 60 m) mirando al Bajo Piura (entre Catacaos y La Arena, 17 m), pitch 76°, rumbo 207° (SSO). Al llegar, la cámara se queda quieta, sin órbita, para que se pueda leer la vista. Al lado va una nota fija: «Relieve: Terrain Tiles z5–9 (descargado 17/10/2026), exageración vertical 1,6×. Ayuda a leer por dónde baja el agua; no es un modelo de inundación».
+- **Puntos elegidos con datos, sin red:** `scripts/cuenca-dem.mjs` toma el cauce «Río Piura» del mapa base local (OpenStreetMap vía Protomaps, z11) y la cota de cada vértice del DEM local (z9). «desde» es el primer vértice río arriba de la ciudad donde la mediana móvil de 51 vértices llega a 60 m. «hacia» es el vértice mediano del tramo por debajo de 25 m al sur de la ciudad. Las cifras quedan en `config.ts` (`CUENCA`).
+- **Función pura:** `presetCuenca(desde, hacia, { altoPx })` en `camara.ts`. Usa la misma geometría que MapLibre (`calculateCameraOptionsFromTo`): la cámara cae sobre el punto río arriba, por encima del relieve exagerado. `Recorrido.verCuenca()` la vuela con el mismo `volar` que el resto del recorrido. Cualquier gesto la corta (puntero, rueda, teclado o toque) y con `prefers-reduced-motion` salta sin animar (duración 0).
+- **Dónde va:** en `?vista=3d`, como control de MapLibre abajo a la derecha (solo en 3D). En `?vista=portal`, el botón entra en `.v3d-ctrl.ad` y la nota queda encima, montados desde `entrada-portal.ts` sin tocar `ui/index.ts` ni `ui/tema.css`. A menos de 900 px, en la pestaña Relevo, las anclas y la nota suben (`cuenca.css`) para que nada se tape.
+- **Tests:** 10 casos en `tests/vista3d-camara.test.ts`: cotas contra el DEM, rumbo y pitch, inversa geométrica, zoom según el alto del lienzo, pureza, vuelo, cancelación, corte por órbita o centro poblado, reduced-motion y texto exacto de la nota.
+- **Evidencia sin red** (`node scripts/evidencia-cuenca.mjs` → `cuenca.json`, `cuenca-*.jpg`, `medidas.json#fpsCuenca`). Resultado: 21/23. Pasan el botón y la nota completos a la vista a 1280 y 360 px en las dos entradas; el vuelo, que llega a la vista con el relieve yakudem 1,6× y 0 peticiones externas; el corte por gesto; reduced-motion (126 ms); y el Relevo a 360 px sin solapes.
+- **fps** (mediana de 3 rondas alternadas de 4 s desde la misma vista, Intel UHD, headless):
+
+| Entrada | Órbita | Preset | Diferencia |
+|---|---|---|---|
+| `?vista=3d` escritorio 1280×800 | 133,0 | 122,8 | −8 % |
+| `?vista=portal` escritorio 1280×800 | 142,2 | 139,0 | −2 % |
+| `?vista=3d` celular emulado (360×780, DPR 3, CPU 4×) | 47,7 | 42,5 | **−11 %** |
+| `?vista=portal` celular emulado | 36,8 | 30,7 | **−17 %** |
+
+  En escritorio el preset queda dentro del margen del 10 %. **En el celular emulado no lo cumple:** el vuelo cruza unos 60 km y decodifica teselas nuevas, mientras que la órbita gira sobre teselas ya cargadas. Probé otras curvas de vuelo (0,6–1,25) y pitch 70°: ninguna mejora más allá del ruido de medida (la misma órbita dio entre 23 y 40 fps en una sola corrida). El celular real (G7) decide.

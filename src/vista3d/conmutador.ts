@@ -8,6 +8,7 @@ import { activarRelieve, quitarRelieve } from './relieve';
 import { demInfo, guardarDem, onDemCambio, prepararFuenteDem, registrarProtocoloDem } from './dem';
 import { DEM, PITCH_MAX_2D, PITCH_MAX_3D, PIXEL_RATIO_MAX_3D } from './config';
 import { medirFps } from './rendimiento';
+import { ControlCuenca } from './cuenca';
 import { basemapInfo } from '../map';
 
 export type Modo = '2d' | '3d';
@@ -143,6 +144,9 @@ export class Vista3D implements IControl {
     m.dragRotate.disable(); m.touchZoomRotate.disableRotation();
   }
 
+  /** Preset «Ver desde la cuenca» (río Piura aguas arriba → Bajo Piura), solo en 3D. */
+  verCuenca() { return this.modo === '3d' ? this.recorrido.verCuenca() : Promise.resolve(false); }
+
   /** Vuelo de cámara a un punto (acercamiento + órbita), solo en 3D. */
   volarA(lon: number, lat: number) { return this.modo === '3d' ? this.recorrido.iniciar([lon, lat], { saltarRegional: true }) : Promise.resolve(false); }
 }
@@ -165,6 +169,7 @@ function guardarDemEnReposo(listoBase: () => boolean) {
 export function montarVista3D(map: MLMap, { listoBase = () => basemapInfo().state === 'saved' }: { listoBase?: () => boolean } = {}) {
   const v = new Vista3D(map);
   map.addControl(v, 'top-right');
+  map.addControl(new ControlCuenca(() => v.verCuenca()), 'bottom-right');
   (window as any).__yaku3d = { vista: v, dem: () => ({ ...demInfo }), fps: (ms?: number) => medirFps(map, ms) };
   const inicio = modoInicial(location.search);
   const alCargar = () => {

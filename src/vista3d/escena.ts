@@ -37,7 +37,10 @@ export function estiloEscena(): StyleSpecification {
   return s;
 }
 
-export function crearEscena(cont: HTMLElement): EscenaYaku {
+/** EscenaYaku más el preset «Ver desde la cuenca» (lo monta entrada-portal.ts sin tocar ui/). */
+export type EscenaYaku3D = EscenaYaku & { verCuenca(): Promise<boolean> };
+
+export function crearEscena(cont: HTMLElement): EscenaYaku3D {
   registrarProtocoloDem();
   prepararFuenteDem();
   const style = estiloEscena();
@@ -67,7 +70,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku {
 
   let es2D = false, terrenoOn = true;
   const aplicarTerreno = () => map.setTerrain(terrenoOn && !es2D ? terreno() : null);
-  const esc: EscenaYaku = {
+  const esc: EscenaYaku3D = {
     map, listo,
     tieneTerreno: () => !!map.getTerrain(),
     capas: () => (Object.keys(grupos) as CapaId[]).filter((k) => grupos[k].length),
@@ -127,6 +130,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku {
       map.easeTo({ pitch: on ? 0 : 60, bearing: on ? 0 : map.getBearing(), duration: reducido() ? 0 : 900 });
       if (on) map.once('moveend', () => { if (es2D) map.setMaxPitch(0); }); // 2D plano, como el FireTrace
     },
+    verCuenca: () => (es2D ? Promise.resolve(false) : cam.verCuenca()),
     destruir() { cam.detener(); map.remove(); },
   };
   (window as any).__yakuEscena = { map, cam, fuente: SRC_TERRENO };

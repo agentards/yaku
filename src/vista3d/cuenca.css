@@ -1,0 +1,25 @@
+/* Preset «Ver desde la cuenca» + nota fija del relieve (tema crema + acento naranja de la vista 3D). */
+.v3d-cuenca-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border: 1px solid #d8ccb6; border-radius: 7px; background: #fffdf9e6; color: #3b3328; font: 700 12px/1 system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+.v3d-cuenca-btn:hover { border-color: #c9541f; color: #c9541f; }
+.v3d-cuenca-btn:focus-visible { outline: 2px solid #c9541f; outline-offset: 1px; }
+.v3d-cuenca-corta { display: none; }
+.v3d-nota-relieve { margin: 0; max-width: 300px; padding: 5px 8px; border-radius: 6px; background: #fffdf9d9; color: #4a4134; font: 11px/1.35 system-ui, sans-serif; box-shadow: 0 1px 3px rgba(0, 0, 0, .12); pointer-events: none; }
+
+/* ?vista=3d: control de MapLibre, solo en 3D. */
+.v3d-cuenca { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; clear: both; }
+body:not([data-vista="3d"]) .v3d-cuenca { display: none; }
+
+/* ?vista=portal: nota fija sobre los controles de abajo a la derecha. */
+.v3d-nota-portal { position: absolute; z-index: 4; right: 10px; bottom: 52px; text-align: right; }
+/* Celular, pestaña Relevo: las anclas «Servidor» / «Este teléfono» (abajo a la izquierda) suben sobre la fila de
+   controles y la nota sube sobre las anclas, para que nada se tape a 360 px. */
+@media (max-width: 899px) {
+  .v3d-escena:has(.v3d-nota-portal):has(.v3d-anclas:not([hidden])) .v3d-anclas { bottom: 52px; }
+  .v3d-escena:has(.v3d-anclas:not([hidden])) .v3d-nota-portal { bottom: 124px; }
+}
+
+@media (max-width: 520px) {
+  .v3d-cuenca-larga { display: none; }
+  .v3d-cuenca-corta { display: inline; }
+  .v3d-nota-relieve { max-width: min(260px, calc(100vw - 70px)); font-size: 10.5px; }
+}

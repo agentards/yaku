@@ -53,3 +53,19 @@ export const CIELO = {
 
 /** Vista regional oblicua con horizonte (andes de Piura, mirando al este desde la costa). */
 export const VISTA_REGIONAL = { center: [-80.05, -5.05] as [number, number], zoom: 8.1, pitch: 72, bearing: 62 };
+
+/**
+ * Preset «Ver desde la cuenca»: cámara sobre el río Piura aguas arriba, mirando río abajo al Bajo Piura.
+ * Puntos elegidos por scripts/cuenca-dem.mjs, sin red: cauce = «Río Piura» del mapa base local (OpenStreetMap
+ * vía Protomaps, z11); cota = este mismo DEM (z9). «desde» = primer vértice río arriba de la ciudad cuya cota
+ * (mediana móvil de 51 vértices) llega a 60 m: tramo de Tambogrande. «hacia» = vértice mediano (por latitud)
+ * del tramo bajo 25 m al sur de la ciudad: entre Catacaos y La Arena. Cotas en m s. n. m. sin exagerar.
+ */
+export const CUENCA = {
+  desde: { lon: -80.3775, lat: -4.937, m: 60 },
+  hacia: { lon: -80.6251, lat: -5.4148, m: 17 },
+  pitch: 76,
+  duracion: 6000,
+};
+/** Nota fija junto al preset: qué es el relieve y qué no es. */
+export const NOTA_RELIEVE = 'Relieve: Terrain Tiles z5–9 (descargado 17/10/2026), exageración vertical 1,6×. Ayuda a leer por dónde baja el agua; no es un modelo de inundación';

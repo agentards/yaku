@@ -1,11 +1,11 @@
 // Cámara cinematográfica: vuelo regional oblicuo → acercamiento al centro poblado → órbita lenta.
 // Lógica pura (testeable sin WebGL) + un controlador que habla con una interfaz mínima del mapa.
 // Cualquier gesto del usuario (puntero, rueda, teclado) cancela el recorrido.
-import { VISTA_REGIONAL } from './config';
+import { CUENCA, EXAGERACION, VISTA_REGIONAL } from './config';
 
 export type LngLat = [number, number];
 export interface Vista { center: LngLat; zoom: number; pitch: number; bearing: number }
-export type Fase = 'inactivo' | 'regional' | 'acercamiento' | 'orbita';
+export type Fase = 'inactivo' | 'regional' | 'acercamiento' | 'orbita' | 'cuenca';
 
 export const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
@@ -47,6 +47,45 @@ export function rumboOrbita(t: number, b0: number, gradosPorS: number, rampaS: n
   return normalizarRumbo(b0 + giro);
 }
 
+// ---------- preset «Ver desde la cuenca» ----------
+// Misma geometría que MapLibre (Transform.calculateCameraOptionsFromTo): coordenadas Mercator en [0, 1], la
+// altura dividida por la circunferencia a esa latitud, y zoom = log2(distancia cámara-centro en px / distancia 3D / 512).
+const CIRCUNFERENCIA = 2 * Math.PI * 6371008.8;
+/** Campo de visión vertical por defecto de MapLibre (0,6435 rad ≈ 36,87°): distancia cámara-centro = 1,5 × alto. */
+const FOV_MAPLIBRE = 0.6435011087932844;
+const mercX = (lon: number) => (180 + lon) / 360;
+const mercY = (lat: number) => (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360;
+const mercZ = (alt: number, lat: number) => alt / (CIRCUNFERENCIA * Math.cos((lat * Math.PI) / 180));
+
+export interface PuntoCota { lon: number; lat: number; m: number }
+export interface PresetCuenca { vuelo: Vista & { duration: number }; camara: { lon: number; lat: number; alt: number } }
+
+/**
+ * Cámara sobre `desde` (río arriba) mirando a `hacia` (Bajo Piura), con la inclinación pedida. La altura de la
+ * cámara sale de la geometría: alt = cota exagerada del destino + distancia horizontal / tan(pitch). Pura: el alto
+ * del lienzo (px) entra como parámetro porque el zoom de MapLibre depende de él.
+ */
+export function presetCuenca(desde: PuntoCota = CUENCA.desde, hacia: PuntoCota = CUENCA.hacia, { altoPx = 800, pitch = CUENCA.pitch, exageracion = EXAGERACION, duracion = CUENCA.duracion } = {}): PresetCuenca {
+  const suelo = distanciaKm([desde.lon, desde.lat], [hacia.lon, hacia.lat]) * 1000;
+  const altHacia = hacia.m * exageracion;
+  const alt = altHacia + suelo / Math.tan((pitch * Math.PI) / 180);
+  const dx = mercX(hacia.lon) - mercX(desde.lon), dy = mercY(hacia.lat) - mercY(desde.lat);
+  const dz = mercZ(altHacia, hacia.lat) - mercZ(alt, desde.lat);
+  const d3 = Math.hypot(dx, dy, dz), dSuelo = Math.hypot(dx, dy);
+  const camaraCentroPx = (0.5 / Math.tan(FOV_MAPLIBRE / 2)) * altoPx;
+  const deg = 180 / Math.PI;
+  return {
+    vuelo: {
+      center: [hacia.lon, hacia.lat],
+      zoom: +Math.log2(camaraCentroPx / d3 / 512).toFixed(3),
+      pitch: +(90 - Math.acos(dSuelo / d3) * deg).toFixed(2),
+      bearing: +normalizarRumbo(Math.atan2(dx, -dy) * deg).toFixed(2),
+      duration: duracion,
+    },
+    camara: { lon: desde.lon, lat: desde.lat, alt: Math.round(alt) },
+  };
+}
+
 /** Lo mínimo que el controlador necesita del mapa (MapLibre lo cumple; los tests usan un doble). */
 export interface MapaCamara {
   flyTo(o: Vista & { duration: number; easing?: (t: number) => number; essential?: boolean; curve?: number }): unknown;
@@ -55,6 +94,8 @@ export interface MapaCamara {
   getBearing(): number;
   getCenter(): { lng: number; lat: number };
   stop(): unknown;
+  /** Para el zoom del preset de la cuenca (opcional: sin lienzo se asume 800 px). */
+  getCanvas?(): { clientHeight: number };
 }
 
 export interface Reloj { raf(cb: (t: number) => void): number; caf(id: number): void; ahora(): number }
@@ -94,6 +135,17 @@ export class Recorrido {
     const tok = ++this.token;
     this.setFase('regional');
     const ok = await this.volar(planRecorrido(VISTA_REGIONAL.center).regional, tok);
+    if (ok) this.setFase('inactivo');
+    return ok;
+  }
+
+  /** Preset «Ver desde la cuenca»: un vuelo hasta la vista río abajo, sin órbita (la vista queda quieta para leerla). */
+  async verCuenca(): Promise<boolean> {
+    this.detener(false);
+    const tok = ++this.token;
+    this.setFase('cuenca');
+    const altoPx = this.m.getCanvas?.().clientHeight || 800;
+    const ok = await this.volar(presetCuenca(CUENCA.desde, CUENCA.hacia, { altoPx }).vuelo, tok);
     if (ok) this.setFase('inactivo');
     return ok;
   }

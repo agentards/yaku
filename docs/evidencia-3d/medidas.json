@@ -174,5 +174,30 @@
       "peorMs": 190.3
     }
   },
-  "gpu": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  "gpu": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "fpsCuenca": {
+    "fecha": "2026-10-17T23:24:32.933Z",
+    "gpu": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "nota": "cuadros dibujados por MapLibre (evento render), headless, sin red; mediana de 3 rondas alternadas de 4 s desde la misma vista, tras una pasada en frío (cuencaFrio); movil = 360×780 DPR 3 con CPU 4× más lenta",
+    "3d-escritorio": {
+      "orbita": 133,
+      "cuenca": 122.8,
+      "cuencaFrio": 122
+    },
+    "3d-movil": {
+      "orbita": 47.7,
+      "cuenca": 42.5,
+      "cuencaFrio": 42.5
+    },
+    "portal-escritorio": {
+      "orbita": 142.2,
+      "cuenca": 139,
+      "cuencaFrio": 134.6
+    },
+    "portal-movil": {
+      "orbita": 36.8,
+      "cuenca": 30.7,
+      "cuencaFrio": 32.3
+    }
+  }
 }

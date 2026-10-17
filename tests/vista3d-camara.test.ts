@@ -1,8 +1,12 @@
 // Cámara cinematográfica (src/vista3d/camara.ts): plan del recorrido, rumbo de la órbita y cancelación del
 // Recorrido con un MapaCamara doble (sin WebGL) y un reloj de cuadros manual.
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Recorrido, planRecorrido, rumboOrbita, normalizarRumbo, duracionVuelo, distanciaKm, easeInOutCubic, type Fase, type MapaCamara, type Reloj } from '../src/vista3d/camara';
-import { VISTA_REGIONAL } from '../src/vista3d/config';
+import fs from 'node:fs';
+import path from 'node:path';
+import { PMTiles } from 'pmtiles';
+import { PNG } from 'pngjs';
+import { Recorrido, planRecorrido, presetCuenca, rumboOrbita, normalizarRumbo, duracionVuelo, distanciaKm, easeInOutCubic, type Fase, type MapaCamara, type Reloj } from '../src/vista3d/camara';
+import { CUENCA, DEM, DEM_BOUNDS, EXAGERACION, NOTA_RELIEVE, PITCH_MAX_3D, VISTA_REGIONAL } from '../src/vista3d/config';
 
 describe('cámara: lógica pura', () => {
   it('normaliza rumbos a (-180, 180]', () => {
@@ -166,5 +170,131 @@ describe('cámara: más casos de cancelación', () => {
   it('rumboOrbita: t ≤ 0 devuelve el rumbo inicial normalizado y nunca sale de (-180, 180]', () => {
     expect(rumboOrbita(-1, 370, 5, 2)).toBe(10);
     for (let t = 0; t < 200; t += 7.3) { const b = rumboOrbita(t, 175, 5, 2); expect(b).toBeGreaterThan(-180); expect(b).toBeLessThanOrEqual(180); }
+  });
+});
+
+// ---------- preset «Ver desde la cuenca» ----------
+/** Inversa de presetCuenca con la geometría de MapLibre: de (centro, zoom, pitch, rumbo, alto) a la posición de la cámara. */
+function camaraDesdeVista(v: { center: [number, number]; zoom: number; pitch: number; bearing: number }, altoPx: number, altCentro: number) {
+  const C = 2 * Math.PI * 6371008.8, rad = Math.PI / 180;
+  const d3 = (1.5 * altoPx) / 512 / 2 ** v.zoom; // distancia cámara-centro en unidades Mercator
+  const suelo = d3 * Math.sin(v.pitch * rad), arriba = d3 * Math.cos(v.pitch * rad);
+  const x = (180 + v.center[0]) / 360 - suelo * Math.sin(v.bearing * rad);
+  const yC = (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (v.center[1] * Math.PI) / 360))) / 360;
+  const y = yC + suelo * Math.cos(v.bearing * rad);
+  const lon = x * 360 - 180, lat = (360 / Math.PI) * Math.atan(Math.exp(((180 - y * 360) * Math.PI) / 180)) - 90;
+  return { lon, lat, alt: altCentro + arriba * C * Math.cos(lat * rad) };
+}
+
+/** Cota del DEM local (Terrarium z9) en un punto: la misma fuente que dibuja el relieve. */
+async function cotaDem(lon: number, lat: number) {
+  const fd = fs.openSync(path.resolve(__dirname, '../public', DEM.file), 'r');
+  const fuente = { getKey: () => DEM.file, getBytes: async (o: number, n: number) => { const b = Buffer.alloc(n); fs.readSync(fd, b, 0, n, o); return { data: b.buffer.slice(b.byteOffset, b.byteOffset + n) }; } };
+  const z = 9, fx = ((lon + 180) / 360) * 2 ** z, r = (lat * Math.PI) / 180;
+  const fy = ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * 2 ** z;
+  const t = await new PMTiles(fuente as any).getZxy(z, Math.floor(fx), Math.floor(fy));
+  fs.closeSync(fd);
+  const png = PNG.sync.read(Buffer.from(t!.data));
+  const i = (Math.floor((fy % 1) * 256) * png.width + Math.floor((fx % 1) * 256)) * 4;
+  return png.data[i] * 256 + png.data[i + 1] + png.data[i + 2] / 256 - 32768;
+}
+
+describe('cámara: preset «Ver desde la cuenca»', () => {
+  it('los dos puntos salen del DEM local: río arriba más alto que el Bajo Piura y dentro del recorte', async () => {
+    const { desde, hacia } = CUENCA;
+    for (const p of [desde, hacia]) {
+      expect(p.lon).toBeGreaterThan(DEM_BOUNDS[0]); expect(p.lon).toBeLessThan(DEM_BOUNDS[2]);
+      expect(p.lat).toBeGreaterThan(DEM_BOUNDS[1]); expect(p.lat).toBeLessThan(DEM_BOUNDS[3]);
+    }
+    expect(desde.m).toBeGreaterThan(hacia.m);
+    expect(desde.lat).toBeGreaterThan(hacia.lat); // río arriba queda al norte: el agua baja hacia el sur
+    // Las cotas anotadas son las del DEM (desde es una mediana móvil sobre el cauce: tolerancia por el ruido SRTM).
+    expect(Math.abs((await cotaDem(hacia.lon, hacia.lat)) - hacia.m)).toBeLessThanOrEqual(3);
+    expect(Math.abs((await cotaDem(desde.lon, desde.lat)) - desde.m)).toBeLessThanOrEqual(10);
+  });
+
+  it('mira río abajo: centro en el Bajo Piura, rumbo de aguas arriba hacia aguas abajo (SSO)', () => {
+    const { vuelo } = presetCuenca();
+    expect(vuelo.center).toEqual([CUENCA.hacia.lon, CUENCA.hacia.lat]);
+    const b = (vuelo.bearing + 360) % 360;
+    expect(b).toBeGreaterThan(180); expect(b).toBeLessThan(225);
+    expect(vuelo.pitch).toBeGreaterThanOrEqual(60); expect(vuelo.pitch).toBeLessThanOrEqual(PITCH_MAX_3D);
+    expect(Math.abs(vuelo.pitch - CUENCA.pitch)).toBeLessThan(1);
+    expect(vuelo.duration).toBe(CUENCA.duracion);
+  });
+
+  it('la cámara cae sobre el punto de río arriba y por encima del relieve exagerado', () => {
+    for (const altoPx of [640, 800, 915]) {
+      const { vuelo, camara } = presetCuenca(CUENCA.desde, CUENCA.hacia, { altoPx });
+      const c = camaraDesdeVista(vuelo, altoPx, CUENCA.hacia.m * EXAGERACION);
+      expect(distanciaKm([c.lon, c.lat], [CUENCA.desde.lon, CUENCA.desde.lat])).toBeLessThan(0.3);
+      expect(Math.abs(c.alt - camara.alt)).toBeLessThan(50);
+      expect(camara.alt).toBeGreaterThan(CUENCA.desde.m * EXAGERACION + 1000);
+    }
+  });
+
+  it('el zoom depende del alto del lienzo como en MapLibre (doble de alto = +1 de zoom); rumbo y pitch no', () => {
+    const a = presetCuenca(CUENCA.desde, CUENCA.hacia, { altoPx: 400 }).vuelo, b = presetCuenca(CUENCA.desde, CUENCA.hacia, { altoPx: 800 }).vuelo;
+    expect(b.zoom - a.zoom).toBeCloseTo(1, 2);
+    expect(b.bearing).toBe(a.bearing); expect(b.pitch).toBe(a.pitch);
+  });
+
+  it('función pura: mismos datos, misma vista; con otro par de puntos, otro rumbo', () => {
+    expect(presetCuenca()).toEqual(presetCuenca());
+    const alNorte = presetCuenca({ lon: -80, lat: -5.4, m: 100 }, { lon: -80, lat: -5, m: 10 }).vuelo;
+    expect(Math.abs(alNorte.bearing)).toBeLessThan(0.01);
+  });
+
+  it('Recorrido.verCuenca vuela al preset con el alto del lienzo y se queda quieto (sin órbita)', async () => {
+    const d = mapaDoble(), c = relojDoble();
+    d.m.getCanvas = () => ({ clientHeight: 915 });
+    const rec = new Recorrido(d.m, c.r, () => false);
+    const fases: Fase[] = []; rec.onFase = (f) => fases.push(f);
+    const p = rec.verCuenca();
+    expect(rec.fase).toBe('cuenca');
+    expect(d.vuelos[0]).toMatchObject(presetCuenca(CUENCA.desde, CUENCA.hacia, { altoPx: 915 }).vuelo);
+    expect(d.vuelos[0].essential).toBe(true);
+    d.llegar();
+    expect(await p).toBe(true);
+    expect(fases).toEqual(['cuenca', 'inactivo']);
+    c.avanzar(1000); expect(c.pendientes()).toBe(0);
+  });
+
+  it('un gesto (detener) corta el vuelo del preset y para el mapa', async () => {
+    const d = mapaDoble(), c = relojDoble();
+    const rec = new Recorrido(d.m, c.r, () => false);
+    const p = rec.verCuenca();
+    const paradas = d.paradas();
+    rec.detener();
+    expect(await p).toBe(false);
+    expect(d.paradas()).toBeGreaterThan(paradas);
+    expect(rec.fase).toBe('inactivo');
+  });
+
+  it('el preset corta una órbita en curso, y elegir un centro poblado corta el preset', async () => {
+    const d = mapaDoble(), c = relojDoble();
+    const rec = new Recorrido(d.m, c.r, () => false);
+    rec.orbitar(); expect(c.pendientes()).toBe(1);
+    const p1 = rec.verCuenca();
+    c.avanzar(16); expect(c.pendientes()).toBe(0);
+    const p2 = rec.iniciar([-79.7, -4.9], { saltarRegional: true });
+    expect(await p1).toBe(false);
+    d.llegar(); expect(await p2).toBe(true);
+  });
+
+  it('movimiento reducido: el preset es un salto (duración 0), sin animación', async () => {
+    const d = mapaDoble(), c = relojDoble();
+    const rec = new Recorrido(d.m, c.r, () => true);
+    const p = rec.verCuenca();
+    expect(d.vuelos[0].duration).toBe(0);
+    d.llegar();
+    expect(await p).toBe(true);
+    expect(rec.fase).toBe('inactivo');
+  });
+
+  it('nota fija del relieve: texto exacto y coherente con la exageración y el DEM configurados', () => {
+    expect(NOTA_RELIEVE).toBe('Relieve: Terrain Tiles z5–9 (descargado 17/10/2026), exageración vertical 1,6×. Ayuda a leer por dónde baja el agua; no es un modelo de inundación');
+    expect(NOTA_RELIEVE).toContain(String(EXAGERACION).replace('.', ',') + '×');
+    expect(DEM.build).toContain('z5–9'); expect(DEM.build).toContain('17/10/2026');
   });
 });
