@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-17T20:32:07.573Z",
+  "fecha": "2026-10-17T22:15:52.182Z",
   "viewport": "android",
   "checks": [
     {
@@ -7,14 +7,15 @@
       "ok": true
     },
     {
-      "name": "(p1) shell: pestañas Escenario · Campo · Relevo, ventana SENAMHI, capas reales y 3 gráficos",
+      "name": "(p1) shell: pestañas Escenario · Campo · Relevo, ventana SENAMHI (en la ficha de fuente), chip de fuente, capas reales y 3 gráficos",
       "ok": true,
       "tabs": [
         "Escenario",
         "Campo",
         "Relevo"
       ],
-      "ventana": "Pronóstico SENAMHI 15/10/2026 · 24 h VENCIDO",
+      "ventana": "Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo. Descargado 17/10/2026",
+      "chip": "Fuente: CENEPRED/SIGRID 23077 · 16/10/2026",
       "capas": [
         "terreno",
         "cenepred",
@@ -26,7 +27,8 @@
       ],
       "red": "EN LÍNEA",
       "graficos": 3,
-      "ms": 1797
+      "okFicha": true,
+      "ms": 10049
     },
     {
       "name": "(p2) capas: la casilla apaga la capa y el deslizador escala su opacidad de diseño",
@@ -56,7 +58,7 @@
     {
       "name": "(p6) relevo SIMULADO: arcos dibujados y aviso etiquetado SIMULADO / NO VERIFICADO",
       "ok": true,
-      "pixelesArco": 22681,
+      "pixelesArco": 23789,
       "toast": "SIMULADO · ficha pasó por QR de Tel. A a Tel. B (NO VERIFICADO)"
     },
     {
@@ -66,11 +68,13 @@
       "fichas": 1
     },
     {
-      "name": "(p8) sin red: interfaz y portal cargan del service worker, relieve activo, HUD «SIN RED», 0 peticiones externas",
+      "name": "(p8) sin red: interfaz y portal cargan del service worker, relieve activo, HUD «SIN RED», banda ≥ 32 px con cola de sync, 0 peticiones externas",
       "ok": true,
       "red": "SIN RED",
       "hud": true,
       "terreno": true,
+      "banda": "SIN RED · trabajando con datos guardados en este equipo (escenario CENEPRED del 16/10/2026) Sincronizado ✓",
+      "bandaAlto": 83,
       "externas": []
     },
     {
@@ -82,16 +86,16 @@
   ],
   "medidas": {
     "fpsPortal": {
-      "paginaFps": 143.2,
-      "escenaRenders": 143.2,
-      "miniRenders": 30.2,
-      "peorCuadroMs": 14
+      "paginaFps": 128.8,
+      "escenaRenders": 128.8,
+      "miniRenders": 28.8,
+      "peorCuadroMs": 63
     },
     "fpsRelevo": {
-      "paginaFps": 132.7,
-      "escenaRenders": 3.3,
+      "paginaFps": 126,
+      "escenaRenders": 9.3,
       "miniRenders": 0,
-      "peorCuadroMs": 69
+      "peorCuadroMs": 21
     },
     "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)"
   }

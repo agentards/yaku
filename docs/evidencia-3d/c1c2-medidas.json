@@ -1,0 +1,99 @@
+{
+  "fecha": "2026-10-17T22:13:17.076Z",
+  "anchos": {
+    "360": {
+      "checks": [
+        {
+          "name": "360: SIN RED + «1 ficha pendiente de sincronizar», banda ≥ 32 px",
+          "ok": true,
+          "cortados": [],
+          "solapes": [],
+          "bandaAlto": 83,
+          "banda": "SIN RED · trabajando con datos guardados en este equipo (escenario CENEPRED del 16/10/2026) 1 ficha pendiente de sincronizar",
+          "red": "SIN RED",
+          "chip": "Fuente: CENEPRED/SIGRID 23077 · 16/10/2026",
+          "leyenda": "Exposición a inundaciones Muy alto Alto Medio Bajo Muy bajo Nivel referencial del escenario: no es pronóstico ni alerta"
+        },
+        {
+          "name": "360: chip de fuente y leyenda con «no es pronóstico ni alerta»",
+          "ok": true,
+          "leyenda": "Exposición a inundaciones Muy alto Alto Medio Bajo Muy bajo Nivel referencial del escenario: no es pronóstico ni alerta"
+        },
+        {
+          "name": "360: nada cortado en banda, cabecera y leyenda",
+          "ok": true,
+          "cortados": []
+        },
+        {
+          "name": "360: portal sin red, HUD sin texto cortado ni esquinas solapadas",
+          "ok": true,
+          "cortados": [],
+          "solapes": []
+        },
+        {
+          "name": "360: SIN RED + «Sincronizado ✓»",
+          "ok": true,
+          "cortados": [],
+          "solapes": [],
+          "bandaAlto": 83,
+          "banda": "SIN RED · trabajando con datos guardados en este equipo (escenario CENEPRED del 16/10/2026) Sincronizado ✓",
+          "red": "SIN RED",
+          "chip": "Fuente: CENEPRED/SIGRID 23077 · 16/10/2026",
+          "leyenda": "Exposición a inundaciones Muy alto Alto Medio Bajo Muy bajo Nivel referencial del escenario: no es pronóstico ni alerta"
+        },
+        {
+          "name": "360: ficha de fuente abierta con título, firma, descarga, IGN, OSIPTEL 2025-IV y SENAMHI VENCIDO",
+          "ok": true,
+          "dentro": true
+        }
+      ]
+    },
+    "1280": {
+      "checks": [
+        {
+          "name": "1280: SIN RED + «1 ficha pendiente de sincronizar», banda ≥ 32 px",
+          "ok": true,
+          "cortados": [],
+          "solapes": [],
+          "bandaAlto": 43,
+          "banda": "SIN RED · trabajando con datos guardados en este equipo (escenario CENEPRED del 16/10/2026) 1 ficha pendiente de sincronizar",
+          "red": "SIN RED",
+          "chip": "Fuente: CENEPRED/SIGRID 23077 · 16/10/2026",
+          "leyenda": "Exposición a inundaciones Muy alto Alto Medio Bajo Muy bajo Nivel referencial del escenario: no es pronóstico ni alerta"
+        },
+        {
+          "name": "1280: chip de fuente y leyenda con «no es pronóstico ni alerta»",
+          "ok": true,
+          "leyenda": "Exposición a inundaciones Muy alto Alto Medio Bajo Muy bajo Nivel referencial del escenario: no es pronóstico ni alerta"
+        },
+        {
+          "name": "1280: nada cortado en banda, cabecera y leyenda",
+          "ok": true,
+          "cortados": []
+        },
+        {
+          "name": "1280: portal sin red, HUD sin texto cortado ni esquinas solapadas",
+          "ok": true,
+          "cortados": [],
+          "solapes": []
+        },
+        {
+          "name": "1280: SIN RED + «Sincronizado ✓»",
+          "ok": true,
+          "cortados": [],
+          "solapes": [],
+          "bandaAlto": 43,
+          "banda": "SIN RED · trabajando con datos guardados en este equipo (escenario CENEPRED del 16/10/2026) Sincronizado ✓",
+          "red": "SIN RED",
+          "chip": "Fuente: CENEPRED/SIGRID 23077 · 16/10/2026",
+          "leyenda": "Exposición a inundaciones Muy alto Alto Medio Bajo Muy bajo Nivel referencial del escenario: no es pronóstico ni alerta"
+        },
+        {
+          "name": "1280: ficha de fuente abierta con título, firma, descarga, IGN, OSIPTEL 2025-IV y SENAMHI VENCIDO",
+          "ok": true,
+          "dentro": true
+        }
+      ]
+    }
+  }
+}

@@ -71,14 +71,23 @@ try {
   await entrar(page);
   const shell = await page.evaluate(() => ({
     tabs: [...document.querySelectorAll('.v3d-tabs [role=tab]')].map((b) => b.textContent.trim().replace(/\s+\d+$/, '')),
-    ventana: document.querySelector('.v3d-ventana')?.textContent.trim(),
+    // C2: el pronóstico SENAMHI (con VIGENTE/VENCIDO) vive en la ficha de fuente; la cabecera lleva el chip de fuente.
+    ventana: document.querySelector('[data-fuente-ficha] [data-senamhi]')?.textContent.trim(),
+    chip: document.querySelector('.v3d-top [data-fuente]')?.textContent.trim(),
     capas: [...document.querySelectorAll('.v3d-capa')].map((l) => l.dataset.capa),
     red: document.querySelector('[data-red]')?.textContent,
     graficos: document.querySelectorAll('.v3d-graf').length,
   }));
-  check('(p1) shell: pestañas Escenario · Campo · Relevo, ventana SENAMHI, capas reales y 3 gráficos', shell.tabs.join('|') === 'Escenario|Campo|Relevo' && /SENAMHI/.test(shell.ventana) && shell.capas.includes('cenepred') && shell.capas.includes('terreno') && shell.graficos === 3, { ...shell, ms: Date.now() - t0 });
   await page.waitForTimeout(5500);
   await shot(page, '1-regional');
+  await page.click('.v3d-top [data-fuente]');
+  await page.waitForTimeout(200);
+  const ficha = await page.evaluate(() => { const d = document.querySelector('[data-fuente-ficha]'); return { abierta: d.open, txt: d.innerText }; });
+  await shot(page, '5-ficha-fuente');
+  await page.keyboard.press('Escape');
+  const cerrada = await page.evaluate(() => !document.querySelector('[data-fuente-ficha]').open);
+  const okFicha = ficha.abierta && cerrada && /SIGRID 23077/.test(ficha.txt) && /16\/10\/2026/.test(ficha.txt) && /Descargado/.test(ficha.txt) && /IGN/.test(ficha.txt) && /OSIPTEL[^]*2025-IV/.test(ficha.txt) && /Nivel referencial del escenario: no es pronóstico ni alerta/.test(ficha.txt);
+  check('(p1) shell: pestañas Escenario · Campo · Relevo, ventana SENAMHI (en la ficha de fuente), chip de fuente, capas reales y 3 gráficos', shell.tabs.join('|') === 'Escenario|Campo|Relevo' && /SENAMHI/.test(shell.ventana) && shell.chip === 'Fuente: CENEPRED/SIGRID 23077 · 16/10/2026' && okFicha && shell.capas.includes('cenepred') && shell.capas.includes('terreno') && shell.graficos === 3, { ...shell, okFicha, ms: Date.now() - t0 });
 
   // (2) capas: casilla y opacidad conectadas a la escena
   if (VP_NAME === 'android') { await page.click('.v3d-abrir-cajon'); await page.waitForTimeout(300); }
@@ -156,9 +165,11 @@ try {
   await entrar(page);
   await page.evaluate(() => { const t = window.__yaku3dUI.tienda; t.seleccionar(t.centros.find((c) => c.cg === false && c.r >= 4)); });
   await page.waitForTimeout(6000);
-  const off = await page.evaluate(() => ({ red: document.querySelector('[data-red]').textContent, hud: document.querySelector('.v3d-portal').innerText.includes('SIN RED'), terreno: window.__yaku3dUI.escena.tieneTerreno() }));
+  const off = await page.evaluate(() => { const b = document.querySelector('.v3d-banda'); return { red: document.querySelector('[data-red]').textContent, hud: document.querySelector('.v3d-portal').innerText.includes('SIN RED'), terreno: window.__yaku3dUI.escena.tieneTerreno(),
+    banda: b && !b.hidden ? b.innerText.replace(/\s+/g, ' ').trim() : '', bandaAlto: b ? Math.round(b.getBoundingClientRect().height) : 0 }; });
   await shot(page, '4-sin-red');
-  check('(p8) sin red: interfaz y portal cargan del service worker, relieve activo, HUD «SIN RED», 0 peticiones externas', off.red === 'SIN RED' && off.hud && off.terreno && externas.length === 0, { ...off, externas: externas.slice(0, 3) });
+  const okBanda = off.bandaAlto >= 32 && off.banda.includes('SIN RED · trabajando con datos guardados en este equipo (escenario CENEPRED del 16/10/2026)') && /(Sincronizado ✓|pendientes? de sincronizar)/.test(off.banda);
+  check('(p8) sin red: interfaz y portal cargan del service worker, relieve activo, HUD «SIN RED», banda ≥ 32 px con cola de sync, 0 peticiones externas', off.red === 'SIN RED' && off.hud && off.terreno && okBanda && externas.length === 0, { ...off, externas: externas.slice(0, 3) });
   await ctx.setOffline(false);
 
   const prohibidos = await sinProhibidos(page);
