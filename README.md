@@ -1,79 +1,73 @@
-# Yaku Relay — prototipo de validación offline + QR (desechable)
+# Yaku Relay — prototipo de validación (rama conceptual `rediseno-mapa`)
 
-Objetivo: medir dos riesgos técnicos antes de aprobar la idea: **(1) offline real de una PWA** (segunda apertura sin red) y **(2) transferencia de registros estructurados por QR** (tamaño, fragmentación, lectura). No es el MVP.
+Prototipo **técnico y desechable** que mide dos riesgos: **(1) offline real** (segunda apertura sin red, incluido el mapa y sus capas) y **(2) relevo de registros estructurados por QR** entre equipos sin internet, con consolidación diferida. Nada de esto está aprobado como producto.
 
-Público (HTTPS, Cloudflare Pages): https://yaku-relay-proto.pages.dev/
+- Rediseño (rama de Pages `rediseno-mapa`): https://rediseno-mapa.yaku-relay-proto.pages.dev/
+- Producción anterior (`main`, sin cambios): https://yaku-relay-proto.pages.dev/
 
 ## Cómo correrlo
 ```bash
-npm install
-npm run dev            # http://localhost:5173 (el SW solo se activa en build/preview)
+npm ci                 # lockfile compatible con npm 10
+npm run dev            # http://localhost:5173 (sin service worker)
 npm run build && npm run preview   # http://localhost:4173 con service worker
-npm test               # build + vitest (unidad + verificación del bundle)
-npm run measure:qr     # round-trip QR real → results/qr-measure.{json,md}
-npm run e2e            # build + Playwright/Chrome headless → results/e2e.json
-BASE_URL=https://yaku-relay-proto.pages.dev/ node scripts/e2e.mjs   # mismo E2E contra producción
-node scripts/build-worker.mjs      # empaqueta dist/ en deploy/_worker.js (Pages advanced mode)
+npm test               # build + vitest (codec, IndexedDB, Worker+D1 falso, bundle)
+npm run e2e            # Playwright, viewport Android 412x915 → results/e2e-android.json
+npm run e2e:desktop    # 1280x800 → results/e2e-desktop.json
+BASE_URL=https://rediseno-mapa.yaku-relay-proto.pages.dev/ node scripts/e2e.mjs   # remoto con D1 real
+npm run measure:qr     # tabla payload/QR → results/qr-measure.md
+npm run prep:data      # recorta/simplifica capas desde ../data → public/data
+npm run screens        # capturas → results/screens/despues-*.png
+CF_BRANCH=rediseno-mapa npm run build:worker   # dist/ → deploy/_worker.js + deploy/deploy-code.js
 ```
+E2E: usa `/usr/bin/google-chrome` (o `CHROME=…`). Las pruebas locales interceptan `/api/*`; las remotas usan el Worker + D1 de verdad.
 
-## Flujo
-Formulario (tipo, severidad 1–3, lat/lon por GPS o manual, nota ≤140, ts, deviceId) → IndexedDB → seleccionar → **emitir**: QR (animado si no cabe) **o enlace relay** `#p=…` → **recibir**: cámara (selector de cámara, sirve webcam de laptop), **subir imagen/captura** del QR, o abrir el enlace → reensamblado + CRC32 + dedup por id → cola de sync al volver la red.
+## Qué hace (pestañas inferiores en móvil, panel lateral en escritorio)
+- **Mapa**: MapLibre GL empaquetado localmente, fondo liso (sin tiles ni fuentes remotas) y capas reales en EPSG:4326. La leyenda muestra fuente y fecha de cada capa. El mapa base OSM es opcional, está apagado por defecto y solo funciona con red.
+- **Registrar**: al abrir la pestaña y al guardar se toma el GPS de forma automática. El punto se ajusta arrastrando el marcador; las coordenadas manuales quedan plegadas como respaldo. Botones grandes para elegir tipo y severidad, más una nota opcional.
+- **Relevo**: QR (animado si no cabe en uno solo), enlace `#p=…` plegado, cámara (selector de cámara; el video aparece solo al iniciarla), subida de imagen o captura del QR y **barra de progreso** de fragmentos.
+- **Sync**: contadores **en relevo → consolidado**; consolida sola al volver la red. Ajustes y diagnóstico plegados: endpoint (`/api/sync` por defecto; `mock:local` solo aquí), caracteres por QR, deviceId, build, estado del service worker.
+- Los reportes ciudadanos llevan borde discontinuo ámbar y la etiqueta **NO VERIFICADO**; en el mapa son un punto ámbar con halo. La insignia de fuente solo aparece junto a las capas oficiales reales (leyenda y popups). Ya no hay plantilla «FUENTE OFICIAL». No se implementaron «zonas sin evaluar», que dependen de una decisión de producto.
 
-Todo reporte se muestra con borde discontinuo ámbar, rayado y la etiqueta **NO VERIFICADO** + «Reporte ciudadano»; la plantilla de datos oficiales usa borde sólido azul y «FUENTE OFICIAL» (no se carga ningún dato oficial en el prototipo). La app no afirma que una ruta sea transitable sin riesgo; `tests/bundle.test.ts` falla si el bundle contiene esas frases (con control negativo comprobado).
+## Capas (results/data-prep.json)
+| Capa | Fuente | Fecha | Original → empaquetado |
+|---|---|---|---|
+| Pronóstico SENAMHI: aviso de activación de quebradas 24 h (55 polígonos; Nivel 2: 43, Nivel 3: 12). **NIVEL = nivel de aviso, no profundidad** | SENAMHI vía geoservicio INDECI (`SDE.SENAMHI_AvisoActQuebrada24H`) | aviso 15/10/2026; descargado 17/10/2026 | (piura_minimo 806 766 B) → 20 217 B |
+| SIGRID: áreas expuestas a erosión (69) | CENEPRED/SIGRID (informes INGEMMET y otros) vía INDECI | documentos 2019–2024 | 2 950 745 B → 78 070 B + 18 497 B (centroides para zoom < 11) |
+| Límite departamental de Piura | INDECI LimitesAdministrativos | descargado 17/10/2026 | → 9 633 B |
 
-## Decisiones (cada librería tiene una función medible)
+Se simplificaron con mapshaper (`-clean`, Douglas-Peucker con `keep-shapes`) y se dejaron solo los campos necesarios. Las capas van en el precache del service worker.
+
+## Backend (Cloudflare Pages advanced mode `_worker.js` + D1)
+- `POST /api/sync` `{records:[…]}`: valida cada registro y **recalcula el id desde el contenido** (rechaza manipulados), luego hace `INSERT OR IGNORE` en `reports(id PRIMARY KEY, …, verified=0, received_at)`. Responde `{accepted, inserted, duplicates, rejected}`.
+- `GET /api/stats`, `GET /api/reports?limit=50` o `?ids=a,b,c`.
+- D1 `yaku-relay-proto-db` enlazado como `DB` (producción y preview). **Sin autenticación ni límite de tasa**: es un endpoint público de prueba. Contiene registros de prueba de los E2E remotos.
+
+## Decisiones (cada pieza tiene una función medible)
 | Pieza | Por qué | Medición |
 |---|---|---|
-| Vite + TS vanilla | Bundle mínimo, sin framework | JS 219 KB (79 KB gzip) |
-| vite-plugin-pwa (Workbox generateSW) | Precache del app shell + `navigateFallback` | E2E (a) y (f): carga sin red y con servidor apagado |
-| idb | Wrapper fino de IndexedDB con transacciones | `putIfAbsent` dedup, tests db |
-| Formato posicional `[v, tsBase, [[id,tipo,sev,lat·1e5,lon·1e5,Δts,dev,nota]]]` | Quita nombres de campo; ts relativo | JSON 183 B → 108 B por registro |
-| pako `deflateRaw` (nivel 9) | Síncrono y igual en Node y navegador (CompressionStream es async y difiere entre motores) | 20 reg.: 1650 → 655 B |
-| Base45 (RFC 9285) + modo alfanumérico QR | 8,25 bits/byte vs 10,67 de base64 en modo byte | 20 reg.: v21 vs v24 (b64url) vs v34 (JSON crudo) |
-| Fragmento `YR1:<msg>:<i>:<n>:<crc>:<datos>` | Reensamblado en cualquier orden, repetidos, mensajes intercalados | tests de reensamblado |
-| CRC32 sobre bytes comprimidos + id = hash(cyrb53) del contenido | Integridad + dedup; si el id no coincide con el contenido el registro se rechaza | tests de manipulación |
-| qrcode | Genera QR con segmento alfanumérico forzado y ECC M | versión reportada |
-| BarcodeDetector → fallback jsQR (empaquetado, sin CDN) | BarcodeDetector nativo en Chrome Android; jsQR en desktop/iOS | E2E (d) usó jsQR |
-| Enlace `#p=` (base64url) | El fragmento no viaja al servidor; funciona offline vía SW | E2E (b) |
-| Sync `POST text/plain` | Evita preflight CORS; idempotente por id | E2E (e) |
+| Vite + TS vanilla, CSS propio | Sin framework UI | JS 1,29 MB (370 KB gzip) + worker de MapLibre 508 KB (144 KB gzip); precache total 1,99 MB, 15 entradas |
+| MapLibre GL JS 6.14 (la 5.x tenía el aviso crítico GHSA-jrc7-96c5-q579; el worker se empaqueta con `setWorkerUrl`) | Mapa vectorial WebGL sin tiles obligatorios | E2E (m): capas renderizadas sin red, 0 hosts remotos |
+| vite-plugin-pwa / Workbox | Precache de app, mapa y GeoJSON; `navigateFallback` (excepto `/api/`) | E2E (a) y (f): con el servidor apagado, la app y el mapa cargan |
+| idb | IndexedDB con dedup `putIfAbsent` | tests db |
+| Formato posicional + pako `deflateRaw` + Base45/alfanumérico + CRC32 | Ver results/qr-measure.md | 20 registros → 655 B → QR v21 (v34 con JSON crudo) |
+| qrcode / jsQR (BarcodeDetector cuando existe) | Generar y leer QR offline | E2E (c) y (d) |
+| mapshaper (solo desarrollo) | Reparar y simplificar geometrías | 3,76 MB → 126 KB |
 
-Chunk por defecto: 450 chars → QR v13 (69×69 módulos), elegido por legibilidad en cámara; ajustable en la UI.
-Hash cyrb53 (53 bits, no criptográfico) porque `crypto.subtle` exige contexto seguro. **No hay firma**: cualquiera puede fabricar reportes (riesgo abierto).
-
-## Mediciones (reales, en el box, Chrome 155 headless)
-Ver `results/`. Muestras sintéticas de Piura con notas repetidas → la compresión es **optimista** frente a notas reales únicas.
-
-`results/qr-measure.md` (round-trip PNG → jsQR → reensamblado):
-Chunk 450 chars/QR, ECC M. "v—" = no cabe en un QR (máx. v40).
-
-| N | JSON verboso B | JSON posicional B | deflate B | base45 chars | 1 QR base45/alnum | 1 QR b64url/byte | 1 QR JSON/byte | fragmentos (450) | versión máx frag | decode jsQR 4px | decode 2px | reensamblado | ms jsQR total |
-|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|:-:|:-:|:-:|--:|
-| 1 | 183 | 108 | 98 | 147 | v7 | v8 | v7 | 1 | v7 | ✅ | ✅ | ✅ | 27.4 |
-| 5 | 854 | 422 | 280 | 420 | v13 | v15 | v16 | 1 | v13 | ✅ | ✅ | ✅ | 16.8 |
-| 10 | 1705 | 830 | 412 | 618 | v16 | v18 | v23 | 2 | v13 | ✅ | ✅ | ✅ | 15.4 |
-| 20 | 3406 | 1650 | 655 | 983 | v21 | v24 | v34 | 3 | v13 | ✅ | ✅ | ✅ | 19.6 |
-| 50 | 8519 | 4110 | 1326 | 1989 | v31 | v35 | v— | 5 | v13 | ✅ | ✅ | ✅ | 36 |
-
-E2E (`results/e2e.json` local; `results/e2e-remote.json` contra pages.dev): (a) offline recarga + nueva pestaña, (b) enlace relay entre dos contextos con dedup, (c) subir imágenes de QR fragmentado, (d) cámara simulada (Chrome fake device con video Y4M de QR animado), (e) sync diferida idempotente, (f) servidor apagado.
+## Licencias y atribuciones
+- MapLibre GL JS: BSD-3-Clause (© MapLibre contributors, © Mapbox). qrcode: MIT. jsQR: Apache-2.0. pako: MIT y Zlib. idb: ISC. Workbox y vite-plugin-pwa: MIT. mapshaper (herramienta de desarrollo): MPL-2.0. Playwright: Apache-2.0.
+- OpenStreetMap (opcional, en línea): © colaboradores de OpenStreetMap, ODbL; teselas sujetas a la política de uso de tile.openstreetmap.org.
+- Datos: SENAMHI y CENEPRED/SIGRID obtenidos a través del geoservicio de INDECI; límites de INDECI. Los servicios **no declaran licencia**. SIGRID indica «libre acceso… con crédito a los autores». Atribución visible en la leyenda y en el control de atribución del mapa. Detalle en `../data/RESUMEN_DATOS.md`.
 
 ## Qué NO se probó (pendiente en hardware real)
-- Cámara física, enfoque, reflejos de pantalla, distancia, QR animado entre dos teléfonos.
-- Chrome Android (BarcodeDetector real), Safari iOS (no tiene BarcodeDetector; jsQR), Firefox.
-- Permiso de cámara en modo avión, instalación PWA, desalojo de almacenamiento (iOS borra datos tras días sin uso).
-- GPS real. Backend persistente: `/api/sync` en Pages es un **eco sin persistencia**.
+Cámara física y QR animado entre teléfonos; BarcodeDetector real (Chrome Android); iOS Safari; Brave Android; GPS real y su precisión; permiso de cámara en modo avión; instalación como PWA; desalojo de almacenamiento; rendimiento de WebGL en gama baja.
 
 ## Checklist manual con 2 teléfonos (A emite, B recibe)
-1. [ ] En ambos, con datos/Wi-Fi: abrir https://yaku-relay-proto.pages.dev/ , esperar 5 s (SW instalado). Opcional: «Agregar a pantalla de inicio».
-2. [ ] Modo avión en ambos. Cerrar la pestaña/app por completo y **volver a abrirla** → ¿carga completa? ¿indicador «SIN RED»?
-3. [ ] En A: «Usar GPS» en modo avión → ¿obtiene posición (GPS sin red) o hay que ingresar manual? Anotar precisión ±m y tiempo.
-4. [ ] En A: crear 1 registro → «Generar QR». En B: «Iniciar cámara» → **¿pide permiso de cámara en modo avión? ¿lo concede?** ¿Lee el QR? Anotar segundos.
-5. [ ] Crear 10–20 registros en A, generar QR animado (2–3 fragmentos) → ¿B completa el reensamblado? Segundos. Probar chunk 300 y 800.
-6. [ ] En B, volver a leer el mismo QR → debe decir «0 nuevos · N duplicados».
-7. [ ] Fallback: captura de pantalla del QR en A, enviarla a B (o laptop) → «subir imagen». Enlace relay: copiar y abrir en B.
-8. [ ] En B: cerrar y reabrir en modo avión → ¿siguen los registros recibidos?
-9. [ ] Desactivar modo avión en B con endpoint `/api/sync` o `mock:local` → ¿pasan a «sincronizado» solos?
-10. [ ] Laptop con webcam (para jurado): abrir la URL, elegir cámara en el selector, leer el QR del teléfono.
-11. [ ] Anotar modelo, SO y navegador de cada teléfono + resultados.
-
-## Despliegue
-`scripts/build-worker.mjs` embebe `dist/` en un `_worker.js` (Pages advanced mode) y genera `deploy/deploy-code.js`, que se ejecutó con el conector Cloudflare (API de Pages, proyecto `yaku-relay-proto`). No hay claves en ningún archivo.
+1. [ ] Con red, abrir la URL en ambos y esperar unos 5 s.
+2. [ ] Modo avión en ambos, cerrar la app por completo y **reabrirla**. ¿Carga con el **mapa y sus capas**? ¿Dice «SIN RED»?
+3. [ ] A → Registrar: ¿se toma el GPS solo en modo avión? Precisión ±m y tiempo. Arrastrar el marcador y guardar.
+4. [ ] A → Relevo → «Mostrar QR». B → «Escanear QR con cámara»: **¿pide permiso de cámara en modo avión? ¿Se puede conceder?** Medir los segundos.
+5. [ ] Con 10 a 20 registros, QR animado: ¿la barra de progreso de B llega a completo? Probar 300, 450 y 800 caracteres por QR (en Ajustes).
+6. [ ] Releer el mismo QR → «0 nuevos · N duplicados».
+7. [ ] Respaldos: captura subida como imagen, enlace relay y webcam de laptop (selector de cámara).
+8. [ ] Quitar el modo avión en B: ¿pasan de «en relevo» a «consolidado»? ¿Sube el contador de la pestaña Sync?
+9. [ ] Anotar modelo, sistema y navegador.

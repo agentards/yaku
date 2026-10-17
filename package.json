@@ -1,7 +1,7 @@
 {
   "name": "yaku-relay-proto-offline-qr",
   "version": "1.0.0",
-  "description": "",
+  "description": "Prototipo de validación Yaku Relay: PWA offline + relevo QR + mapa Piura",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
