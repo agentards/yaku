@@ -1,0 +1,10 @@
+/* Conmutador 2D|3D (tema crema + acento naranja de la vista 3D). */
+.v3d-conmutador { display: flex; flex-direction: column; position: relative; }
+.v3d-conmutador button { width: 29px; height: 29px; font: 700 11px/1 system-ui, sans-serif; letter-spacing: .02em; color: #3b3328; background: #fbf7ef; }
+.v3d-conmutador.maplibregl-ctrl-group button[aria-pressed="true"]:not(:disabled) { background: #c9541f; color: #fff; }
+.v3d-conmutador button:focus-visible { outline: 2px solid #c9541f; outline-offset: -2px; }
+.v3d-conmutador.maplibregl-ctrl-group[data-cargando] button[data-modo="3d"]:not(:disabled) { background: repeating-linear-gradient(-45deg, #fbf7ef 0 4px, #f0dcc8 4px 8px); }
+.v3d-conmutador[data-dem="guardado"] button[data-modo="3d"]::after { content: ""; position: absolute; right: 3px; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: #3f7d4e; }
+.v3d-conmutador button[data-modo="3d"] { position: relative; }
+.v3d-aviso { position: absolute; right: 36px; top: 0; width: max-content; max-width: min(260px, 70vw); padding: 6px 9px; border-radius: 6px; background: #fbf7ef; color: #3b3328; font: 12px/1.35 system-ui, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.v3d-aviso[hidden] { display: none; }

@@ -5,11 +5,10 @@
 import * as maplibregl from 'maplibre-gl';
 import { PMTiles } from 'pmtiles';
 import { BlobOrFetchSource, cachedBasemap, downloadBasemap, type CacheLike } from '../basemap';
-import { DEM, DEM_CACHE } from './config';
+import { DEM, DEM_CACHE, DEM_PROTOCOL, DEM_SOURCE_URL } from './config';
 
+export { DEM_PROTOCOL, DEM_SOURCE_URL };
 export const DEM_URL = new URL(DEM.file, location.origin + '/').href;
-export const DEM_PROTOCOL = 'yakudem';
-export const DEM_SOURCE_URL = `${DEM_PROTOCOL}://piura`;
 
 export type DemEstado = 'sin-iniciar' | 'comprobando' | 'descargando' | 'guardado' | 'sin-red' | 'error' | 'no-soportado';
 export const demInfo = { estado: 'sin-iniciar' as DemEstado, cargado: 0, ms: 0, desdeCache: false, msg: '' };
@@ -40,10 +39,14 @@ export function registrarProtocoloDem() {
 }
 
 let guardando: Promise<boolean> | null = null;
+const oyentes = new Set<() => void>();
+/** Avisa cada cambio de demInfo (progreso de descarga, guardado, sin red). Devuelve la baja. */
+export function onDemCambio(cb: () => void) { oyentes.add(cb); return () => oyentes.delete(cb); }
 /** Guarda el DEM completo para uso sin red (una vez). Devuelve true si queda disponible desde la copia local. */
-export function guardarDem(onCambio: () => void = () => {}, cacheP: Promise<CacheLike> = 'caches' in self ? caches.open(DEM_CACHE) : Promise.reject(new Error('sin Cache Storage'))): Promise<boolean> {
+export function guardarDem(onCambio?: () => void, cacheP: Promise<CacheLike> = 'caches' in self ? caches.open(DEM_CACHE) : Promise.reject(new Error('sin Cache Storage'))): Promise<boolean> {
+  if (onCambio) oyentes.add(onCambio);
   if (guardando) return guardando;
-  const set = (e: Partial<typeof demInfo>) => { Object.assign(demInfo, e); onCambio(); };
+  const set = (e: Partial<typeof demInfo>) => { Object.assign(demInfo, e); oyentes.forEach((cb) => cb()); };
   guardando = (async () => {
     set({ estado: 'comprobando' });
     let cache: CacheLike;
@@ -68,7 +71,7 @@ export function guardarDem(onCambio: () => void = () => {}, cacheP: Promise<Cach
 
 /** Antes de pedir la primera tesela se consulta la copia guardada (apertura sin red = lectura del Blob). */
 export function prepararFuenteDem(cacheP?: Promise<CacheLike>) {
-  fuente.ready = guardarDem(() => {}, cacheP).catch(() => false);
+  fuente.ready = guardarDem(undefined, cacheP).catch(() => false);
   return fuente.ready;
 }
 export const demFuente = () => ({ rangeRequests: fuente.rangeRequests, blobReads: fuente.blobReads, hasBlob: !!fuente.blob });

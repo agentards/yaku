@@ -11,6 +11,7 @@ import { listCameras, startCamera, scanLoop, decodeImageFile, type ScanStats } f
 import { OFFICIAL_LAYERS, forecastStatus } from './layers';
 import { initMap, setVisible, setCenepredSinCobertura, setCitizen, placeDraft, draftPos, centerOf, getMap, mapLoaded, startBasemapOffline, basemapInfo, BASEMAP, type BasemapStatus } from './map';
 import { fmtMB } from './basemap';
+import { montarVista3D } from './vista3d/conmutador';
 import { FEAT, PHASE } from './features';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -54,6 +55,7 @@ renderNet();
 
 // ---------- mapa + leyenda ----------
 initMap($('map'));
+montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
 const legend = $('legend');
 for (const l of OFFICIAL_LAYERS) {
   const li = document.createElement('li');

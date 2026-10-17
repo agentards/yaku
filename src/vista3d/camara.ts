@@ -29,13 +29,13 @@ export const duracionVuelo = (km: number) => Math.round(Math.min(7000, Math.max(
 
 export interface Plan { regional: Vista & { duration: number }; acercamiento: Vista & { duration: number }; orbita: { gradosPorS: number; rampaS: number } }
 
-/** Plan del recorrido hacia un objetivo. El acercamiento gira ~35° respecto de la vista regional (giro suave). */
-export function planRecorrido(objetivo: LngLat, desde: LngLat = VISTA_REGIONAL.center): Plan {
+/** Plan del recorrido hacia un objetivo. El acercamiento gira ~35° respecto del rumbo de partida (giro suave). */
+export function planRecorrido(objetivo: LngLat, desde: LngLat = VISTA_REGIONAL.center, rumboDesde = VISTA_REGIONAL.bearing): Plan {
   const regional = { ...VISTA_REGIONAL, duration: 4200 };
   const km = distanciaKm(desde, objetivo);
   return {
     regional,
-    acercamiento: { center: objetivo, zoom: 11.6, pitch: 64, bearing: normalizarRumbo(regional.bearing + 35), duration: duracionVuelo(km) },
+    acercamiento: { center: objetivo, zoom: 11.6, pitch: 64, bearing: normalizarRumbo(rumboDesde + 35), duration: duracionVuelo(km) },
     orbita: { gradosPorS: 5, rampaS: 2 },
   };
 }
@@ -53,6 +53,7 @@ export interface MapaCamara {
   once(ev: 'moveend', cb: () => void): unknown;
   jumpTo(o: { bearing: number }): unknown;
   getBearing(): number;
+  getCenter(): { lng: number; lat: number };
   stop(): unknown;
 }
 
@@ -62,34 +63,54 @@ const relojNavegador: Reloj = {
   caf: (id) => cancelAnimationFrame(id),
   ahora: () => performance.now(),
 };
+const movimientoReducido = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export class Recorrido {
   fase: Fase = 'inactivo';
   private token = 0;
   private rafId = 0;
   onFase: (f: Fase) => void = () => {};
-  constructor(private m: MapaCamara, private reloj: Reloj = relojNavegador) {}
+  constructor(private m: MapaCamara, private reloj: Reloj = relojNavegador, private reducido: () => boolean = movimientoReducido) {}
 
   private setFase(f: Fase) { this.fase = f; this.onFase(f); }
 
+  /** Vuela y resuelve al terminar (true) o al ser interrumpido (false). Red de seguridad por si moveend no llega. */
   private volar(v: Vista & { duration: number }, tok: number) {
+    const duration = this.reducido() ? 0 : v.duration;
     return new Promise<boolean>((res) => {
-      this.m.once('moveend', () => res(tok === this.token));
-      this.m.flyTo({ ...v, easing: easeInOutCubic, curve: 1.25, essential: true });
+      let hecho = false;
+      const fin = () => { if (!hecho) { hecho = true; clearTimeout(t); res(tok === this.token); } };
+      // Cortar antes cualquier vuelo en curso: su moveend no debe confundirse con el fin de este.
+      this.m.stop();
+      const t = setTimeout(fin, duration + 1500);
+      this.m.once('moveend', fin);
+      this.m.flyTo({ ...v, duration, easing: easeInOutCubic, curve: 1.25, essential: true });
     });
+  }
+
+  /** Solo el vuelo regional oblicuo con horizonte (entrada al 3D). */
+  async vistaRegional(): Promise<boolean> {
+    this.detener(false);
+    const tok = ++this.token;
+    this.setFase('regional');
+    const ok = await this.volar(planRecorrido(VISTA_REGIONAL.center).regional, tok);
+    if (ok) this.setFase('inactivo');
+    return ok;
   }
 
   /** Recorrido completo. Resuelve false si el usuario lo interrumpió. */
   async iniciar(objetivo: LngLat, { saltarRegional = false } = {}): Promise<boolean> {
     this.detener(false);
     const tok = ++this.token;
-    const plan = planRecorrido(objetivo);
+    const c = this.m.getCenter();
+    const plan = saltarRegional ? planRecorrido(objetivo, [c.lng, c.lat], this.m.getBearing()) : planRecorrido(objetivo);
     if (!saltarRegional) {
       this.setFase('regional');
       if (!(await this.volar(plan.regional, tok))) return false;
     }
     this.setFase('acercamiento');
     if (!(await this.volar(plan.acercamiento, tok))) return false;
+    if (this.reducido()) { this.setFase('inactivo'); return true; }
     this.orbitar(plan.orbita.gradosPorS, plan.orbita.rampaS, tok);
     return true;
   }

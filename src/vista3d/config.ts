@@ -14,6 +14,9 @@ export const DEM: BasemapFile = {
   build: 'Terrain Tiles (Mapzen/AWS) z5–9, descargado 17/10/2026',
 };
 export const DEM_CACHE = 'yaku-dem-v1';
+/** Protocolo propio de MapLibre para el DEM (src/vista3d/dem.ts): no pisa el pmtiles:// del mapa base. */
+export const DEM_PROTOCOL = 'yakudem';
+export const DEM_SOURCE_URL = `${DEM_PROTOCOL}://piura`;
 export const DEM_ATTRIBUTION = 'Relieve: Terrain Tiles (Mapzen/AWS Open Data) · SRTM, GMTED2010, ETOPO1';
 /** Bbox del recorte (agentards/scripts/lib/comun.mjs BBOX_PIURA). */
 export const DEM_BOUNDS: [number, number, number, number] = [-81.36, -6.4, -79.18, -4.05];
@@ -22,6 +25,8 @@ export const DEM_BOUNDS: [number, number, number, number] = [-81.36, -6.4, -79.1
 export const EXAGERACION = 1.6;
 export const PITCH_MAX_3D = 80;
 export const PITCH_MAX_2D = 60;
+/** Resolución máxima en 3D: en un celular con DPR 2,6 el terreno dibuja 3× menos píxeles y no se nota a la vista. */
+export const PIXEL_RATIO_MAX_3D = 1.5;
 
 /** Paleta cálida y desaturada (desierto costero → bosque seco → páramo), en la línea del tema crema de Yaku. */
 export const RELIEVE_COLORES: [number, string][] = [

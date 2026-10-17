@@ -12,6 +12,7 @@
     "e2e": "vite build && node scripts/e2e.mjs",
     "prep:data": "node scripts/prep-data.mjs",
     "e2e:desktop": "vite build && VIEWPORT=desktop node scripts/e2e.mjs",
+    "e2e:3d": "vite build && node scripts/e2e-3d.mjs",
     "screens": "node scripts/screens.mjs",
     "build:worker": "node scripts/build-worker.mjs"
   },
