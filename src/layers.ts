@@ -1,3 +1,4 @@
+import { FEAT } from './features';
 // Metadatos de capas oficiales reales (fuente y fecha visibles en la leyenda).
 export interface LayerMeta { id: string; titulo: string; tipo: string; fuente: string; fecha: string; nota: string; archivo: string; emision?: string; vigenciaH?: number }
 
@@ -31,6 +32,15 @@ export const OFFICIAL_LAYERS: LayerMeta[] = [
     nota: '69 zonas evaluadas en Piura. Muchas son pequeñas: a escala regional se muestran como puntos.',
     archivo: 'data/sigrid-erosion.geojson',
   },
+  ...(!FEAT.cenepred ? [] : [{
+    id: 'cenepred',
+    titulo: 'Escenario de riesgo CENEPRED/SIGRID 23077 (Aviso 421) · centros poblados del escenario CENEPRED',
+    tipo: 'Escenario de riesgo',
+    fuente: 'CENEPRED/SIGRID, anexo Excel del Aviso Meteorológico SENAMHI 421_2026; ubicación: IGN Centros Poblados',
+    fecha: 'Escenario 17–19/10/2026 · firmado 16/10/2026',
+    nota: '930 centros poblados con ubicación de 1.255 (los demás no tienen coordenadas en el dataset de Centros Poblados del IGN). Color = nivel de exposición a inundaciones del Excel. Es un escenario hipotético basado en un pronóstico: nivel de exposición, no profundidad de agua ni daños observados. Cubre los 23 distritos andinos de Ayabaca, Huancabamba, Morropón y Sullana.',
+    archivo: 'data/cenepred-ccpp.geojson',
+  }]),
   {
     id: 'limite',
     titulo: 'Límite departamental de Piura',
@@ -41,4 +51,8 @@ export const OFFICIAL_LAYERS: LayerMeta[] = [
     archivo: 'data/piura-limite.geojson',
   },
 ];
+/** Encuadre inicial: bbox de los 23 distritos andinos del escenario CENEPRED/SIGRID 23077 (Aviso 421;
+ * ../data/piura_cenepred_421.geojson) = [-80.77, -5.94, -79.21, -4.08]; el margen lo da fitBoundsOptions.padding. */
+export const CENEPRED_23077_BOUNDS: [[number, number], [number, number]] = [[-80.77, -5.94], [-79.21, -4.08]];
+export const CENEPRED_FIT_PADDING = 24;
 export const PIURA_BOUNDS: [[number, number], [number, number]] = [[-81.45, -6.4], [-79.1, -4.0]];

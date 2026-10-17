@@ -9,7 +9,9 @@ import { all, putIfAbsent, clearAll, type Source, type StoredObs } from './db';
 import { flushQueue, serverStats, MOCK_ENDPOINT, DEFAULT_ENDPOINT } from './sync';
 import { listCameras, startCamera, scanLoop, decodeImageFile, type ScanStats } from './scanner';
 import { OFFICIAL_LAYERS, forecastStatus } from './layers';
-import { initMap, setVisible, setCitizen, placeDraft, draftPos, centerOf, getMap, mapLoaded } from './map';
+import { initMap, setVisible, setCenepredSinCobertura, setCitizen, placeDraft, draftPos, centerOf, getMap, mapLoaded, startBasemapOffline, basemapInfo, BASEMAP, type BasemapStatus } from './map';
+import { fmtMB } from './basemap';
+import { FEAT, PHASE } from './features';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -67,8 +69,40 @@ for (const l of OFFICIAL_LAYERS) {
     <span class="badge-source">${esc(l.tipo)} · ${esc(l.fuente)}</span><br>
     <small>${esc(l.fecha)}. ${esc(l.nota)}</small>
     ${l.id === 'senamhi' ? '<br><small class="keys"><span class="k k3"></span>Nivel 3 <span class="k k2"></span>Nivel 2</small>' : ''}</span></label>`;
+  if (l.id === 'cenepred') li.insertAdjacentHTML('beforeend', `
+    ${FEAT.osiptel ? `<label class="layer-toggle sub"><input type="checkbox" id="cenepred-sincob" /> <span>Solo sin cobertura garantizada según OSIPTEL <small id="cenepred-sincob-n">(445 de 928 centros poblados del escenario CENEPRED con dato OSIPTEL; cobertura declarada por operadoras. 2 van como «sin dato OSIPTEL» y no entran en el filtro)</small></span></label>` : ''}
+    <details class="fold" id="cenepred-sin-ubicar"><summary>Sin ubicar (…)</summary>
+      <p><small>Filas del Excel de CENEPRED sin coordenadas en el dataset de Centros Poblados del IGN: no se pueden dibujar.</small></p>
+      <div class="table-wrap"><table><thead><tr><th>Centro poblado</th><th>Distrito</th><th>Población</th><th>Nivel</th></tr></thead><tbody></tbody></table></div>
+    </details>
+    ${FEAT.osiptel ? '<small class="osiptel-attrib">Cobertura móvil: OSIPTEL, «Porcentaje de cobertura móvil por centro poblado, empresa operadora y tecnología» (datosabiertos.gob.pe, ODC-By), información 2025-IV.</small>' : ''}`);
   legend.append(li);
 }
+if (FEAT.osiptel) $<HTMLInputElement>('cenepred-sincob').onchange = (e) => setCenepredSinCobertura((e.target as HTMLInputElement).checked);
+// Lista «Sin ubicar»: JSON precacheado por el service worker (funciona sin red)
+if (FEAT.cenepred) fetch('data/cenepred-sin-ubicar.json').then((r) => r.json()).then((j: { sinUbicar: number; filas: { n: string; d: string; pob: number; niv: string }[] }) => {
+  const det = $('cenepred-sin-ubicar');
+  det.querySelector('summary')!.textContent = `Sin ubicar (${j.sinUbicar})`;
+  det.querySelector('tbody')!.innerHTML = j.filas.map((f) => `<tr><td>${esc(f.n)}</td><td>${esc(f.d)}</td><td>${esc(f.pob)}</td><td>${esc(f.niv)}</td></tr>`).join('');
+  det.dataset.rows = String(j.filas.length);
+}).catch(() => { $('cenepred-sin-ubicar').querySelector('summary')!.textContent = 'Sin ubicar (lista no disponible)'; });
+// ---------- mapa base: estado de guardado sin red ----------
+function renderBasemap(s: BasemapStatus) {
+  const txt = s.state === 'saved' ? `Mapa base guardado sin red · ${fmtMB(s.total)}`
+    : s.state === 'downloading' ? `Guardando mapa base para usar sin red… ${Math.floor((100 * (s.loaded ?? 0)) / s.total)} % (${fmtMB(s.loaded ?? 0)} de ${fmtMB(s.total)})`
+    : s.state === 'checking' ? 'Mapa base: comprobando copia sin red…'
+    : s.state === 'offline-missing' ? 'Mapa base aún no guardado: se guardará al volver la conexión'
+    : s.state === 'unsupported' ? 'Este navegador no permite guardar el mapa base sin red'
+    : `No se pudo guardar el mapa base (${s.msg ?? 'error'}); se reintentará`;
+  for (const id of ['basemap-pill', 'basemap-status']) {
+    const el = $(id);
+    el.textContent = txt; el.dataset.state = s.state;
+    el.style.setProperty('--pct', s.state === 'saved' ? '100%' : `${Math.floor((100 * (s.loaded ?? 0)) / s.total)}%`);
+  }
+  $('basemap-pill').hidden = false;
+}
+startBasemapOffline(renderBasemap);
+$('basemap-detail').textContent = `Detalle hasta zoom ${BASEMAP.maxzoom} · ${fmtMB(BASEMAP.bytes)} · ${BASEMAP.build}.`;
 document.querySelectorAll<HTMLInputElement>('input[data-layer]').forEach((cb) => (cb.onchange = () => setVisible(cb.dataset.layer!, cb.checked)));
 
 // ---------- ubicación (GPS automático + marcador arrastrable + manual) ----------
@@ -96,7 +130,7 @@ function startLocate(force: boolean, timeout = 12000): Promise<void> {
       (p) => { if (!loc || loc.src === 'gps' || loc.src === 'centro' || force) setLoc(p.coords.latitude, p.coords.longitude, 'gps', p.coords.accuracy); res(); },
       (e) => {
         if (!loc) { const c = centerOf(); setLoc(c.lat, c.lon, 'centro', undefined, false); }
-        $('loc-status').textContent = `GPS no disponible (${e.code === 1 ? 'permiso denegado' : e.code === 3 ? 'tiempo agotado' : 'sin señal'}). ` + $('loc-status').textContent;
+        $('loc-status').textContent = `GPS no disponible (${e.code === 1 ? 'permiso denegado' : e.code === 3 ? 'tiempo agotado' : 'sin posición'}). ` + $('loc-status').textContent;
         res();
       },
       { enableHighAccuracy: true, timeout, maximumAge: 60000 },
@@ -348,7 +382,7 @@ async function renderDiag() {
 }
 $('diag').addEventListener('toggle', renderDiag);
 
-(window as any).__yaku = { all, getMap, mapLoaded };
+(window as any).__yaku = { all, getMap, mapLoaded, basemap: basemapInfo, phase: PHASE };
 (async () => {
   await importFromHash();
   await renderList();
@@ -356,11 +390,10 @@ $('diag').addEventListener('toggle', renderDiag);
   doSync('inicio');
 })();
 
-// Aviso cuando el usuario se acerca sin mapa base (el fondo es liso a propósito: funciona sin red)
+// Aviso cuando se acerca más allá del detalle del mapa base (las teselas se amplían, con menos detalle)
 getMap()?.on('zoomend', () => {
   const m = getMap()!;
-  const osm = m.getLayoutProperty('osm', 'visibility') === 'visible';
   const h = $('map-hint');
-  h.hidden = osm || m.getZoom() < 10;
-  h.textContent = 'Sin mapa base: fondo liso para funcionar sin red. Con conexión puede activar OpenStreetMap en «Mapa».';
+  h.hidden = m.getZoom() < BASEMAP.maxzoom + 2;
+  h.textContent = `Mapa base con detalle hasta zoom ${BASEMAP.maxzoom}: más cerca se amplía con menos detalle.`;
 });

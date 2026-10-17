@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+const PHASE = Number(process.env.VITE_PHASE ?? 3);
 
 export default defineConfig({
   define: { __BUILD__: JSON.stringify(new Date().toISOString()) },
@@ -10,7 +11,10 @@ export default defineConfig({
       injectRegister: false, // lo registramos en main.ts
       includeAssets: ['icon-192.png', 'icon-512.png'],
       workbox: {
-        globPatterns: ['**/*.{js,mjs,css,html,png,svg,webmanifest,geojson}'],
+        // Glyphs (.pbf) y sprites (.json/.png) del mapa base entran al precache (~0,9 MB).
+        // El .pmtiles NO: se guarda aparte, completo y con progreso visible (src/basemap.ts).
+        globPatterns: ['**/*.{js,mjs,css,html,png,svg,webmanifest,geojson,pbf,json}'],
+        globIgnores: ['**/*.pmtiles', ...(PHASE < 2 ? ['data/cenepred-*'] : [])],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // maplibre-gl ~1 MB
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//],

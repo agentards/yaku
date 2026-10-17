@@ -21,6 +21,7 @@
     <div id="mapwrap">
       <div id="map" role="region" aria-label="Mapa de Piura"></div>
       <div id="map-hint" class="map-hint" hidden></div>
+      <div id="basemap-pill" class="basemap-pill" role="status" aria-live="polite" hidden></div>
     </div>
 
     <aside id="panel">
@@ -41,10 +42,15 @@
             <span><b>Reportes ciudadanos</b> <span class="badge-unverified">NO VERIFICADO</span><br><small>Observaciones de este equipo y recibidas por relevo. No son alertas oficiales.</small></span>
           </label>
         </div>
-        <details class="fold">
-          <summary>Mapa base en línea (opcional)</summary>
-          <label class="layer-toggle"><input type="checkbox" data-layer="osm" /> <span>OpenStreetMap — requiere internet; sin red el mapa funciona sin fondo.</span></label>
-        </details>
+        <div class="legend-item basemap-legend">
+          <label class="layer-toggle"><input type="checkbox" data-layer="basemap" checked />
+            <span class="sw sw-basemap" aria-hidden="true"></span>
+            <span><b>Mapa base de referencia</b> (calles, ríos, costa, lugares)<br>
+              <small>© OpenStreetMap contributors (ODbL) · teselas Protomaps. No es información de riesgo.</small><br>
+              <small id="basemap-detail"></small><br>
+              <small id="basemap-status" class="basemap-status" aria-live="polite">…</small></span>
+          </label>
+        </div>
         <p class="disclaimer">Los reportes ciudadanos no están verificados y no indican qué caminos tomar. Las capas oficiales muestran avisos y zonas evaluadas, no la situación actual del terreno.</p>
       </section>
 
