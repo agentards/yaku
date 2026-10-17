@@ -26,7 +26,7 @@ export const OFFICIAL_LAYERS: LayerMeta[] = [
     id: 'erosion',
     titulo: 'SIGRID · áreas expuestas a erosión',
     tipo: 'Registro oficial',
-    fuente: 'CENEPRED/SIGRID (informes INGEMMET y otros), vía geoservicio INDECI',
+    fuente: 'SIGRID/CENEPRED, obtenida vía geoservicio de INDECI',
     fecha: 'Documentos 2019–2024 · descargado 17/10/2026',
     nota: '69 zonas evaluadas en Piura. Muchas son pequeñas: a escala regional se muestran como puntos.',
     archivo: 'data/sigrid-erosion.geojson',

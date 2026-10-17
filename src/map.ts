@@ -18,7 +18,7 @@ const style: StyleSpecification = {
     osm: { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, maxzoom: 19, attribution: '© colaboradores de OpenStreetMap' },
     limite: { type: 'geojson', data: 'data/piura-limite.geojson', attribution: 'Límite: INDECI' },
     senamhi: { type: 'geojson', data: 'data/senamhi-quebradas.geojson', attribution: 'Pronóstico: SENAMHI vía INDECI (15/10/2026)' },
-    erosion: { type: 'geojson', data: 'data/sigrid-erosion.geojson', attribution: 'Erosión: CENEPRED/SIGRID vía INDECI' },
+    erosion: { type: 'geojson', data: 'data/sigrid-erosion.geojson', attribution: 'Erosión: SIGRID/CENEPRED vía geoservicio de INDECI' },
     erosionPts: { type: 'geojson', data: 'data/sigrid-erosion-pts.geojson' },
     citizen: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
   },
