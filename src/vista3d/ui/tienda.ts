@@ -44,7 +44,9 @@ export class Tienda {
     this.resumen = resumen;
     this.recalcular();
   }
-  setReales(fs: Ficha[]) { this.reales = fs; this.recalcular(); }
+  /** true tras la primera lectura de IndexedDB (antes, la cola de sync aún no se conoce). */
+  realesLeidas = false;
+  setReales(fs: Ficha[]) { this.reales = fs; this.realesLeidas = true; this.recalcular(); }
   setDemo(on: boolean) {
     if (on === this.demo) return;
     this.demo = on;

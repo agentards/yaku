@@ -63,6 +63,7 @@ export function montarLinea(cont: HTMLElement, raiz: HTMLElement, tienda: Tienda
     const v = ventanaSenamhi(tienda.ahora());
     const banda = (el: HTMLElement, x0: number, x1: number) => { el.style.left = `${pct(x0)}%`; el.style.width = `${Math.max(0, pct(x1) - pct(x0))}%`; };
     banda($('[data-b=sen]'), v.desde, v.hasta);
+    $('[data-b=sen]').title = `Ventana del ${v.etiqueta}`;
     banda($('[data-b=esc]'), ESCENARIO_INICIO, ESCENARIO_FIN);
     eventos = eventosLinea(tienda);
     $('[data-ev]').innerHTML = eventos.map((e) => `<span class="ev ${e.tipo}" style="left:${pct(e.t).toFixed(3)}%" title="${esc(e.titulo)} · ${esc(fechaHora(e.t))}"></span>`).join('');

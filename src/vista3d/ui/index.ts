@@ -4,14 +4,15 @@ import './tema.css';
 import type { EscenaYaku, PuntoReporte } from './contrato';
 import { Tienda, type Pestana } from './tienda';
 import { cargarCentros, cargarResumen, estadoEn, fichasPorEstado, centrosConFicha } from './datos';
-import { ventanaSenamhi } from './tiempo';
 import { montarLinea } from './linea';
 import { montarPortal } from './portal';
 import { montarPanel } from './panel';
 import { montarRelevo } from './relevo';
 import { vigilarFichas } from './fichas-reales';
+import { montarBandaRed } from './red';
+import { chipFuenteHtml, leyendaHtml, montarFuente } from './fuente';
 import { IC } from './iconos';
-import { esc, num } from './formato';
+import { num } from './formato';
 
 export interface OpcionesVista3D {
   crearEscena: (cont: HTMLElement) => EscenaYaku;
@@ -27,14 +28,13 @@ export function montarInterfaz3D(opc: OpcionesVista3D) {
   const raiz = document.createElement('div');
   raiz.className = 'v3d';
   raiz.dataset.graficos = 'no';
-  const v = ventanaSenamhi();
   raiz.innerHTML = `
     <header class="v3d-top">
       <span class="v3d-logo">${IC.logo}Yaku 3D <small>relevo de campo</small></span>
       <span class="v3d-sep"></span>
       <span class="v3d-esc" title="Escenario de riesgo CENEPRED/SIGRID 23077">Piura · Aviso 421 / FEN 2027</span>
       <span class="v3d-lugar">23 distritos andinos · CENEPRED/SIGRID</span>
-      <span class="v3d-ventana" title="${esc(v.etiqueta)}">${IC.calendario}<span class="larga">Pronóstico SENAMHI</span> ${esc(v.fecha)} · 24 h <b class="${v.vencido ? 'vencido' : 'vigente'}">${v.vencido ? 'VENCIDO' : 'VIGENTE'}</b></span>
+      ${chipFuenteHtml()}
       <nav class="v3d-tabs" role="tablist" aria-label="Modo de la vista 3D">
         <button type="button" role="tab" data-tab="escenario" aria-selected="true" aria-controls="v3d-panel">${IC.capas}Escenario</button>
         <button type="button" role="tab" data-tab="campo" aria-selected="false" aria-controls="v3d-panel">${IC.campo}Campo <span class="n" data-n="campo" title="Centros poblados con ficha hasta el cabezal">0</span></button>
@@ -45,9 +45,11 @@ export function montarInterfaz3D(opc: OpcionesVista3D) {
         <button type="button" class="v3d-link2d" data-salir>Vista 2D</button>
       </span>
     </header>
+    <div data-banda-red hidden></div>
     <div class="v3d-escena" data-escena>
       <div class="v3d-mapa" data-mapa role="region" aria-label="Escena 3D de Piura"></div>
       <div class="v3d-ctrl ai"><button type="button" class="v3d-brujula" data-norte aria-label="Orientar al norte">${IC.norte}</button></div>
+      ${leyendaHtml()}
       <div class="v3d-ctrl ad">
         <span class="v3d-seg" role="group" aria-label="Vista"><button type="button" data-dim="2" aria-pressed="false">2D</button><button type="button" data-dim="3" aria-pressed="true">3D</button></span>
         <span class="v3d-chip" data-zoom title="Nivel de zoom">z8,1</span>
@@ -72,6 +74,8 @@ export function montarInterfaz3D(opc: OpcionesVista3D) {
 
   const escena = opc.crearEscena($('[data-mapa]'));
   const tienda = new Tienda(Date.now, navigator.onLine);
+  montarBandaRed($('[data-banda-red]'), raiz, tienda);
+  montarFuente($<HTMLButtonElement>('[data-fuente]'), raiz, tienda);
 
   // ---------- aviso breve (también para lectores de pantalla) ----------
   let tAviso = 0;

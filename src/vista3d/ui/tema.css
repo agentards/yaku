@@ -11,8 +11,8 @@ body.vista-3d > .top, body.vista-3d > #app { display: none !important; }
   --hud: #fbf6ec; --hud-dim: #e8dcc6; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --top: 46px; --r: 10px;
   position: fixed; inset: 0; z-index: 50; display: grid;
-  grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
-  grid-template-areas: "top" "escena" "linea";
+  grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "top" "banda" "escena" "linea";
   background: var(--bg); color: var(--ink); font: 13px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
   -webkit-text-size-adjust: 100%;
 }
@@ -32,11 +32,12 @@ body.vista-3d > .top, body.vista-3d > #app { display: none !important; }
 .v3d-logo small { font-weight: 500; font-size: 11px; color: var(--muted); }
 .v3d-sep { width: 1px; height: 20px; background: var(--line); }
 .v3d-esc { font-weight: 700; white-space: nowrap; }
-.v3d-lugar, .v3d-ventana { color: var(--ink-2); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
-.v3d-ventana svg { width: 14px; height: 14px; flex: none; }
-.v3d-ventana b { font-weight: 700; padding: 0 4px; border-radius: 3px; font-size: 10.5px; letter-spacing: .04em; }
-.v3d-ventana b.vencido { background: #ece6db; color: #4b4339; border: 1px solid #a99c86; }
-.v3d-ventana b.vigente { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+.v3d-lugar { color: var(--ink-2); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+/* C2: chip de fuente (abre la ficha) */
+.v3d-fuente { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 11px 0 8px; border-radius: 16px; border: 1px solid var(--line-2);
+  background: var(--card); color: var(--ink); font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.v3d-fuente svg { width: 16px; height: 16px; flex: none; color: var(--acc-ink); }
+.v3d-fuente:hover, .v3d-fuente[aria-expanded="true"] { background: var(--acc-bg); border-color: var(--acc); }
 .v3d-tabs { display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: #ebe4d6; }
 .v3d-tabs button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; cursor: pointer; font-weight: 600; color: var(--ink-2); }
 .v3d-tabs button svg { width: 14px; height: 14px; }
@@ -119,7 +120,7 @@ body.vista-3d > .top, body.vista-3d > #app { display: none !important; }
 .v3d-portal.cambiando .v3d-estatica { animation: v3d-estatica .55s steps(6) both; }
 @keyframes v3d-estatica { 0% { opacity: 1; background-position: 0 0; } 70% { opacity: .9; background-position: 0 40px; } 100% { opacity: 0; } }
 .v3d-pbar { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 6px 4px 10px; background: #24201b; border-top: 1px solid #ffffff1a; }
-.v3d-pbar .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 12.5px; }
+.v3d-pbar .t { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 700; font-size: 12.5px; line-height: 1.25; }
 .v3d-pbar .t small { font-weight: 500; color: var(--hud-dim); margin-left: 4px; }
 .v3d-pbar button { min-width: 32px; height: 30px; border: 0; border-radius: 6px; background: transparent; color: var(--hud); cursor: pointer; display: inline-grid; place-items: center; padding: 0 6px; }
 .v3d-pbar button:hover { background: #ffffff14; }
@@ -293,7 +294,7 @@ body.vista-3d > .top, body.vista-3d > #app { display: none !important; }
 
 /* ---------- escritorio ---------- */
 @media (min-width: 900px) {
-  .v3d { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "top top" "escena panel" "linea panel"; }
+  .v3d { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "top top" "banda banda" "escena panel" "linea panel"; }
   .v3d-top { flex-wrap: nowrap; }
   .v3d-panel { position: static; grid-area: panel; max-height: none; transform: none; visibility: visible; border-radius: 0; border-top: 0; border-left: 1px solid var(--line); box-shadow: none; transition: none; padding-bottom: 0; }
   .v3d-velo, .v3d-asa button, .v3d-asa::before, .v3d-abrir-cajon, .v3d-ver-graf { display: none !important; }
@@ -309,7 +310,7 @@ body.vista-3d > .top, body.vista-3d > #app { display: none !important; }
   .v3d-anclas { bottom: 30px; }
 }
 @media (max-width: 899px) {
-  .v3d-lugar, .v3d-sep, .v3d-top .v3d-ventana .larga { display: none; }
+  .v3d-lugar, .v3d-sep { display: none; }
   .v3d-tabs { order: 5; width: 100%; }
   .v3d-tabs button { flex: 1; justify-content: center; min-height: 36px; }
   .v3d-pista { margin-top: 20px; height: 42px; }
@@ -336,4 +337,72 @@ body.vista-3d > .top, body.vista-3d > #app { display: none !important; }
 @media (max-width: 899px) {
   .v3d-lcab .rango, .v3d-pbar [data-a="volar"], .v3d-pbar .z { display: none; }
   .v3d-pfuente { font-size: 10px; padding: 3px 10px 5px; }
+  /* 360 px: el HUD se parte en líneas en vez de cortarse o taparse; el título del portal va en su propia fila. */
+  .v3d-hud .mod { display: none; }
+  .v3d-hud.tl, .v3d-hud.tr, .v3d-hud.bl, .v3d-hud.br { max-width: calc(50% - 22px); white-space: normal; overflow-wrap: anywhere; overflow: visible; }
+  .v3d-pbar { flex-wrap: wrap; row-gap: 2px; }
+  .v3d-pbar .t { flex: 1 0 100%; padding-top: 2px; }
+  .v3d-hud .dim { white-space: nowrap; }
+  /* Con la banda SIN RED la escena es más baja: el visor cede alto para que la fuente del portal no quede tapada. */
+  .v3d-portal { max-height: calc(100% - 16px); }
+  .v3d-portal > * { flex: none; }
+  .v3d-portal > .v3d-visor { flex: 0 1 auto; min-height: 150px; }
+}
+/* Escritorio estrecho: el chip de fuente ocupa más que el viejo sello; se quita lo redundante y, si aun así no
+   cabe, la cabecera baja de línea en vez de empujar SIN RED / Vista 2D fuera de la pantalla. */
+@media (min-width: 900px) {
+  .v3d-top { flex-wrap: wrap; }
+}
+@media (min-width: 900px) and (max-width: 1499px) {
+  .v3d-lugar, .v3d-sep, .v3d-logo small { display: none; }
+}
+
+/* ---------- C1: banda de red y cola de sincronización ---------- */
+.v3d-banda { grid-area: banda; position: relative; z-index: 7; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 40px; padding: 6px 12px;
+  background: #2b2620; color: #fbf6ec; border-bottom: 3px solid var(--acc); font-size: 14px; line-height: 1.3; }
+.v3d-banda[hidden] { display: none; }
+.v3d-banda .estado { flex: 1 1 280px; min-width: 0; display: flex; align-items: center; gap: 9px; }
+.v3d-banda .estado svg { width: 22px; height: 22px; flex: none; color: #ffb08a; }
+.v3d-banda .estado b { color: #ffb08a; font-weight: 800; letter-spacing: .05em; }
+.v3d-banda .cola { flex: none; max-width: 100%; display: inline-flex; align-items: center; min-height: 28px; padding: 3px 11px; border-radius: 14px; font-weight: 800; font-size: 13px;
+  background: #ece6db; color: #3b342b; }
+.v3d-banda .cola:not([data-n="0"]):not([data-n="-1"]) { background: var(--cit-bg); color: var(--cit); outline: 1.5px dashed var(--cit-line); outline-offset: -1.5px; }
+.v3d-banda .cola[data-n="0"] { background: var(--ok-bg); color: var(--ok); }
+.v3d-banda[data-estado="on"] { background: var(--ok-bg); color: var(--ink); border-bottom-color: var(--ok); }
+.v3d-banda[data-estado="on"] .estado b { color: var(--ok); }
+.v3d-banda[data-estado="on"] .estado svg { display: none; }
+.v3d-banda[data-estado="on"] .cola[data-n="0"] { background: var(--ok); color: #fff; }
+@media (max-width: 899px) {
+  .v3d-banda { font-size: 13px; padding: 6px 10px; }
+  .v3d[data-banda="on"] .v3d-top .v3d-red, .v3d[data-banda="off"] .v3d-top .v3d-red { display: none; }
+}
+
+/* ---------- C2: leyenda de niveles sobre la escena ---------- */
+.v3d-leyenda { position: absolute; z-index: 4; left: 58px; top: 10px; max-width: min(320px, calc(100% - 68px)); padding: 5px 9px 6px; border-radius: 8px;
+  background: #fffdf9eb; border: 1px solid var(--line-2); box-shadow: 0 1px 3px #0002; font-size: 11px; line-height: 1.3; pointer-events: none; }
+.v3d-leyenda b { display: block; font-size: 11px; }
+.v3d-leyenda ul { list-style: none; margin: 3px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 9px; }
+.v3d-leyenda li { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; white-space: nowrap; }
+.v3d-leyenda i, .v3d-niveles i { flex: none; width: 11px; height: 11px; border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 0 1px #0003; }
+.v3d-leyenda p { margin: 0; color: var(--ink-2); font-size: 10.5px; font-weight: 600; }
+
+/* ---------- C2: ficha de fuente (diálogo) ---------- */
+.v3d-fuente-ficha { padding: 0; border: 0; border-radius: 12px; width: min(560px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 32px);
+  background: var(--panel); color: var(--ink); box-shadow: 0 20px 50px #0005; font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+.v3d-fuente-ficha::backdrop { background: #2b262066; }
+.v3d-fuente-ficha .in { padding: 12px 16px 16px; }
+.v3d-fuente-ficha .cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.v3d-fuente-ficha h2 { margin: 0; font-size: 16px; }
+.v3d-fuente-ficha h3 { margin: 14px 0 6px; font-size: 13px; }
+.v3d-fuente-ficha .cab button { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line-2); background: var(--card); cursor: pointer; }
+.v3d-fuente-ficha .cab button svg { width: 16px; height: 16px; }
+.v3d-fuente-ficha .v3d-dl dd { font-weight: 500; }
+.v3d-fuente-ficha .v3d-dl dt { font-weight: 600; }
+.v3d-niveles { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.v3d-niveles li { display: grid; grid-template-columns: 14px 70px minmax(0, 1fr); gap: 8px; align-items: center; }
+.v3d-niveles i { width: 14px; height: 14px; }
+.v3d-niveles span { color: var(--ink-2); }
+.v3d-referencial { margin: 12px 0 0; padding: 8px 10px; border-left: 4px solid var(--acc); border-radius: 0 6px 6px 0; background: var(--acc-bg); font-weight: 700; }
+@media (max-width: 899px) {
+  .v3d-fuente-ficha { width: 100%; margin: auto 0 0; border-radius: 14px 14px 0 0; max-height: 86dvh; padding-bottom: env(safe-area-inset-bottom); }
 }

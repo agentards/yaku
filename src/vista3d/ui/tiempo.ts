@@ -31,6 +31,9 @@ const fmtHora = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', hou
 export const dia = (t: number) => fmtDia.format(t).replace('.', '');
 export const hora = (t: number) => fmtHora.format(t);
 export const fechaHora = (t: number) => `${dia(t)}, ${hora(t)}`;
+const fmtFecha = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric' });
+/** 16/10/2026 (hora de Lima). */
+export const fechaCorta = (t: number) => fmtFecha.format(t);
 
 /** Marcas cada `pasoH` horas alineadas a la hora de Lima; `diaNuevo` marca la medianoche. */
 export function marcas(a: number, b: number, pasoH = 12) {

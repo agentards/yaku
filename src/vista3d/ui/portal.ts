@@ -123,7 +123,7 @@ export function montarPortal(escenaEl: HTMLElement, escena: EscenaYaku, tienda: 
     const est = estadoCentro(fs.length);
     const cob = coberturaTxt(cp);
     const z = mini?.getZoom() ?? Z_INI;
-    poner('tl', `<span class="rec">Portal de campo · modelo 3D</span><br><span class="nombre">${esc(cp.n)}</span><br>`
+    poner('tl', `<span class="rec">Portal de campo<span class="mod"> · modelo 3D</span></span><br><span class="nombre">${esc(cp.n)}</span><br>`
       + `<span class="dim">${esc(cp.d)} · ${esc(cp.pr)}</span><br><span class="dim">Pob. ${num(cp.pob)} · Excel CENEPRED</span>`);
     poner('tr', `${esc(fechaHora(tienda.t))} · Lima<br><span class="dim">Escenario 17–19/10/2026</span><br>`
       + `Este equipo: <span class="${tienda.red ? 'redon' : 'redoff'}">${tienda.red ? 'EN LÍNEA' : 'SIN RED'}</span>`);
