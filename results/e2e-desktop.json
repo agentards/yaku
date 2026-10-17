@@ -1,17 +1,75 @@
 {
-  "date": "2026-10-17T18:15:47.632Z",
+  "date": "2026-10-17T18:53:23.728Z",
   "base": "http://localhost:4173/",
   "viewport": "desktop",
   "chrome": "/usr/bin/google-chrome",
   "results": [
     {
+      "name": "(bm1) mapa base: muestra progreso y luego «Mapa base guardado sin red · X MB»; archivo completo en Cache Storage",
+      "ok": true,
+      "key": "z11",
+      "file": "basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+      "bytes": 2594101,
+      "saveMs": 327,
+      "waitedAfterSwMs": 8,
+      "pill": "Mapa base guardado sin red · 2,6 MB",
+      "progressLog": [
+        {
+          "state": "checking",
+          "pct": 0,
+          "t": 198
+        },
+        {
+          "state": "downloading",
+          "pct": 0,
+          "t": 357
+        },
+        {
+          "state": "downloading",
+          "pct": 10,
+          "t": 363
+        },
+        {
+          "state": "downloading",
+          "pct": 27,
+          "t": 383
+        },
+        {
+          "state": "downloading",
+          "pct": 51,
+          "t": 408
+        },
+        {
+          "state": "downloading",
+          "pct": 80,
+          "t": 470
+        },
+        {
+          "state": "downloading",
+          "pct": 100,
+          "t": 471
+        },
+        {
+          "state": "saved",
+          "pct": 100,
+          "t": 675
+        }
+      ],
+      "rangeRequestsWhileDownloading": 7,
+      "cached": {
+        "entries": 1,
+        "url": "http://localhost:4173/basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+        "bytes": 2594101
+      }
+    },
+    {
       "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
       "ok": true,
       "viewport": "desktop",
-      "firstVisitMs": 605,
-      "precachedEntries": 12,
-      "offlineReloadMs": 182,
-      "offlineNewTabMs": 283,
+      "firstVisitMs": 691,
+      "precachedEntries": 28,
+      "offlineReloadMs": 207,
+      "offlineNewTabMs": 801,
       "recordsAfterReload": 3,
       "recordsNewTab": 3,
       "net": "SIN RED",
@@ -30,13 +88,79 @@
       "ok": true,
       "loaded": true,
       "sources": true,
-      "senamhi": 33,
-      "erosionPts": 69,
-      "limite": 2,
+      "senamhi": 45,
+      "erosionPts": 67,
+      "limite": 6,
       "citizen": 3,
-      "osmVisible": "none",
-      "distinctColorsInMap": 298,
+      "osmRasterSource": false,
+      "basemapSourceLoaded": true,
+      "bmEarth": 6,
+      "bmWater": 16,
+      "bmRoads": 88,
+      "bmPlaces": 33,
+      "basemap": {
+        "state": "saved",
+        "total": 2594101,
+        "fromCache": true,
+        "key": "z11",
+        "file": "basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+        "maxzoom": 11,
+        "rangeRequests": 0,
+        "blobReads": 7,
+        "hasBlob": true
+      },
+      "zoom": 8.04,
+      "center": [
+        -79.99,
+        -5.011
+      ],
+      "distinctColorsInMap": 558,
       "remoteHostsRequested": []
+    },
+    {
+      "name": "(cp) escenario CENEPRED sin red: encuadre en los 23 distritos, 930/1.255, «Sin ubicar (325)», popup «Centro poblado del escenario CENEPRED» + OSIPTEL, filtro 445/928",
+      "ok": true,
+      "phase": 2,
+      "rendered": 930,
+      "sourceUnique": 930,
+      "sinCobSource": 445,
+      "sinDatoSource": 2,
+      "bboxCovered": true,
+      "view": [
+        -81.14,
+        -6,
+        -78.84,
+        -4.02
+      ],
+      "summary": "Sin ubicar (325)",
+      "rows": 325,
+      "firstRow": [
+        "EL PANTEON",
+        "HUARMACA",
+        "0",
+        "Muy Alto"
+      ],
+      "legend": "Escenario de riesgo CENEPRED/SIGRID 23077 (Aviso 421) · centros poblados del escenario CENEPRED Escenario de riesgo · CENEPRED/SIGRID, anexo Excel del Aviso Meteorológico SENAMHI 421_2026; ubicación: IGN Centros Poblados Escenario 17–19/10/2026 · firmado 16/10/2026. 930 centros poblados con ubicación de 1.255 (los demás no tienen coordenadas en el dataset de Centros Poblados del IGN). Color = nivel de exposición a inundaciones del Excel. Es un escenario hipotético basado en un pronóstico: nivel de exposición, no profundidad de agua ni daños observados. Cubre los 23 distritos andinos de Ayabaca, Huancabamba, Morropón y Sullana. Sin ubicar (325) Filas del Excel de CENEPRED sin coordenadas en el dataset de Centros Poblados del IGN: no se pueden dibujar. Centro pobladoDistritoPoblaciónNivelEL PANTEONHUARMACA0Muy AltoCENTRO SAN PEDROFRIAS205AltoSAN FRANCISCOSUYO54AltoNUEVO FLORECERFRIAS52AltoPARIAMARCA ALTOHUANCABAMBA195MedioJUAN VELASCOHUARMACA191MedioNOGAL CENTROFRIAS174MedioPICHINCHELANCONES131MedioMANGAS DE CACHIACOPACAIPAMPA130MedioNUEVO FLORECERPACAIPAMPA130MedioLA VICTORIALAGUNAS129MedioNOGAL PAMPA VERDEFRIAS128MedioSUXAPAIMAS126MedioYUMBEHUARMACA121MedioUNION SAN ANDRESFRIAS117MedioSUROHUARMACA113MedioCHIQUEROSSUYO108MedioCOIPAHUARMACA107MedioFRUTALAYABACA105MedioCHACHACOMOFRIAS99MedioEL PROGRESOFRIAS81MedioROCA RAJADASUYO79MedioPARCOCHA YANTAAYABACA78MedioNUEVO PORVENIRMONTERO75MedioALTO SANTA ROSAPACAIPAMPA68MedioCULUGUEROAYABACA51MedioLINDEROS CURILCASPACAIPAMPA51MedioNUEVO SANTIAGOSUYO50MedioMARCOSHUARMACA40MedioLA CRUZSUYO36MedioLA TRANCALANCONES36MedioPASAYOLANCONES35MedioPIEDRA CAIDAFRIAS32MedioCASCAJALLANCONES30MedioPEDRO DOMINGUEZSUYO26MedioLUPLUNAYABACA17MedioCHILILIQUE LA NORIALANCONES16MedioVENADO MUERTOLANCONES14Medio9 DE NOVIEMBRESUYO13MedioCOCHE CORRALSUYO12MedioCERRO PRIETOLANCONES11MedioPITALLITOLANCONES9MedioIRONSILLOSUYO8MedioBUITRESLANCONES6MedioLAS JUNTASPACAIPAMPA5MedioEL PAPAYO DE LOS ENCUENTROSLANCONES3MedioCEIBO MOCHOLANCONES0MedioNUEVO TOMAPAMPA DE JAMBURPAIMAS221BajoRIOMARLANCONES59BajoTOMAPAMPA DEL QUIROZPAIMAS37BajoVEGA DE MAYOPAIMAS5BajoSICCEQUISTERIOSEL CARMEN DE LA FRONTERA659Muy BajoCAJAS SHAPAYAEL CARMEN DE LA FRONTERA453Muy BajoCHULUCANAS BAJOEL CARMEN DE LA FRONTERA396Muy BajoPALO BLANCOPACAIPAMPA368Muy BajoCHULUCANITASPACAIPAMPA330Muy BajoCOMENDEROS ALTOHUANCABAMBA312Muy BajoCARRIZAL ALTOAYABACA303Muy BajoLLANOS DE ARAGOTOAYABACA302Muy BajoLAS LOMASPACAIPAMPA300Muy BajoEL HUILCOAYABACA276Muy BajoCONGONAEL CARMEN DE LA FRONTERA274Muy BajoLA CRUZ DE SANTA ROSAEL CARMEN DE LA FRONTERA250Muy BajoNUEVO PORVENIRSAPILLICA232Muy BajoLUCUMOLAGUNAS229Muy BajoNUEVO PORVENIRHUARMACA224Muy BajoSAN JUAN LAS PLAYASAYABACA212Muy BajoPALOMARPACAIPAMPA211Muy BajoPAYACALALAQUIZ208Muy BajoHUAQUILLAS DE LA SIERRAEL CARMEN DE LA FRONTERA207Muy BajoPROGRESO DE SOCCHABAMBAAYABACA199Muy BajoSAN FRANCISCO DE LAGUNAHUARMACA198Muy BajoPAMPAS DE SOCCHABAMBAAYABACA191Muy BajoBUENOS AIRESAYABACA190Muy BajoSANTA CRUZHUARMACA181Muy BajoHUALCUYAYABACA178Muy BajoVISTA ALEGREHUANCABAMBA176Muy BajoLANCHEPUQUIOHUARMACA175Muy BajoBAÑOS DEL INCAEL CARMEN DE LA FRONTERA173Muy BajoLA LIBERTADHUARMACA171Muy BajoSAGRADO CORAZON DE JESUSHUANCABAMBA171Muy BajoALAN GARCIAEL CARMEN DE LA FRONTERA170Muy BajoPECHUQUIZ ALTOFRIAS167Muy BajoSAN LUISFRIAS164Muy BajoMIRA FLORESAYABACA161Muy BajoSANTA JULIAAYABACA160Muy BajoALISOSFRIAS156Muy BajoSANTA FEPACAIPAMPA156Muy BajoLAGUNA DE CHONTIRCAHUARMACA152Muy BajoMONTE GRANDEHUANCABAMBA150Muy BajoCHANGRAPACAIPAMPA149Muy BajoNARANJO ALTOHUARMACA149Muy BajoJORASAYABACA148Muy BajoEL ALGARROBOAYABACA145Muy BajoRAYO EL MOLINO CENTROAYABACA145Muy BajoCABUYALCHALACO144Muy BajoYAGARAJAHUARMACA144Muy BajoCHANURANAYABACA142Muy BajoNUEVO SUYOSUYO142Muy BajoNUEVO PROGRESOMONTERO140Muy BajoLAGUNAS DE PACAINYOAYABACA139Muy BajoEL YAMBURPACAIPAMPA138Muy BajoSAN MIGUEL DE UCHUPITEHUARMACA138Muy BajoLA FLORIDAPAIMAS137Muy BajoALTAMISAPACAIPAMPA132Muy BajoTAMBILLOEL CARMEN DE LA FRONTERA131Muy BajoALIGUAYHUANCABAMBA129Muy BajoLA COIPAEL CARMEN DE LA FRONTERA129Muy BajoCHONTAHUARMACA128Muy BajoLA COFRADIAPACAIPAMPA128Muy BajoHUALANGAPACAIPAMPA127Muy BajoFILA ALTAHUARMACA124Muy BajoLAS MERCEDESPACAIPAMPA124Muy BajoEL SAUCEHUARMACA123Muy BajoSAUCE BAJOAYABACA122Muy BajoGRANADIYOFRIAS121Muy BajoTALLURANHUARMACA121Muy BajoUNION ALTAAYABACA121Muy BajoNUEVO UNION DE CHAYE GRANDEFRIAS119Muy BajoBUENOS AIRESHUARMACA117Muy BajoSANTA CRUZ LOMA LOS PATIÑOSAYABACA117Muy BajoLOS CLAVELES DE MALACHEPACAIPAMPA116Muy BajoSAN JOSE DE PILLOLAGUNAS116Muy BajoSAN FRANCISCOPACAIPAMPA115Muy BajoBELLAVISTA DE SAN PABLOPACAIPAMPA113Muy BajoEL LUCUMOAYABACA112Muy BajoNUEVO HORIZONTEPAIMAS112Muy BajoPUENTE PIEDRAHUANCABAMBA110Muy BajoSEGUNDA YAPUTOHUANCABAMBA109Muy BajoCHILCAPAMPA BAJOAYABACA108Muy BajoNUEVO PROGRESOLAGUNAS108Muy BajoPASHUL ALTOHUARMACA108Muy BajoEL CARMENPACAIPAMPA107Muy BajoEL SAUCEPACAIPAMPA106Muy BajoALTO MIRAFLORESHUARMACA104Muy BajoCAÑASHUARMACA104Muy BajoSAPALACHEEL CARMEN DE LA FRONTERA104Muy BajoLAURELES DE CHAYEFRIAS103Muy BajoPUEBLO NUEBOAYABACA103Muy BajoULUNCHA ALTOMONTERO103Muy BajoEL LIMOPACAIPAMPA99Muy BajoBELLAVISTAEL CARMEN DE LA FRONTERA98Muy BajoRUMICHACA ALTOHUARMACA98Muy BajoUNION DE LA CRUZPACAIPAMPA96Muy BajoSHANGASONDORILLO94Muy BajoNUEVA ESPERANZAHUARMACA93Muy BajoLAS VEGAS DE CURIRCAPACAIPAMPA92Muy BajoZAPOTALHUARMACA92Muy BajoARRAYPITE BAJOAYABACA91Muy BajoROBLEFRIAS89Muy BajoSANTA CRUZ DE LA VEGAPACAIPAMPA89Muy BajoPEÑA GRANDEHUARMACA88Muy BajoRAGRAPAMPAHUARMACA88Muy BajoLA HUACAPACAIPAMPA86Muy BajoSAN JOSE DE CALVASAYABACA86Muy BajoCUYAS LA SELVAAYABACA85Muy BajoPALO BLANCOHUARMACA85Muy BajoSAUCE ALTOAYABACA85Muy BajoSAN MATIASLAGUNAS84Muy BajoTAPAL ALTOAYABACA83Muy BajoMOREPACAIPAMPA82Muy BajoALISOS DE ARRENDAMIENTOSLAGUNAS81Muy BajoPAPELILLOPACAIPAMPA79Muy BajoLOMA SANTAHUARMACA78Muy BajoCHICOPESONDOR77Muy BajoJIJULAYABACA77Muy BajoNUEVO AMANECERHUARMACA77Muy BajoCONGONAHUARMACA76Muy BajoLAZAROEL CARMEN DE LA FRONTERA76Muy BajoPAGAYPACAIPAMPA76Muy BajoSUMUCHE BAJOHUARMACA76Muy BajoGUAYABOHUANCABAMBA75Muy BajoTOMAPAMPA ALTOPAIMAS75Muy BajoEL NARANJOAYABACA74Muy BajoSAN MARTINAYABACA74Muy BajoAHUAYCO OLLEROSAYABACA73Muy BajoTALALAHUARMACA73Muy BajoEL CEIBOPACAIPAMPA72Muy BajoNUEVO PROGRESOPACAIPAMPA72Muy BajoEL MANGO (MANGAL)AYABACA71Muy BajoEL SAUCE (EL SAUCE DE PORCUYA)HUARMACA71Muy BajoLOMA EL MIRADORFRIAS71Muy BajoCOIPAPAMPAHUARMACA70Muy BajoNARANJO DE CURILCASPACAIPAMPA69Muy BajoAGUA DULCEAYABACA68Muy BajoEL ZAPOTEAYABACA68Muy BajoSANTA ROSAAYABACA67Muy BajoYAGUPAMPAHUARMACA67Muy BajoHUALANGAHUARMACA66Muy BajoHUAYOS DE TACALPOAYABACA66Muy BajoLA COIPA DE CURILCASPACAIPAMPA66Muy BajoPAMPA GRANDEHUARMACA66Muy BajoCHITAAYABACA61Muy BajoEL CEIBOAYABACA60Muy BajoEL PORVENIRHUARMACA60Muy BajoFERNANDO BELAUNDEYAMANGO60Muy BajoFLOR DE CONGONAHUARMACA60Muy BajoLINDEROS DE CHAYEFRIAS60Muy BajoSAN JUAN DE PALOMATAZHUARMACA60Muy BajoNUEVA ESPERANZAHUARMACA59Muy BajoROMERALAYABACA59Muy BajoLA UNIONAYABACA58Muy BajoLA UNIONHUARMACA58Muy BajoCHINCHINALLAGUNAS57Muy BajoLOMA DE PARIHUANASFRIAS57Muy BajoPALTO BAJOSANTO DOMINGO57Muy BajoPAMPAS DE LACARQUIAYABACA57Muy BajoCHANCAAYABACA56Muy BajoGUINEYALLAGUNAS56Muy BajoHUACAMUYOSPACAIPAMPA56Muy BajoLALOHUARMACA56Muy BajoNUEVO JERUSALENHUARMACA55Muy BajoTALALHUARMACA55Muy BajoYUNGO ALTOAYABACA54Muy BajoRODILCAHUARMACA53Muy BajoMIRAFLORES DE TACALPOAYABACA52Muy BajoCRUZ PAMPAHUARMACA51Muy BajoMOLINOS DE SANGULIAYABACA49Muy BajoNUEVO PROGRESOHUARMACA49Muy BajoSAN JUAN DEL FAIQUEAYABACA49Muy BajoSAN FRANCISCO DE LANDAHUARMACA48Muy BajoLOS CRISTALESHUANCABAMBA47Muy BajoTASAJERAS ALTOPAIMAS47Muy BajoLAS LOMASHUARMACA46Muy BajoSAN PEDROAYABACA46Muy BajoGUALIQUINHUARMACA45Muy BajoNIEBROS DE SOCCHABAMBAAYABACA45Muy BajoPAMPAS DE HUARA DE INDIOAYABACA44Muy BajoSANTA CRUZ LA CANCHAAYABACA44Muy BajoLA ARENA DE PECHUQUIZFRIAS43Muy BajoCABUYOAYABACA42Muy BajoLA FLORIDAHUARMACA42Muy BajoSANTA CRUZ DE CRIAHUARMACA42Muy BajoNANGALPAAYABACA40Muy BajoPULATANHUARMACA40Muy BajoYAMANGITOPACAIPAMPA40Muy BajoRIO BLANCOEL CARMEN DE LA FRONTERA37Muy BajoALTO MILAGROPACAIPAMPA36Muy BajoCIRHUELOAYABACA36Muy BajoEL PACIFICOHUARMACA36Muy BajoJURUPEAYABACA36Muy BajoLA LAGUNAAYABACA36Muy BajoNUEVO CANCHAQUEHUARMACA35Muy BajoPAMPA GRANDELAGUNAS34Muy BajoSAUCILLOAYABACA34Muy BajoSHANGAPAMPAHUARMACA34Muy BajoHUALANGAHUARMACA33Muy BajoEL MOLINOPACAIPAMPA32Muy BajoSUGURONHUARMACA32Muy BajoCAÑARURANHUARMACA31Muy BajoLA HUACAAYABACA31Muy BajoUNION CATOLICAHUARMACA31Muy BajoBATAN BLANCOLALAQUIZ29Muy BajoLOMA SECA DE SAN ANTONIOLAGUNAS29Muy BajoTRAPICHE PAMPAAYABACA29Muy BajoGUAYABALLAGUNAS28Muy BajoLA RINCONADALALAQUIZ28Muy BajoLA SERVILLETASUYO28Muy BajoNARANJITO RAMADA DE VILCAPACAIPAMPA28Muy BajoEL EUCALIPTOHUARMACA27Muy BajoLA MERCEDAYABACA27Muy BajoLA PAMPASICCHEZ27Muy BajoESPINO AMARILLOAYABACA26Muy BajoLIRIOPACAIPAMPA25Muy BajoSEIRCAHUARMACA25Muy BajoEL TUNOLALAQUIZ24Muy BajoLAÑO DE LONAHUARMACA24Muy BajoMEMBRILLOLALAQUIZ23Muy BajoSAN ISIDROAYABACA23Muy BajoSAUCELAGUNAS23Muy BajoAGURANPACAIPAMPA22Muy BajoAMULAYCAAYABACA22Muy BajoCHILCAPAMPAHUARMACA22Muy BajoLANCHEHUARMACA22Muy BajoHUASCARANHUARMACA21Muy BajoMEXICO DE SUYUPAMPAAYABACA21Muy BajoSANTA VICTORIAHUARMACA21Muy BajoEL PROGRESOHUARMACA20Muy BajoLA ACHURAAYABACA20Muy BajoPALOBLANQUITOPACAIPAMPA20Muy BajoPIEDRA GRANDEHUARMACA20Muy BajoLA PLAYALALAQUIZ19Muy BajoPACAY ALTOAYABACA19Muy BajoVIZCACHEAYABACA19Muy BajoAILANAYABACA18Muy BajoFAIQUE DE CARPINTEROHUARMACA18Muy BajoPACCHELALAQUIZ18Muy BajoLAS PALMERASPACAIPAMPA17Muy BajoPAQUISTOHUARMACA17Muy BajoYUNGOAYABACA16Muy BajoPAMPAS HUARA DE VERASAYABACA14Muy BajoPEÑONLAGUNAS13Muy BajoESPINOAYABACA12Muy BajoPAMPAGRANDEPACAIPAMPA12Muy BajoCHIFLONAYABACA11Muy BajoEL LUCUMULALAQUIZ11Muy BajoLAGUNA GRANDEHUARMACA11Muy BajoTAILINAYABACA11Muy BajoVAQUERIAHUARMACA11Muy BajoLA LOMAAYABACA9Muy BajoCORTEZO NUEVOLANCONES8Muy BajoMIRAFLORESHUARMACA8Muy BajoCRUZ BLANCACANCHAQUE7Muy BajoMILAGRO DE DIOSHUARMACA7Muy BajoSALITREAYABACA6Muy BajoSAN NICOLASLALAQUIZ6Muy BajoCABRERILLAAYABACA5Muy BajoCALABOZOPACAIPAMPA5Muy BajoLA LAGUNAPACAIPAMPA5Muy BajoLA LECHERAAYABACA5Muy BajoLOS LAURELESLALAQUIZ5Muy BajoBUENOS AIRESHUARMACA4Muy BajoGUAYABOHUARMACA4Muy BajoLECHEROSPACAIPAMPA4Muy BajoBEBEDEROHUARMACA3Muy BajoHUARA DE INDIOS EL CHECOAYABACA3Muy BajoPIRCASAYABACA3Muy BajoWUAR WUARSUYO3Muy BajoLA MATANZALANCONES2Muy BajoPUQUIOHUARMACA2Muy BajoALGARROBITOHUARMACA1Muy BajoCORRAL PAMPAHUARMACA0Muy BajoHUABOHUARMACA0Muy BajoLA HACIENDAHUARMACA0Muy BajoSAUCEPUQUIOHUARMACA0Muy Bajo",
+      "popup": "Escenario de riesgo · CENEPRED/SIGRID 23077Centro poblado del escenario CENEPREDEL SALTO · LANCONES, SULLANANivel de exposición a inundaciones: Medio · población 71 (Excel CENEPRED)Escenario 17–19/10/2026 basado en el Aviso SENAMHI 421; nivel de exposición, no profundidad de agua.",
+      "popupForbiddenOk": true,
+      "filter": {
+        "skipped": "fase < 3",
+        "rendered": 1,
+        "allSinCob": true
+      }
+    },
+    {
+      "name": "(bm2) sin red, tras recargar: el mapa base pinta desde la copia guardada (tierra/agua > 0), 0 peticiones externas, 0 Range a la red",
+      "ok": true,
+      "earth": 6,
+      "water": 16,
+      "roads": 88,
+      "places": 33,
+      "blobReads": 7,
+      "rangeRequests": 0,
+      "pill": "Mapa base guardado sin red · 2,6 MB",
+      "externalRequests": 0,
+      "http4xx5xx": []
     },
     {
       "name": "estilo: reportes NO VERIFICADO (discontinuo); sin plantilla FUENTE OFICIAL; fuente solo junto a capas reales; sin textos prohibidos",
@@ -54,6 +178,7 @@
       "senamhiLegend": "Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo",
       "erosionSource": "Registro oficial · SIGRID/CENEPRED, obtenida vía geoservicio de INDECI",
       "legendWithSourceAndDate": [
+        true,
         true,
         true,
         true
@@ -74,7 +199,7 @@
     {
       "name": "(b) enlace relay #p= entre contextos, sin red, con dedup",
       "ok": true,
-      "linkChars": 194,
+      "linkChars": 199,
       "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
       "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
       "recordsB": 3,
@@ -84,7 +209,7 @@
       "name": "(c) subir imágenes de QR fragmentado sin red; barra de progreso parcial → completa",
       "ok": true,
       "fragments": 2,
-      "emitInfo": "3 registros · 121 B comprimidos · 2 QR (v7) · CRC 2bcd8e6a",
+      "emitInfo": "3 registros · 125 B comprimidos · 2 QR (v7) · CRC 6f7cd014",
       "partial": {
         "visible": true,
         "label": "1/2 fragmentos",
@@ -94,13 +219,13 @@
         "label": "2/2 · completo",
         "complete": true
       },
-      "status": "Mensaje JA0A completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+      "status": "Mensaje M904 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
     },
     {
       "name": "(d) cámara simulada: QR animado leído y reensamblado sin red",
       "ok": true,
       "fragments": 2,
-      "msToComplete": 647,
+      "msToComplete": 946,
       "engine": "jsQR",
       "cameraOptions": 2,
       "camHiddenBefore": true,
@@ -123,16 +248,37 @@
       "name": "(f) servidor apagado: nueva pestaña carga desde SW, lee IndexedDB y dibuja el mapa",
       "ok": true,
       "serverDown": true,
-      "loadMs": 762,
+      "loadMs": 1318,
       "records": 3,
       "map": {
         "loaded": true,
         "sources": true,
-        "senamhi": 33,
-        "erosionPts": 69,
-        "limite": 2,
+        "senamhi": 45,
+        "erosionPts": 67,
+        "limite": 6,
         "citizen": 3,
-        "osmVisible": "none"
+        "osmRasterSource": false,
+        "basemapSourceLoaded": true,
+        "bmEarth": 6,
+        "bmWater": 16,
+        "bmRoads": 88,
+        "bmPlaces": 33,
+        "basemap": {
+          "state": "saved",
+          "total": 2594101,
+          "fromCache": true,
+          "key": "z11",
+          "file": "basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+          "maxzoom": 11,
+          "rangeRequests": 0,
+          "blobReads": 7,
+          "hasBlob": true
+        },
+        "zoom": 8.04,
+        "center": [
+          -79.99,
+          -5.011
+        ]
       }
     }
   ]

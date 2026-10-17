@@ -1,7 +1,7 @@
 // Worker de Pages (server/worker.ts) con un D1 falso en memoria que emula INSERT OR IGNORE.
 import { describe, it, expect, vi } from 'vitest';
-vi.mock('virtual:files', () => ({ default: { '/index.html': { t: 'text/html', b: false, d: '<h1>ok</h1>' } } }));
-import worker from '../server/worker';
+vi.mock('virtual:files', () => ({ default: { '/index.html': { t: 'text/html', b: false, d: '<h1>ok</h1>' }, '/basemap/fonts/Noto Sans Regular/0-255.pbf': { t: 'application/x-protobuf', b: true, d: 'AAEC' } } }));
+import worker, { parseRange } from '../server/worker';
 import { sample } from './fixtures';
 
 function fakeD1() {
@@ -47,5 +47,47 @@ describe('Worker /api/sync + D1', () => {
     expect((await worker.fetch(new Request('https://x/api/stats'), {})).status).toBe(503);
     const r = await worker.fetch(new Request('https://x/cualquier/ruta'), {});
     expect(await r.text()).toContain('ok');
+  });
+});
+
+describe('Worker: mapa base desde KV troceado', () => {
+  const data = new Uint8Array(3 * 1024 * 1024 + 123).map((_, i) => (i * 7) % 251);
+  const C = 1 << 20, key = 'basemap/x.pmtiles';
+  const store = new Map<string, ArrayBuffer>();
+  store.set(key + '#meta', new TextEncoder().encode(JSON.stringify({ bytes: data.length, chunk: C })).buffer as ArrayBuffer);
+  for (let i = 0; i * C < data.length; i++) store.set(`${key}#${i}`, data.slice(i * C, (i + 1) * C).buffer);
+  const env = { BASEMAP: { get: async (k: string) => store.get(k) ?? null } };
+  it('Range que cruza trozos → 206 con los bytes exactos', async () => {
+    const r = await worker.fetch(new Request('https://x/' + key, { headers: { range: `bytes=${C - 5}-${C + 4}` } }), env as any);
+    expect(r.status).toBe(206);
+    expect(r.headers.get('content-range')).toBe(`bytes ${C - 5}-${C + 4}/${data.length}`);
+    expect([...new Uint8Array(await r.arrayBuffer())]).toEqual([...data.slice(C - 5, C + 5)]);
+  });
+  it('GET completo → 200 con todo el archivo; Range inválido → 416; sin binding → 503', async () => {
+    const r = await worker.fetch(new Request('https://x/' + key), env as any);
+    expect(r.status).toBe(200);
+    expect(Buffer.from(await r.arrayBuffer()).equals(Buffer.from(data))).toBe(true);
+    expect((await worker.fetch(new Request('https://x/' + key, { headers: { range: 'bytes=99999999-' } }), env as any)).status).toBe(416);
+    expect((await worker.fetch(new Request('https://x/' + key), {} as any)).status).toBe(503);
+  });
+});
+
+describe('Worker: Range para .pmtiles', () => {
+  it('parseRange', () => {
+    expect(parseRange(null, 100)).toBeNull();
+    expect(parseRange('bytes=0-9', 100)).toEqual([0, 9]);
+    expect(parseRange('bytes=90-', 100)).toEqual([90, 99]);
+    expect(parseRange('bytes=-10', 100)).toEqual([90, 99]);
+    expect(parseRange('bytes=50-500', 100)).toEqual([50, 99]);
+    expect(parseRange('bytes=200-300', 100)).toBe('invalid');
+    expect(parseRange('items=0-1', 100)).toBe('invalid');
+  });
+});
+
+describe('Worker: archivos con espacios (glyphs)', () => {
+  it('sirve /basemap/fonts/Noto%20Sans%20Regular/0-255.pbf', async () => {
+    const r = await worker.fetch(new Request('https://x/basemap/fonts/Noto%20Sans%20Regular/0-255.pbf'), {} as any);
+    expect(r.status).toBe(200);
+    expect([...new Uint8Array(await r.arrayBuffer())]).toEqual([0, 1, 2]);
   });
 });

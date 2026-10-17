@@ -1,0 +1,242 @@
+{
+  "date": "2026-10-17T18:51:53.546Z",
+  "base": "https://yaku-relay-proto.pages.dev/",
+  "viewport": "desktop",
+  "chrome": "/usr/bin/google-chrome",
+  "results": [
+    {
+      "name": "(bm1) mapa base: muestra progreso y luego «Mapa base guardado sin red · X MB»; archivo completo en Cache Storage",
+      "ok": true,
+      "key": "z11",
+      "file": "basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+      "bytes": 2594101,
+      "saveMs": 323,
+      "waitedAfterSwMs": 6,
+      "pill": "Mapa base guardado sin red · 2,6 MB",
+      "progressLog": [
+        {
+          "state": "checking",
+          "pct": 0,
+          "t": 448
+        },
+        {
+          "state": "downloading",
+          "pct": 0,
+          "t": 721
+        },
+        {
+          "state": "downloading",
+          "pct": 80,
+          "t": 777
+        },
+        {
+          "state": "downloading",
+          "pct": 100,
+          "t": 892
+        },
+        {
+          "state": "saved",
+          "pct": 100,
+          "t": 910
+        }
+      ],
+      "rangeRequestsWhileDownloading": 7,
+      "cached": {
+        "entries": 1,
+        "url": "https://yaku-relay-proto.pages.dev/basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+        "bytes": 2594101
+      }
+    },
+    {
+      "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
+      "ok": true,
+      "viewport": "desktop",
+      "firstVisitMs": 1748,
+      "precachedEntries": 26,
+      "offlineReloadMs": 211,
+      "offlineNewTabMs": 620,
+      "recordsAfterReload": 3,
+      "recordsNewTab": 3,
+      "net": "SIN RED",
+      "pendingSync": 3,
+      "pendingPill": "3"
+    },
+    {
+      "name": "UI: cámara y QR ocultos hasta usarlos; ajustes técnicos plegados",
+      "ok": true,
+      "camHidden": true,
+      "qrHidden": true,
+      "endpointVisible": false
+    },
+    {
+      "name": "(m) mapa MapLibre + capas SENAMHI/SIGRID/límite + puntos ciudadanos se ven sin red",
+      "ok": true,
+      "loaded": true,
+      "sources": true,
+      "senamhi": 45,
+      "erosionPts": 67,
+      "limite": 6,
+      "citizen": 3,
+      "osmRasterSource": false,
+      "basemapSourceLoaded": true,
+      "bmEarth": 6,
+      "bmWater": 16,
+      "bmRoads": 88,
+      "bmPlaces": 33,
+      "basemap": {
+        "state": "saved",
+        "total": 2594101,
+        "fromCache": true,
+        "key": "z11",
+        "file": "basemap/piura_basemap_z11.5e31b1dc.pmtiles",
+        "maxzoom": 11,
+        "rangeRequests": 0,
+        "blobReads": 7,
+        "hasBlob": true
+      },
+      "zoom": 8.04,
+      "center": [
+        -79.99,
+        -5.011
+      ],
+      "distinctColorsInMap": 455,
+      "remoteHostsRequested": []
+    },
+    {
+      "name": "(cp) fase 1: sin capa CENEPRED; encuadre en zona andina [-80.77,-5.94,-79.21,-4.08]",
+      "ok": true,
+      "phase": 1,
+      "view": [
+        -81.14,
+        -6,
+        -78.84,
+        -4.02
+      ]
+    },
+    {
+      "name": "(bm2) sin red, tras recargar: el mapa base pinta desde la copia guardada (tierra/agua > 0), 0 peticiones externas, 0 Range a la red",
+      "ok": true,
+      "earth": 6,
+      "water": 16,
+      "roads": 88,
+      "places": 33,
+      "blobReads": 7,
+      "rangeRequests": 0,
+      "pill": "Mapa base guardado sin red · 2,6 MB",
+      "externalRequests": 0,
+      "http4xx5xx": []
+    },
+    {
+      "name": "estilo: reportes NO VERIFICADO (discontinuo); sin plantilla FUENTE OFICIAL; fuente solo junto a capas reales; sin textos prohibidos",
+      "ok": true,
+      "badges": [
+        "NO VERIFICADO",
+        "NO VERIFICADO",
+        "NO VERIFICADO"
+      ],
+      "citizenBorder": "dashed rgb(199, 119, 0)",
+      "officialTemplate": false,
+      "fuenteOficialText": false,
+      "sourceBadgesOutsideLegend": 0,
+      "sourceBadgesInCitizen": 0,
+      "senamhiLegend": "Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo",
+      "erosionSource": "Registro oficial · SIGRID/CENEPRED, obtenida vía geoservicio de INDECI",
+      "legendWithSourceAndDate": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "(g) GPS automático al registrar (sin red) y ajuste arrastrando el marcador",
+      "ok": true,
+      "gps": [
+        -5.17,
+        -80.65
+      ],
+      "ajustado": [
+        -5.18368,
+        -80.6294
+      ]
+    },
+    {
+      "name": "(b) enlace relay #p= entre contextos, sin red, con dedup",
+      "ok": true,
+      "linkChars": 212,
+      "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
+      "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
+      "recordsB": 3,
+      "hashCleared": true
+    },
+    {
+      "name": "(c) subir imágenes de QR fragmentado sin red; barra de progreso parcial → completa",
+      "ok": true,
+      "fragments": 2,
+      "emitInfo": "3 registros · 124 B comprimidos · 2 QR (v7) · CRC b4f9b312",
+      "partial": {
+        "visible": true,
+        "label": "1/2 fragmentos",
+        "width": "50%"
+      },
+      "full": {
+        "label": "2/2 · completo",
+        "complete": true
+      },
+      "status": "Mensaje PNO2 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+    },
+    {
+      "name": "(d) cámara simulada: QR animado leído y reensamblado sin red",
+      "ok": true,
+      "fragments": 2,
+      "msToComplete": 980,
+      "engine": "jsQR",
+      "cameraOptions": 2,
+      "camHiddenBefore": true,
+      "progress": "2/2 · completo"
+    },
+    {
+      "name": "(e) sync contra Worker + D1 real: en relevo → consolidado; reenvíos no duplican",
+      "ok": true,
+      "before": "en relevo",
+      "after": "consolidado",
+      "statusA": "Consolidados 3/3 · 3 nuevos en servidor, 0 ya estaban (conexión recuperada).",
+      "statusB": "Consolidados 3/3 · 0 nuevos en servidor, 3 ya estaban (conexión recuperada).",
+      "syncedAfterReload": 3,
+      "pendingPill": "0",
+      "server": {
+        "post1": {
+          "inserted": 0,
+          "duplicates": 3
+        },
+        "post2": {
+          "inserted": 0,
+          "duplicates": 3
+        },
+        "getCount": 3,
+        "getUniqueIds": 3,
+        "allVerified0": true,
+        "stats": {
+          "total": 12,
+          "unique_ids": 12,
+          "last": 1792263111657,
+          "byType": [
+            {
+              "type": "agua",
+              "n": 4
+            },
+            {
+              "type": "cauce",
+              "n": 4
+            },
+            {
+              "type": "huaico",
+              "n": 4
+            }
+          ],
+          "verified": false
+        },
+        "tamperedRejected": true
+      }
+    }
+  ]
+}

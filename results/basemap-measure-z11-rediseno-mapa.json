@@ -1,0 +1,154 @@
+{
+  "date": "2026-10-17T18:57:17.356Z",
+  "base": "https://rediseno-mapa.yaku-relay-proto.pages.dev/",
+  "key": "z11",
+  "runs": [
+    {
+      "profile": "sinLimite",
+      "bytes": 2594101,
+      "msNavegacionAGuardado": 918,
+      "msDescargaYVerificacion": 316,
+      "msInicioDescarga": 645,
+      "msWallHastaGuardado": 1355,
+      "msHastaSWControla": 1657,
+      "offlineReloadMs": 759,
+      "offlineEarth": 2,
+      "offlineWater": 6,
+      "offlineRange": 0,
+      "offlineBlobReads": 3
+    },
+    {
+      "profile": "4G",
+      "bytes": 2594101,
+      "msNavegacionAGuardado": 3666,
+      "msDescargaYVerificacion": 2717,
+      "msInicioDescarga": 1059,
+      "msWallHastaGuardado": 3857,
+      "msHastaSWControla": 3860,
+      "offlineReloadMs": 803,
+      "offlineEarth": 2,
+      "offlineWater": 6,
+      "offlineRange": 0,
+      "offlineBlobReads": 3
+    },
+    {
+      "profile": "Fast 3G",
+      "bytes": 2594101,
+      "msNavegacionAGuardado": 18507,
+      "msDescargaYVerificacion": 15018,
+      "msInicioDescarga": 4080,
+      "msWallHastaGuardado": 18699,
+      "msHastaSWControla": 18703,
+      "offlineReloadMs": 804,
+      "offlineEarth": 2,
+      "offlineWater": 6,
+      "offlineRange": 0,
+      "offlineBlobReads": 3
+    }
+  ],
+  "streets": {
+    "Piura": [
+      {
+        "z": 8,
+        "highway": 3,
+        "major_road": 37
+      },
+      {
+        "z": 9,
+        "highway": 3,
+        "major_road": 56,
+        "aeroway": 1
+      },
+      {
+        "z": 10,
+        "highway": 3,
+        "major_road": 49,
+        "aeroway": 1
+      },
+      {
+        "z": 11,
+        "highway": 6,
+        "major_road": 76,
+        "aeroway": 1
+      },
+      {
+        "z": 12,
+        "highway": 3,
+        "major_road": 50,
+        "aeroway": 1
+      },
+      {
+        "z": 13,
+        "major_road": 40,
+        "aeroway": 6
+      },
+      {
+        "z": 14,
+        "major_road": 12
+      },
+      {
+        "z": 15,
+        "major_road": 6
+      },
+      {
+        "z": 16,
+        "major_road": 4
+      }
+    ],
+    "Piura_resumen": {
+      "highway": 8,
+      "major_road": 8,
+      "minor_road": null,
+      "other": null,
+      "path": null
+    },
+    "Sullana": [
+      {
+        "z": 8,
+        "highway": 3,
+        "major_road": 33
+      },
+      {
+        "z": 9,
+        "highway": 3,
+        "major_road": 56,
+        "aeroway": 1
+      },
+      {
+        "z": 10,
+        "major_road": 32
+      },
+      {
+        "z": 11,
+        "major_road": 55
+      },
+      {
+        "z": 12,
+        "major_road": 47
+      },
+      {
+        "z": 13,
+        "major_road": 46
+      },
+      {
+        "z": 14,
+        "major_road": 10
+      },
+      {
+        "z": 15,
+        "major_road": 4
+      },
+      {
+        "z": 16,
+        "major_road": 4
+      }
+    ],
+    "Sullana_resumen": {
+      "highway": 8,
+      "major_road": 8,
+      "minor_road": null,
+      "other": null,
+      "path": null
+    }
+  }
+}

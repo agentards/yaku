@@ -8,6 +8,8 @@ import fs from 'node:fs';
 import { PNG } from 'pngjs';
 
 const PORT = 4173, REMOTE = process.env.BASE_URL, BASE = REMOTE || `http://localhost:${PORT}/`;
+const QS = process.env.BASEMAP ? `?basemap=${process.env.BASEMAP}` : '';
+const START = BASE + QS; // ?basemap=z12 para probar la variante z12
 const CHROME = process.env.CHROME || '/usr/bin/google-chrome';
 const VP_NAME = process.env.VIEWPORT || 'android';
 const VPS = {
@@ -34,7 +36,7 @@ async function openFold(page, sel) { if (!(await page.locator(sel).evaluate((d) 
 async function firstVisit(ctx) {
   const page = await ctx.newPage();
   const t = Date.now();
-  await page.goto(BASE); await ready(page);
+  await page.goto(START); await ready(page);
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 15000 });
   return { page, ms: Date.now() - t };
@@ -52,7 +54,7 @@ async function addObs(page, i) {
 }
 async function noForbidden(page) {
   const t = (await page.evaluate(() => document.body.innerText)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  return !['via segura', 'ruta segura', 'camino seguro', 'transitable'].some((b) => t.includes(b));
+  return !['via segura', 'ruta segura', 'camino seguro', 'transitable', 'pronostico de inundacion', 'afectado', 'con danos', 'sin senal', 'expuesto en escenario', 'centros poblados expuestos'].some((b) => t.includes(b));
 }
 async function setChunk(page, chunk) {
   await tab(page, 'sync'); await openFold(page, '#diag');
@@ -100,7 +102,11 @@ async function mapState(page) {
     const m = window.__yaku.getMap();
     const n = (l) => m.queryRenderedFeatures({ layers: [l] }).length;
     return { loaded: m.loaded(), sources: ['senamhi', 'erosion', 'erosionPts', 'limite'].every((s) => m.isSourceLoaded(s)),
-      senamhi: n('senamhi-fill'), erosionPts: n('erosion-pts'), limite: n('limite-line'), citizen: n('citizen-dot'), osmVisible: m.getLayoutProperty('osm', 'visibility') };
+      senamhi: n('senamhi-fill'), erosionPts: n('erosion-pts'), limite: n('limite-line'), citizen: n('citizen-dot'),
+      osmRasterSource: !!m.getSource('osm'), basemapSourceLoaded: m.isSourceLoaded('protomaps'),
+      bmEarth: n('earth'), bmWater: n('water') + n('water_river') + n('water_stream'),
+      bmRoads: m.getStyle().layers.filter((l) => l.id.startsWith('roads_')).reduce((a, l) => a + n(l.id), 0), bmPlaces: n('places_locality'),
+      basemap: (({ log, ...x }) => x)(window.__yaku.basemap()), zoom: +m.getZoom().toFixed(2), center: m.getCenter().toArray().map((v) => +v.toFixed(3)) };
   });
 }
 async function canvasColors(page) {
@@ -130,7 +136,18 @@ try {
   if (!REMOTE) await ctxA.route('**/api/**', mockRoute);
   const remoteReqs = [];
   ctxA.on('request', (r) => { const u = new URL(r.url()); if (!u.href.startsWith(BASE) && !u.protocol.startsWith('data') && !u.protocol.startsWith('blob')) remoteReqs.push(u.host); });
+  const badResponses = [];
+  ctxA.on('response', (r) => { if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url()}`); });
   const { page: A, ms: firstMs } = await firstVisit(ctxA);
+  // ---------- (bm1) mapa base: progreso visible y guardado completo para uso sin red ----------
+  const tBm = Date.now();
+  await A.waitForFunction(() => window.__yaku.basemap().state === 'saved', null, { timeout: 180000 });
+  const bm1 = await A.evaluate(() => ({ ...window.__yaku.basemap(), pill: document.getElementById('basemap-pill').textContent, pillVisible: !!document.getElementById('basemap-pill').offsetParent, legend: document.getElementById('basemap-status').textContent,
+    cached: null }));
+  bm1.cached = await A.evaluate(async () => { const c = await caches.open('yaku-basemap-v1'); const k = await c.keys(); const r = k[0] && await c.match(k[0]); return { entries: k.length, url: k[0]?.url, bytes: r ? (await r.blob()).size : 0 }; });
+  const sawProgress = bm1.log.some((e) => e.state === 'downloading');
+  log('(bm1) mapa base: muestra progreso y luego «Mapa base guardado sin red · X MB»; archivo completo en Cache Storage', sawProgress && bm1.pillVisible && /^Mapa base guardado sin red · \d+,\d MB$/.test(bm1.pill) && bm1.cached.entries === 1 && bm1.cached.bytes === bm1.total,
+    { key: bm1.key, file: bm1.file, bytes: bm1.total, saveMs: bm1.ms, waitedAfterSwMs: Date.now() - tBm, pill: bm1.pill, progressLog: bm1.log, rangeRequestsWhileDownloading: bm1.rangeRequests, cached: bm1.cached });
   const ui0 = await A.evaluate(() => ({ camHidden: document.getElementById('cam-box').hidden, qrHidden: document.getElementById('emit-out').hidden, endpointVisible: !!document.getElementById('endpoint').offsetParent }));
   const swCached = await A.evaluate(async () => (await Promise.all((await caches.keys()).map(async (k) => (await (await caches.open(k)).keys()).length))).reduce((a, b) => a + b, 0));
   await ctxA.setOffline(true);
@@ -143,7 +160,7 @@ try {
   const netLabel = await A.textContent('#net');
   const A2 = await ctxA.newPage();
   t = Date.now();
-  await A2.goto(BASE); await ready(A2);
+  await A2.goto(START); await ready(A2);
   const newTabMs = Date.now() - t;
   const newTabCount = await count(A2);
   const pending = await A2.locator('#list .sync.pend').count();
@@ -158,8 +175,62 @@ try {
   const ms1 = await mapState(A);
   const colors = await canvasColors(A);
   await A.screenshot({ path: `results/screens/e2e-${VP_NAME}-mapa-sin-red.png` });
-  log('(m) mapa MapLibre + capas SENAMHI/SIGRID/límite + puntos ciudadanos se ven sin red', ms1.loaded && ms1.sources && ms1.senamhi > 0 && ms1.erosionPts > 0 && ms1.limite > 0 && ms1.citizen === 3 && colors > 8 && ms1.osmVisible === 'none',
+  log('(m) mapa MapLibre + capas SENAMHI/SIGRID/límite + puntos ciudadanos se ven sin red', ms1.loaded && ms1.sources && ms1.senamhi > 0 && ms1.erosionPts > 0 && ms1.limite > 0 && ms1.citizen === 3 && colors > 8 && !ms1.osmRasterSource,
     { ...ms1, distinctColorsInMap: colors, remoteHostsRequested: [...new Set(remoteReqs)] });
+  const pillOff = await A.textContent('#basemap-pill');
+  // ---------- (cp) escenario de riesgo CENEPRED sin red: encuadre, puntos, «Sin ubicar», popup, filtro OSIPTEL ----------
+  const phase = await A.evaluate(() => window.__yaku.phase);
+  if (phase >= 2) {
+  const cp = await A.evaluate(() => {
+    const m = window.__yaku.getMap(); const b = m.getBounds();
+    const det = document.getElementById('cenepred-sin-ubicar');
+    const all = m.querySourceFeatures('cenepred');
+    const uniq = new Map(all.map((f) => [f.properties.cod, f.properties]));
+    return { rendered: m.queryRenderedFeatures({ layers: ['cenepred-ccpp'] }).length, sourceUnique: uniq.size,
+      sinCobSource: [...uniq.values()].filter((p) => p.cg === false).length, sinDatoSource: [...uniq.values()].filter((p) => p.cg === null || p.cg === undefined).length,
+      bboxCovered: b.getWest() <= -80.77 && b.getEast() >= -79.21 && b.getSouth() <= -5.94 && b.getNorth() >= -4.08,
+      view: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].map((v) => +v.toFixed(2)),
+      summary: det.querySelector('summary').textContent, rows: det.querySelectorAll('tbody tr').length,
+      firstRow: [...(det.querySelector('tbody tr')?.children ?? [])].map((td) => td.textContent),
+      legend: document.querySelector('.official-layer[data-layer=cenepred]')?.textContent.replace(/\s+/g, ' ').trim() };
+  });
+  // popup real: clic sobre un punto CENEPRED visible
+  const pt = await A.evaluate(() => {
+    const m = window.__yaku.getMap();
+    const fs = m.queryRenderedFeatures({ layers: ['cenepred-ccpp'] });
+    const r = m.getCanvas().getBoundingClientRect();
+    for (const f of fs) {
+      const p = m.project(f.geometry.coordinates);
+      if (p.x < 20 || p.y < 60 || p.x > r.width - 60 || p.y > r.height - 60) continue;
+      const top = m.queryRenderedFeatures([p.x, p.y], { layers: ['citizen-dot', 'citizen-halo', 'cenepred-ccpp', 'erosion-pts', 'erosion-fill', 'senamhi-fill'] })[0];
+      if (top?.layer.id === 'cenepred-ccpp') return { x: p.x, y: p.y };
+    }
+    return null;
+  });
+  let popupText = null;
+  if (pt) { await A.locator('#map canvas').click({ position: pt }); await A.waitForSelector('.pop-cenepred', { timeout: 5000 }); popupText = await A.textContent('.pop-cenepred'); }
+  const popupForbiddenOk = await noForbidden(A);
+  await A.screenshot({ path: `results/screens/e2e-${VP_NAME}-cenepred-popup.png` });
+  await A.evaluate(() => document.querySelector('.maplibregl-popup-close-button')?.click());
+  await openFold(A, '#cenepred-sin-ubicar').catch(() => {});
+  let filt = { skipped: 'fase < 3', rendered: 1, allSinCob: true };
+  if (phase >= 3) {
+    await A.check('#cenepred-sincob'); await A.waitForTimeout(400);
+    filt = await A.evaluate(() => { const m = window.__yaku.getMap(); const fs = m.queryRenderedFeatures({ layers: ['cenepred-ccpp'] }); return { rendered: fs.length, allSinCob: fs.every((f) => f.properties.cg === false) }; });
+    await A.uncheck('#cenepred-sincob');
+  }
+  log('(cp) escenario CENEPRED sin red: encuadre en los 23 distritos, 930/1.255, «Sin ubicar (325)», popup «Centro poblado del escenario CENEPRED» + OSIPTEL, filtro 445/928',
+    cp.bboxCovered && cp.rendered > 0 && cp.sourceUnique === 930 && cp.sinCobSource === 445 && cp.sinDatoSource === 2 && cp.summary === 'Sin ubicar (325)' && cp.rows === 325
+    && /930 centros poblados con ubicación de 1\.255/.test(cp.legend) && /Escenario de riesgo/.test(cp.legend) && !!popupText && /Centro poblado del escenario CENEPRED/.test(popupText) && (phase < 3 ? !/OSIPTEL/.test(popupText) : /Cobertura móvil garantizada \(declarada por operadoras, OSIPTEL\): (sí|no|sin dato OSIPTEL)/.test(popupText))
+    && popupForbiddenOk && filt.rendered > 0 && filt.allSinCob,
+    { phase, ...cp, popup: popupText, popupForbiddenOk, filter: filt });
+  } else {
+    const none = await A.evaluate(() => !window.__yaku.getMap().getSource('cenepred') && !document.querySelector('.official-layer[data-layer=cenepred]'));
+    const b = await A.evaluate(() => { const x = window.__yaku.getMap().getBounds(); return [x.getWest(), x.getSouth(), x.getEast(), x.getNorth()].map((v) => +v.toFixed(2)); });
+    log('(cp) fase 1: sin capa CENEPRED; encuadre en zona andina [-80.77,-5.94,-79.21,-4.08]', none && b[0] <= -80.77 && b[1] <= -5.94 && b[2] >= -79.21 && b[3] >= -4.08, { phase, view: b });
+  }
+  log('(bm2) sin red, tras recargar: el mapa base pinta desde la copia guardada (tierra/agua > 0), 0 peticiones externas, 0 Range a la red', ms1.basemapSourceLoaded && ms1.bmEarth > 0 && ms1.bmWater > 0 && ms1.basemap.hasBlob && ms1.basemap.rangeRequests === 0 && ms1.basemap.blobReads > 0 && remoteReqs.length === 0 && badResponses.length === 0 && /^Mapa base guardado sin red/.test(pillOff),
+    { earth: ms1.bmEarth, water: ms1.bmWater, roads: ms1.bmRoads, places: ms1.bmPlaces, blobReads: ms1.basemap.blobReads, rangeRequests: ms1.basemap.rangeRequests, pill: pillOff, externalRequests: remoteReqs.length, http4xx5xx: badResponses });
 
   // ---------- estilos ----------
   await tab(A, 'relevo');
@@ -312,7 +383,7 @@ try {
     try { await fetch(BASE); } catch { serverDown = true; }
     const F = await ctxA.newPage();
     t = Date.now();
-    await F.goto(BASE); await ready(F);
+    await F.goto(START); await ready(F);
     const mf = await mapState(F);
     log('(f) servidor apagado: nueva pestaña carga desde SW, lee IndexedDB y dibuja el mapa', serverDown && (await count(F)) === 3 && mf.senamhi > 0 && mf.erosionPts > 0, { serverDown, loadMs: Date.now() - t, records: await count(F), map: mf });
   }
