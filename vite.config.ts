@@ -10,8 +10,10 @@ export default defineConfig({
       injectRegister: false, // lo registramos en main.ts
       includeAssets: ['icon-192.png', 'icon-512.png'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,mjs,css,html,png,svg,webmanifest,geojson}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // maplibre-gl ~1 MB
         navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
@@ -23,7 +25,7 @@ export default defineConfig({
         start_url: '/',
         display: 'standalone',
         background_color: '#f4f6f8',
-        theme_color: '#0b3d5c',
+        theme_color: '#14212b',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
