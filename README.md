@@ -3,7 +3,7 @@
 Prototipo **técnico y desechable** que mide dos riesgos: **(1) offline real** (segunda apertura sin red, incluido el mapa y sus capas) y **(2) relevo de registros estructurados por QR** entre equipos sin internet, con consolidación diferida. Nada de esto está aprobado como producto.
 
 - Rediseño (rama de Pages `rediseno-mapa`): https://rediseno-mapa.yaku-relay-proto.pages.dev/
-- Producción anterior (`main`, sin cambios): https://yaku-relay-proto.pages.dev/
+- Producción (`main`): https://yaku-relay-proto.pages.dev/ — tiene el rediseño desplegado el 17/10/2026 a las 13:13 (Lima), **anterior** al cambio de leyenda SENAMHI/SIGRID; no se revirtió.
 
 ## Cómo correrlo
 ```bash
@@ -31,8 +31,8 @@ E2E: usa `/usr/bin/google-chrome` (o `CHROME=…`). Las pruebas locales intercep
 ## Capas (results/data-prep.json)
 | Capa | Fuente | Fecha | Original → empaquetado |
 |---|---|---|---|
-| Pronóstico SENAMHI: aviso de activación de quebradas 24 h (55 polígonos; Nivel 2: 43, Nivel 3: 12). **NIVEL = nivel de aviso, no profundidad** | SENAMHI vía geoservicio INDECI (`SDE.SENAMHI_AvisoActQuebrada24H`) | aviso 15/10/2026; descargado 17/10/2026 | (piura_minimo 806 766 B) → 20 217 B |
-| SIGRID: áreas expuestas a erosión (69) | CENEPRED/SIGRID (informes INGEMMET y otros) vía INDECI | documentos 2019–2024 | 2 950 745 B → 78 070 B + 18 497 B (centroides para zoom < 11) |
+| Pronóstico SENAMHI: aviso de activación de quebradas 24 h (55 polígonos; Nivel 2: 43, Nivel 3: 12). **NIVEL = nivel de aviso, no profundidad**. La leyenda calcula emisión + 24 h frente a la hora actual y muestra «VIGENTE» o «VENCIDO, se muestra como ejemplo» | SENAMHI vía geoservicio INDECI (`SDE.SENAMHI_AvisoActQuebrada24H`) | aviso 15/10/2026; descargado 17/10/2026 | (piura_minimo 806 766 B) → 20 217 B |
+| SIGRID: áreas expuestas a erosión (69) | SIGRID/CENEPRED, obtenida vía geoservicio de INDECI | documentos 2019–2024 | 2 950 745 B → 78 070 B + 18 497 B (centroides para zoom < 11) |
 | Límite departamental de Piura | INDECI LimitesAdministrativos | descargado 17/10/2026 | → 9 633 B |
 
 Se simplificaron con mapshaper (`-clean`, Douglas-Peucker con `keep-shapes`) y se dejaron solo los campos necesarios. Las capas van en el precache del service worker.
