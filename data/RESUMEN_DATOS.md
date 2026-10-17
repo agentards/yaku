@@ -122,7 +122,7 @@ Calidad de la unión de centros poblados:
 - 10 de los 930 puntos caen fuera de su propio distrito (con un margen de unos 100 m).
 - Ambos casos quedan marcados en las properties (`nombre_coincide_normalizado`, `punto_dentro_de_su_distrito`).
 - El IGN mezcla códigos de FUENTE IGN e INEI y no lo declaré como «marco censal INEI». Además, el shapefile trae 311 códigos de 9 dígitos con el cero inicial perdido (son de Áncash, no de Piura).
-- 325 centros poblados no tienen punto y no se dibujaron.
+- 325 centros poblados no tienen punto en el IGN. Después se ubicaron con OSIPTEL: 317 quedan con ubicación aproximada dentro de su distrito y 8 van a la lista «Sin ubicar» (3 sin coordenadas y 5 con el punto de OSIPTEL fuera de su distrito). Detalle en `piura_ccpp_estado_base.json`.
 
 Archivos `*_georef*.csv` en `cenepred_421_piura/`.
 
