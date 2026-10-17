@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-17T18:11:51.439Z",
+  "date": "2026-10-17T18:16:36.523Z",
   "base": "https://rediseno-mapa.yaku-relay-proto.pages.dev/",
   "viewport": "desktop",
   "chrome": "/usr/bin/google-chrome",
@@ -8,10 +8,10 @@
       "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
       "ok": true,
       "viewport": "desktop",
-      "firstVisitMs": 914,
+      "firstVisitMs": 944,
       "precachedEntries": 12,
-      "offlineReloadMs": 384,
-      "offlineNewTabMs": 270,
+      "offlineReloadMs": 169,
+      "offlineNewTabMs": 277,
       "recordsAfterReload": 3,
       "recordsNewTab": 3,
       "net": "SIN RED",
@@ -35,7 +35,7 @@
       "limite": 2,
       "citizen": 3,
       "osmVisible": "none",
-      "distinctColorsInMap": 297,
+      "distinctColorsInMap": 298,
       "remoteHostsRequested": []
     },
     {
@@ -51,6 +51,8 @@
       "fuenteOficialText": false,
       "sourceBadgesOutsideLegend": 0,
       "sourceBadgesInCitizen": 0,
+      "senamhiLegend": "Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo",
+      "erosionSource": "Registro oficial · SIGRID/CENEPRED, obtenida vía geoservicio de INDECI",
       "legendWithSourceAndDate": [
         true,
         true,
@@ -72,7 +74,7 @@
     {
       "name": "(b) enlace relay #p= entre contextos, sin red, con dedup",
       "ok": true,
-      "linkChars": 226,
+      "linkChars": 219,
       "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
       "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
       "recordsB": 3,
@@ -82,7 +84,7 @@
       "name": "(c) subir imágenes de QR fragmentado sin red; barra de progreso parcial → completa",
       "ok": true,
       "fragments": 2,
-      "emitInfo": "3 registros · 125 B comprimidos · 2 QR (v7) · CRC 7447974e",
+      "emitInfo": "3 registros · 120 B comprimidos · 2 QR (v7) · CRC 48cfbeec",
       "partial": {
         "visible": true,
         "label": "1/2 fragmentos",
@@ -92,13 +94,13 @@
         "label": "2/2 · completo",
         "complete": true
       },
-      "status": "Mensaje HGLQ completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+      "status": "Mensaje AKTO completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
     },
     {
       "name": "(d) cámara simulada: QR animado leído y reensamblado sin red",
       "ok": true,
       "fragments": 2,
-      "msToComplete": 648,
+      "msToComplete": 729,
       "engine": "jsQR",
       "cameraOptions": 2,
       "camHiddenBefore": true,
@@ -126,21 +128,21 @@
         "getUniqueIds": 3,
         "allVerified0": true,
         "stats": {
-          "total": 12,
-          "unique_ids": 12,
-          "last": 1792260709896,
+          "total": 18,
+          "unique_ids": 18,
+          "last": 1792260994801,
           "byType": [
             {
               "type": "agua",
-              "n": 4
+              "n": 6
             },
             {
               "type": "cauce",
-              "n": 4
+              "n": 6
             },
             {
               "type": "huaico",
-              "n": 4
+              "n": 6
             }
           ],
           "verified": false

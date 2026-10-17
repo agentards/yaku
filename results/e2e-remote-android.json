@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-17T18:11:35.640Z",
+  "date": "2026-10-17T18:16:19.783Z",
   "base": "https://rediseno-mapa.yaku-relay-proto.pages.dev/",
   "viewport": "android",
   "chrome": "/usr/bin/google-chrome",
@@ -8,10 +8,10 @@
       "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
       "ok": true,
       "viewport": "android",
-      "firstVisitMs": 986,
+      "firstVisitMs": 1075,
       "precachedEntries": 12,
-      "offlineReloadMs": 469,
-      "offlineNewTabMs": 471,
+      "offlineReloadMs": 444,
+      "offlineNewTabMs": 405,
       "recordsAfterReload": 3,
       "recordsNewTab": 3,
       "net": "SIN RED",
@@ -51,6 +51,8 @@
       "fuenteOficialText": false,
       "sourceBadgesOutsideLegend": 0,
       "sourceBadgesInCitizen": 0,
+      "senamhiLegend": "Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo",
+      "erosionSource": "Registro oficial · SIGRID/CENEPRED, obtenida vía geoservicio de INDECI",
       "legendWithSourceAndDate": [
         true,
         true,
@@ -72,7 +74,7 @@
     {
       "name": "(b) enlace relay #p= entre contextos, sin red, con dedup",
       "ok": true,
-      "linkChars": 226,
+      "linkChars": 224,
       "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
       "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
       "recordsB": 3,
@@ -82,7 +84,7 @@
       "name": "(c) subir imágenes de QR fragmentado sin red; barra de progreso parcial → completa",
       "ok": true,
       "fragments": 2,
-      "emitInfo": "3 registros · 125 B comprimidos · 2 QR (v7) · CRC 40e2d8a9",
+      "emitInfo": "3 registros · 123 B comprimidos · 2 QR (v7) · CRC f6a08ffe",
       "partial": {
         "visible": true,
         "label": "1/2 fragmentos",
@@ -92,14 +94,14 @@
         "label": "2/2 · completo",
         "complete": true
       },
-      "status": "Mensaje 4NMX completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+      "status": "Mensaje HNGE completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
     },
     {
       "name": "(d) cámara simulada: QR animado leído y reensamblado sin red",
       "ok": true,
       "fragments": 2,
-      "msToComplete": 641,
-      "engine": "jsQR",
+      "msToComplete": 622,
+      "engine": null,
       "cameraOptions": 2,
       "camHiddenBefore": true,
       "progress": "2/2 · completo"
@@ -126,21 +128,21 @@
         "getUniqueIds": 3,
         "allVerified0": true,
         "stats": {
-          "total": 9,
-          "unique_ids": 9,
-          "last": 1792260694041,
+          "total": 15,
+          "unique_ids": 15,
+          "last": 1792260978125,
           "byType": [
             {
               "type": "agua",
-              "n": 3
+              "n": 5
             },
             {
               "type": "cauce",
-              "n": 3
+              "n": 5
             },
             {
               "type": "huaico",
-              "n": 3
+              "n": 5
             }
           ],
           "verified": false

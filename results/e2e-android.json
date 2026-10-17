@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-17T18:09:33.865Z",
+  "date": "2026-10-17T18:15:27.832Z",
   "base": "http://localhost:4173/",
   "viewport": "android",
   "chrome": "/usr/bin/google-chrome",
@@ -8,10 +8,10 @@
       "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
       "ok": true,
       "viewport": "android",
-      "firstVisitMs": 599,
+      "firstVisitMs": 614,
       "precachedEntries": 12,
-      "offlineReloadMs": 446,
-      "offlineNewTabMs": 483,
+      "offlineReloadMs": 300,
+      "offlineNewTabMs": 463,
       "recordsAfterReload": 3,
       "recordsNewTab": 3,
       "net": "SIN RED",
@@ -51,6 +51,8 @@
       "fuenteOficialText": false,
       "sourceBadgesOutsideLegend": 0,
       "sourceBadgesInCitizen": 0,
+      "senamhiLegend": "Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo",
+      "erosionSource": "Registro oficial · SIGRID/CENEPRED, obtenida vía geoservicio de INDECI",
       "legendWithSourceAndDate": [
         true,
         true,
@@ -72,7 +74,7 @@
     {
       "name": "(b) enlace relay #p= entre contextos, sin red, con dedup",
       "ok": true,
-      "linkChars": 200,
+      "linkChars": 196,
       "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
       "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
       "recordsB": 3,
@@ -82,7 +84,7 @@
       "name": "(c) subir imágenes de QR fragmentado sin red; barra de progreso parcial → completa",
       "ok": true,
       "fragments": 2,
-      "emitInfo": "3 registros · 125 B comprimidos · 2 QR (v7) · CRC 9597994b",
+      "emitInfo": "3 registros · 123 B comprimidos · 2 QR (v7) · CRC cce4bad",
       "partial": {
         "visible": true,
         "label": "1/2 fragmentos",
@@ -92,13 +94,13 @@
         "label": "2/2 · completo",
         "complete": true
       },
-      "status": "Mensaje 8G23 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+      "status": "Mensaje WWJ1 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
     },
     {
       "name": "(d) cámara simulada: QR animado leído y reensamblado sin red",
       "ok": true,
       "fragments": 2,
-      "msToComplete": 682,
+      "msToComplete": 635,
       "engine": "jsQR",
       "cameraOptions": 2,
       "camHiddenBefore": true,
@@ -121,7 +123,7 @@
       "name": "(f) servidor apagado: nueva pestaña carga desde SW, lee IndexedDB y dibuja el mapa",
       "ok": true,
       "serverDown": true,
-      "loadMs": 864,
+      "loadMs": 855,
       "records": 3,
       "map": {
         "loaded": true,

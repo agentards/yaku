@@ -52,7 +52,7 @@ async function addObs(page, i) {
 }
 async function noForbidden(page) {
   const t = (await page.evaluate(() => document.body.innerText)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  return !['via segura', 'ruta segura', 'camino seguro'].some((b) => t.includes(b));
+  return !['via segura', 'ruta segura', 'camino seguro', 'transitable'].some((b) => t.includes(b));
 }
 async function setChunk(page, chunk) {
   await tab(page, 'sync'); await openFold(page, '#diag');
@@ -173,12 +173,14 @@ try {
       fuenteOficialText: /FUENTE OFICIAL/.test(txt),
       sourceBadgesOutsideLegend: [...document.querySelectorAll('.badge-source')].filter((b) => !b.closest('.official-layer')).length,
       sourceBadgesInCitizen: document.querySelectorAll('.citizen .badge-source, .citizen-legend .badge-source').length,
+      senamhiLegend: document.querySelector('.official-layer[data-layer=senamhi] .forecast-status')?.textContent,
+      erosionSource: document.querySelector('.official-layer[data-layer=erosion] .badge-source')?.textContent,
       legendWithSourceAndDate: [...document.querySelectorAll('.official-layer')].map((l) => /fuente|SENAMHI|INDECI|CENEPRED/i.test(l.textContent) && /20\d\d/.test(l.textContent)),
     };
   });
   log('estilo: reportes NO VERIFICADO (discontinuo); sin plantilla FUENTE OFICIAL; fuente solo junto a capas reales; sin textos prohibidos',
     style.badges.length === 3 && style.badges.every((b) => b === 'NO VERIFICADO') && style.citizenBorder.startsWith('dashed') && !style.officialTemplate && !style.fuenteOficialText
-    && style.sourceBadgesOutsideLegend === 0 && style.sourceBadgesInCitizen === 0 && style.legendWithSourceAndDate.every(Boolean) && (await noForbidden(A)), style);
+    && style.sourceBadgesOutsideLegend === 0 && style.sourceBadgesInCitizen === 0 && style.legendWithSourceAndDate.every(Boolean) && style.senamhiLegend === `Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · ${Date.now() > Date.parse('2026-10-16T00:00:00Z') ? 'VENCIDO, se muestra como ejemplo' : 'VIGENTE'}` && /SIGRID\/CENEPRED, obtenida vía geoservicio de INDECI/.test(style.erosionSource) && (await noForbidden(A)), style);
 
   // ---------- (g) GPS automático + marcador arrastrable ----------
   const ctxG = await browser.newContext({ ...CTX, geolocation: { latitude: -5.17, longitude: -80.65, accuracy: 15 }, permissions: ['geolocation'] });
