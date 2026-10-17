@@ -1,6 +1,7 @@
 import { all, markSynced, type StoredObs } from './db';
 
 export const MOCK_ENDPOINT = 'mock:local';
+export const DEFAULT_ENDPOINT = '/api/sync'; // Worker + D1 en el mismo origen
 
 /**
  * Mock de servidor en el propio navegador (localStorage), idempotente por id.
@@ -17,7 +18,7 @@ function mockServer(records: StoredObs[]): { accepted: string[]; newCount: numbe
 }
 
 let inflight: Promise<SyncResult> | null = null;
-export interface SyncResult { attempted: number; accepted: number; error?: string }
+export interface SyncResult { attempted: number; accepted: number; inserted?: number; duplicates?: number; error?: string }
 
 export function flushQueue(endpoint: string): Promise<SyncResult> {
   // Evita envíos concurrentes (online + click al mismo tiempo).
@@ -31,6 +32,7 @@ async function doFlush(endpoint: string): Promise<SyncResult> {
   if (!pending.length) return { attempted: 0, accepted: 0 };
   try {
     let accepted: string[];
+    let inserted: number | undefined, duplicates: number | undefined;
     if (endpoint === MOCK_ENDPOINT) {
       await new Promise((r) => setTimeout(r, 150));
       accepted = mockServer(pending).accepted;
@@ -41,12 +43,23 @@ async function doFlush(endpoint: string): Promise<SyncResult> {
         body: JSON.stringify({ records: pending.map(({ source, receivedAt, synced, ...r }) => r) }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      accepted = (await res.json()).accepted ?? [];
+      const j = await res.json();
+      accepted = j.accepted ?? [];
+      inserted = j.inserted; duplicates = j.duplicates;
     }
     const ok = accepted.filter((id) => pending.some((p) => p.id === id));
     await markSynced(ok);
-    return { attempted: pending.length, accepted: ok.length };
+    return { attempted: pending.length, accepted: ok.length, inserted, duplicates };
   } catch (e) {
     return { attempted: pending.length, accepted: 0, error: String((e as Error).message) };
   }
+}
+
+/** Estadísticas del servidor (GET /api/stats). null si no hay backend o no hay red. */
+export async function serverStats(endpoint: string): Promise<{ total: number; unique_ids: number } | null> {
+  if (endpoint === MOCK_ENDPOINT || !navigator.onLine) return null;
+  try {
+    const r = await fetch(endpoint.replace(/\/sync\/?$/, '/stats'), { cache: 'no-store' });
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
 }
