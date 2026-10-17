@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // MapLibre 6 carga su Web Worker desde un archivo aparte: lo empaquetamos localmente (precache, sin CDN).
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 maplibregl.setWorkerUrl(workerUrl);
-import { PIURA_BOUNDS } from './layers';
+import { PIURA_BOUNDS, OFFICIAL_LAYERS, forecastStatus } from './layers';
 import { OBS_LABELS, type ObsType } from './codec';
 
 const C = {
@@ -52,6 +52,7 @@ let loaded: Promise<void>;
 export const getMap = () => map;
 export const mapLoaded = () => loaded;
 
+const senamhiStatus = () => { const l = OFFICIAL_LAYERS.find((x) => x.id === 'senamhi')!; return forecastStatus(l.emision!, l.vigenciaH!).etiqueta; };
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 export function initMap(container: HTMLElement) {
@@ -78,7 +79,7 @@ export function initMap(container: HTMLElement) {
     } else if (f.layer.id.startsWith('erosion')) {
       popup(e.lngLat, `<div class="pop pop-official"><span class="badge-source">Fuente: CENEPRED/SIGRID</span><b>${esc(p.peligro)}</b><br>${esc(p.lugar)} · ${esc(p.dist)}, ${esc(p.prov)}<br><small>Documento ${esc(p.anio ?? 's/f')}${p.ficha ? ` · <a href="${esc(p.ficha)}" target="_blank" rel="noopener">ficha SIGRID</a>` : ''}</small></div>`);
     } else {
-      popup(e.lngLat, `<div class="pop pop-official"><span class="badge-source">Fuente: SENAMHI</span><b>Pronóstico · aviso nivel ${esc(p.nivel)}</b><br>${esc(p.dist)}, ${esc(p.prov)}<br><small>Activación de quebradas 24 h · ${esc(p.fecha)}. Nivel de aviso, no profundidad.</small></div>`);
+      popup(e.lngLat, `<div class="pop pop-official"><span class="badge-source">Fuente: SENAMHI</span><b>Aviso nivel ${esc(p.nivel)}</b> · ${esc(p.dist)}, ${esc(p.prov)}<br><small>${esc(senamhiStatus())}. Activación de quebradas; nivel de aviso, no profundidad.</small></div>`);
     }
   });
   for (const l of ['citizen-dot', 'erosion-pts', 'senamhi-fill']) {

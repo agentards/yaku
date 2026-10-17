@@ -1,12 +1,24 @@
 // Metadatos de capas oficiales reales (fuente y fecha visibles en la leyenda).
-export interface LayerMeta { id: string; titulo: string; tipo: string; fuente: string; fecha: string; nota: string; archivo: string }
+export interface LayerMeta { id: string; titulo: string; tipo: string; fuente: string; fecha: string; nota: string; archivo: string; emision?: string; vigenciaH?: number }
+
+/** Estado de un pronóstico según su emisión + vigencia, comparado con la hora actual (no fijo). */
+export function forecastStatus(emisionISO: string, vigenciaH: number, now = Date.now()) {
+  const emit = Date.parse(emisionISO);
+  const hasta = emit + vigenciaH * 3600_000;
+  // La fecha de emisión se muestra en UTC, igual que el campo FECHA de la fuente (epoch 1792022400000).
+  const fecha = new Intl.DateTimeFormat('es-PE', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' }).format(emit);
+  const vencido = now > hasta;
+  return { vencido, fecha, hasta, etiqueta: `Pronóstico SENAMHI del ${fecha} · vigencia ${vigenciaH} h · ${vencido ? 'VENCIDO, se muestra como ejemplo' : 'VIGENTE'}` };
+}
 export const OFFICIAL_LAYERS: LayerMeta[] = [
   {
     id: 'senamhi',
-    titulo: 'Pronóstico SENAMHI · aviso de activación de quebradas (24 h)',
+    titulo: 'Aviso de activación de quebradas',
     tipo: 'Pronóstico oficial',
     fuente: 'SENAMHI, vía geoservicio INDECI (SDE.SENAMHI_AvisoActQuebrada24H)',
-    fecha: 'Aviso del 15/10/2026 · descargado 17/10/2026',
+    fecha: 'Descargado 17/10/2026',
+    emision: '2026-10-15T00:00:00Z', // campo FECHA = 1792022400000 ms
+    vigenciaH: 24,
     nota: 'NIVEL = nivel de aviso (2 o 3). No es profundidad de agua ni área inundada.',
     archivo: 'data/senamhi-quebradas.geojson',
   },

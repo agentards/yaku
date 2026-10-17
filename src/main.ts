@@ -8,7 +8,7 @@ import {
 import { all, putIfAbsent, clearAll, type Source, type StoredObs } from './db';
 import { flushQueue, serverStats, MOCK_ENDPOINT, DEFAULT_ENDPOINT } from './sync';
 import { listCameras, startCamera, scanLoop, decodeImageFile, type ScanStats } from './scanner';
-import { OFFICIAL_LAYERS } from './layers';
+import { OFFICIAL_LAYERS, forecastStatus } from './layers';
 import { initMap, setVisible, setCitizen, placeDraft, draftPos, centerOf, getMap, mapLoaded } from './map';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -60,8 +60,10 @@ for (const l of OFFICIAL_LAYERS) {
   const sw = l.id === 'senamhi'
     ? '<span class="sw-stack"><span class="sw sw-n3"></span><span class="sw sw-n2"></span></span>'
     : `<span class="sw sw-${l.id}" aria-hidden="true"></span>`;
+  const fs = l.emision && l.vigenciaH ? forecastStatus(l.emision, l.vigenciaH) : null;
+  if (fs) li.dataset.vencido = String(fs.vencido);
   li.innerHTML = `<label class="layer-toggle"><input type="checkbox" data-layer="${l.id}" checked />${sw}
-    <span><b>${esc(l.titulo)}</b><br>
+    <span>${fs ? `<b class="forecast-status ${fs.vencido ? 'expired' : 'valid'}">${esc(fs.etiqueta)}</b><br>` : ''}<b>${esc(l.titulo)}</b><br>
     <span class="badge-source">${esc(l.tipo)} · ${esc(l.fuente)}</span><br>
     <small>${esc(l.fecha)}. ${esc(l.nota)}</small>
     ${l.id === 'senamhi' ? '<br><small class="keys"><span class="k k3"></span>Nivel 3 <span class="k k2"></span>Nivel 2</small>' : ''}</span></label>`;

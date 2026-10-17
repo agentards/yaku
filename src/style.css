@@ -190,3 +190,7 @@ video { display: block; width: 100%; max-height: 46vh; border-radius: var(--r); 
   .recv-actions { grid-template-columns: 1fr 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+.forecast-status { display: inline-block; margin-bottom: .2rem; padding: .1rem .45rem; border-radius: 4px; font-size: .78rem; }
+.forecast-status.expired { background: #f1f3f5; color: #3b4652; border: 1.5px solid #6b7682; }
+.forecast-status.valid { background: #e6f4ea; color: #1e5b2e; border: 1.5px solid #1e6b34; }
+.official-layer[data-vencido="true"] .sw-stack { opacity: .6; }
