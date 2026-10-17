@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const dist = 'dist';
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.json': 'application/json' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.json': 'application/json', '.geojson': 'application/geo+json' };
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 const files = {};
 for (const f of walk(dist)) {
@@ -14,37 +14,19 @@ for (const f of walk(dist)) {
   const bin = ext === '.png';
   files[rel] = { t: TYPES[ext] || 'application/octet-stream', b: bin, d: bin ? fs.readFileSync(f).toString('base64') : fs.readFileSync(f, 'utf8') };
 }
-const worker = `const FILES = ${JSON.stringify(files)};
-const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
-function cacheFor(p) {
-  if (p.startsWith('/assets/')) return 'public, max-age=31536000, immutable';
-  return 'no-cache';
-}
-export default {
-  async fetch(req) {
-    const url = new URL(req.url);
-    // Endpoint mock de sincronización: eco sin persistencia (acepta ids recibidos).
-    if (url.pathname === '/api/sync') {
-      const cors = { 'access-control-allow-origin': '*', 'content-type': 'application/json' };
-      if (req.method === 'OPTIONS') return new Response(null, { headers: { ...cors, 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type' } });
-      if (req.method !== 'POST') return new Response(JSON.stringify({ ok: true, info: 'POST {records:[...]}' }), { headers: cors });
-      try {
-        const body = JSON.parse(await req.text());
-        const ids = (body.records || []).map((r) => String(r.id)).filter((id) => /^[0-9a-z]{11}$/.test(id)).slice(0, 500);
-        return new Response(JSON.stringify({ accepted: ids, persisted: false }), { headers: cors });
-      } catch { return new Response(JSON.stringify({ error: 'json inválido' }), { status: 400, headers: cors }); }
-    }
-    let f = FILES[url.pathname] || (url.pathname === '/' ? FILES['/index.html'] : null);
-    if (!f && req.method === 'GET' && !url.pathname.includes('.')) f = FILES['/index.html']; // SPA fallback
-    if (!f) return new Response('no encontrado', { status: 404 });
-    const h = { 'content-type': f.t, 'cache-control': cacheFor(url.pathname), 'x-content-type-options': 'nosniff', 'permissions-policy': 'camera=(self), geolocation=(self)' };
-    return new Response(f.b ? b64(f.d) : f.d, { headers: h });
-  },
-};
-`;
 fs.mkdirSync('deploy', { recursive: true });
+const esbuild = await import('esbuild');
+const r = await esbuild.build({
+  entryPoints: ['server/worker.ts'], bundle: true, format: 'esm', platform: 'neutral', target: 'es2022', write: false, minify: true,
+  plugins: [{ name: 'files', setup(b) {
+    b.onResolve({ filter: /^virtual:files$/ }, () => ({ path: 'files', namespace: 'v' }));
+    b.onLoad({ filter: /.*/, namespace: 'v' }, () => ({ contents: 'export default ' + JSON.stringify(files), loader: 'js' }));
+  } }],
+});
+const worker = r.outputFiles[0].text;
 fs.writeFileSync('deploy/_worker.js', worker);
 const project = process.env.CF_PAGES_PROJECT || 'yaku-relay-proto';
+const branch = process.env.CF_BRANCH || 'main';
 const deployCode = `async () => {
   const project = ${JSON.stringify(project)};
   const out = {};
@@ -58,7 +40,7 @@ const deployCode = `async () => {
   const worker = ${JSON.stringify(worker)};
   const b = 'YAKU' + Date.now();
   const part = (name, content, type, filename) => [\`--\${b}\`, \`Content-Disposition: form-data; name="\${name}"\` + (filename ? \`; filename="\${filename}"\` : ''), ...(type ? [\`Content-Type: \${type}\`] : []), '', content].join('\\r\\n');
-  const body = [part('manifest', '{}', 'application/json'), part('branch', 'main'), part('commit_message', 'proto offline-qr'), part('_worker.js', worker, 'application/javascript+module', '_worker.js'), \`--\${b}--\`, ''].join('\\r\\n');
+  const body = [part('manifest', '{}', 'application/json'), part('branch', ${JSON.stringify(branch)}), part('commit_message', 'proto offline-qr'), part('_worker.js', worker, 'application/javascript+module', '_worker.js'), \`--\${b}--\`, ''].join('\\r\\n');
   const d = await cloudflare.request({ method: 'POST', path: \`/accounts/\${accountId}/pages/projects/\${project}/deployments\`, body, contentType: \`multipart/form-data; boundary=\${b}\`, rawBody: true });
   out.deploy = { success: d.success, status: d.status, errors: d.errors, id: d.result && d.result.id, url: d.result && d.result.url, aliases: d.result && d.result.aliases, stage: d.result && d.result.latest_stage };
   return out;

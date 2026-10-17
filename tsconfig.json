@@ -4,5 +4,5 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"], "strict": true, "noEmit": true,
     "skipLibCheck": true, "types": ["vite/client", "vite-plugin-pwa/client"]
   },
-  "include": ["src", "tests", "scripts"]
+  "include": ["src", "tests", "scripts", "server"]
 }

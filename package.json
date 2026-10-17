@@ -10,7 +10,8 @@
     "test": "vite build && vitest run",
     "measure:qr": "vite-node scripts/qr-measure.ts",
     "e2e": "vite build && node scripts/e2e.mjs",
-    "prep:data": "node scripts/prep-data.mjs"
+    "prep:data": "node scripts/prep-data.mjs",
+    "build:worker": "node scripts/build-worker.mjs"
   },
   "keywords": [],
   "author": "",
