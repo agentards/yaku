@@ -34,6 +34,17 @@ flowchart LR
 | `src/map.ts`, `src/layers.ts`, `src/basemap*.ts` | MapLibre, capas oficiales con fuente y fecha, y mapa base PMTiles guardado en Cache Storage |
 | `server/worker.ts` | API `/api/*`, servicio del mapa base desde KV y archivos estáticos |
 
+## Vista 3D (rama `feat/3d-portal`, aditiva)
+| Componente | Responsabilidad |
+|---|---|
+| `src/vista3d/conmutador.ts` | Control 2D\|3D sobre el mismo mapa (`?vista=3d`); degrada a 2D sin WebGL 2, sin DEM guardado y sin red, o si se pierde el contexto |
+| `src/vista3d/relieve.ts` | Terreno DEM 1,6×, color por altitud, sombreado y cielo con bruma; las capas reales quedan drapeadas |
+| `src/vista3d/dem.ts` | DEM Terrarium de Piura (2,9 MB) por `yakudem://`, guardado completo en Cache Storage con sha256 |
+| `src/vista3d/camara.ts` | Vuelo regional → acercamiento → órbita, cancelable por cualquier gesto |
+| `src/vista3d/escena.ts` | Escena `EscenaYaku` para el portal de campo (`src/vista3d/ui/`) |
+
+Detalle, presupuesto y fps: `docs/evidencia-3d/analisis-codigo.md`.
+
 ## Flujo de relevo
 ```mermaid
 sequenceDiagram
