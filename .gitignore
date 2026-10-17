@@ -9,3 +9,5 @@ results/qr-png
 .dev.vars
 .wrangler/
 CREDITOS.local.md
+.vercel/
+*.local.md
