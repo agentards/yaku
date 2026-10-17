@@ -14,7 +14,7 @@ describe('bundle dist/', () => {
   it('nunca contiene afirmaciones de seguridad de rutas', () => {
     // Construido por partes para no depender de la literal; cubre tildes, unicode-escape y mayúsculas.
     const t = text().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\\u00ed/gi, 'i').replace(/\\xed/gi, 'i').toLowerCase();
-    const banned = [['v', 'ia', ' segura'], ['ruta', ' segura'], ['camino', ' seguro'], ['safe', ' route']].map((p) => p.join(''));
+    const banned = [['v', 'ia', ' segura'], ['ruta', ' segura'], ['camino', ' seguro'], ['safe', ' route'], ['transi', 'table']].map((p) => p.join(''));
     for (const b of banned) expect(t.includes(b), `texto prohibido: "${b}"`).toBe(false);
   });
   it('incluye la etiqueta NO VERIFICADO, estilo discontinuo para reportes ciudadanos y sin plantilla FUENTE OFICIAL', () => {

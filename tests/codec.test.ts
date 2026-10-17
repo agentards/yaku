@@ -126,3 +126,12 @@ describe('regresión', () => {
     expect(found).toBeGreaterThan(0);
   });
 });
+
+import { forecastStatus } from '../src/layers';
+describe('vigencia de pronóstico', () => {
+  const emit = '2026-10-15T00:00:00Z';
+  it('vigente dentro de las 24 h y vencido después (calculado, no fijo)', () => {
+    expect(forecastStatus(emit, 24, Date.parse('2026-10-15T23:59:00Z'))).toMatchObject({ vencido: false, etiqueta: 'Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VIGENTE' });
+    expect(forecastStatus(emit, 24, Date.parse('2026-10-16T00:01:00Z'))).toMatchObject({ vencido: true, etiqueta: 'Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · VENCIDO, se muestra como ejemplo' });
+  });
+});
