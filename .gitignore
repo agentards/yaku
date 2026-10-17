@@ -2,3 +2,10 @@ node_modules
 dist/
 deploy/*.js
 results/qr-png
+
+# secretos locales (nunca al repo)
+.env
+.env.*
+.dev.vars
+.wrangler/
+CREDITOS.local.md
