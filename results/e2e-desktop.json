@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-17T18:09:54.468Z",
+  "base": "http://localhost:4173/",
+  "viewport": "desktop",
+  "chrome": "/usr/bin/google-chrome",
+  "results": [
+    {
+      "name": "(a) offline: recarga y nueva pestaña cargan y leen IndexedDB",
+      "ok": true,
+      "viewport": "desktop",
+      "firstVisitMs": 589,
+      "precachedEntries": 12,
+      "offlineReloadMs": 394,
+      "offlineNewTabMs": 258,
+      "recordsAfterReload": 3,
+      "recordsNewTab": 3,
+      "net": "SIN RED",
+      "pendingSync": 3,
+      "pendingPill": "3"
+    },
+    {
+      "name": "UI: cámara y QR ocultos hasta usarlos; ajustes técnicos plegados",
+      "ok": true,
+      "camHidden": true,
+      "qrHidden": true,
+      "endpointVisible": false
+    },
+    {
+      "name": "(m) mapa MapLibre + capas SENAMHI/SIGRID/límite + puntos ciudadanos se ven sin red",
+      "ok": true,
+      "loaded": true,
+      "sources": true,
+      "senamhi": 33,
+      "erosionPts": 69,
+      "limite": 2,
+      "citizen": 3,
+      "osmVisible": "none",
+      "distinctColorsInMap": 297,
+      "remoteHostsRequested": []
+    },
+    {
+      "name": "estilo: reportes NO VERIFICADO (discontinuo); sin plantilla FUENTE OFICIAL; fuente solo junto a capas reales; sin textos prohibidos",
+      "ok": true,
+      "badges": [
+        "NO VERIFICADO",
+        "NO VERIFICADO",
+        "NO VERIFICADO"
+      ],
+      "citizenBorder": "dashed rgb(199, 119, 0)",
+      "officialTemplate": false,
+      "fuenteOficialText": false,
+      "sourceBadgesOutsideLegend": 0,
+      "sourceBadgesInCitizen": 0,
+      "legendWithSourceAndDate": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "(g) GPS automático al registrar (sin red) y ajuste arrastrando el marcador",
+      "ok": true,
+      "gps": [
+        -5.17,
+        -80.65
+      ],
+      "ajustado": [
+        -5.18368,
+        -80.6294
+      ]
+    },
+    {
+      "name": "(b) enlace relay #p= entre contextos, sin red, con dedup",
+      "ok": true,
+      "linkChars": 196,
+      "first": "Enlace relay: 3 registros · 3 nuevos · 0 duplicados ignorados",
+      "second": "Enlace relay: 3 registros · 0 nuevos · 3 duplicados ignorados",
+      "recordsB": 3,
+      "hashCleared": true
+    },
+    {
+      "name": "(c) subir imágenes de QR fragmentado sin red; barra de progreso parcial → completa",
+      "ok": true,
+      "fragments": 2,
+      "emitInfo": "3 registros · 123 B comprimidos · 2 QR (v7) · CRC 737711af",
+      "partial": {
+        "visible": true,
+        "label": "1/2 fragmentos",
+        "width": "50%"
+      },
+      "full": {
+        "label": "2/2 · completo",
+        "complete": true
+      },
+      "status": "Mensaje CK33 completo: 3 registros · 3 nuevos · 0 duplicados ignorados"
+    },
+    {
+      "name": "(d) cámara simulada: QR animado leído y reensamblado sin red",
+      "ok": true,
+      "fragments": 2,
+      "msToComplete": 629,
+      "engine": "jsQR",
+      "cameraOptions": 2,
+      "camHiddenBefore": true,
+      "progress": "2/2 · completo"
+    },
+    {
+      "name": "(e) sync contra mock interceptado: en relevo → consolidado; reenvíos no duplican",
+      "ok": true,
+      "before": "en relevo",
+      "after": "consolidado",
+      "statusA": "Consolidados 3/3 · 3 nuevos en servidor, 0 ya estaban (conexión recuperada).",
+      "statusB": "Consolidados 3/3 · 0 nuevos en servidor, 3 ya estaban (conexión recuperada).",
+      "syncedAfterReload": 3,
+      "pendingPill": "0",
+      "mockPosts": 3,
+      "mockReceived": 9,
+      "mockUnique": 3
+    },
+    {
+      "name": "(f) servidor apagado: nueva pestaña carga desde SW, lee IndexedDB y dibuja el mapa",
+      "ok": true,
+      "serverDown": true,
+      "loadMs": 790,
+      "records": 3,
+      "map": {
+        "loaded": true,
+        "sources": true,
+        "senamhi": 33,
+        "erosionPts": 69,
+        "limite": 2,
+        "citizen": 3,
+        "osmVisible": "none"
+      }
+    }
+  ]
+}
