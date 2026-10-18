@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-18T03:39:00.304Z",
+  "fecha": "2026-10-18T03:52:40.553Z",
   "checks": [
     {
       "name": "escritorio: LCP < 2500 ms (local)",
@@ -161,7 +161,7 @@
     {
       "name": "celular: LCP < 2500 ms (local)",
       "ok": true,
-      "lcp": 508
+      "lcp": 184
     },
     {
       "name": "celular: h1 y título",
@@ -317,36 +317,36 @@
     }
   ],
   "medidas": {
-    "escritorio.loadMs": 480,
+    "escritorio.loadMs": 466,
     "escritorio.lcpMs": 336,
     "escritorio.recursosMasLentos": [
-      "antena-sin-luz-16x9.mp4 887→909",
-      "lluvia-caserio-16x9.mp4 887→907",
-      "icon-192.png 476→482",
-      "antena-sin-luz-16x9.webp 211→228"
+      "lluvia-caserio-16x9.mp4 875→904",
+      "antena-sin-luz-16x9.mp4 880→900",
+      "icon-192.png 475→483",
+      "landing-dzUJHYJ_.js 49→241"
     ],
     "escritorio.navegacion": {
-      "responseStart": 20.699999999254942,
-      "responseEnd": 21.599999997764826,
-      "domContentLoadedEventEnd": 439.5
+      "responseStart": 41.69999999925494,
+      "responseEnd": 42.5,
+      "domContentLoadedEventEnd": 453.5999999977648
     },
     "escritorio.cls": 0,
-    "escritorio.bytesTrasRecorrer": 2491306,
-    "celular.loadMs": 878,
-    "celular.lcpMs": 508,
+    "escritorio.bytesTrasRecorrer": 3573334,
+    "celular.loadMs": 392,
+    "celular.lcpMs": 184,
     "celular.recursosMasLentos": [
-      "antena-sin-luz-9x16.mp4 1269→1532",
-      "lluvia-caserio-9x16.mp4 1268→1522",
-      "icon-192.png 875→884",
-      "antena-sin-luz-9x16.webp 479→544"
+      "lluvia-caserio-9x16.mp4 798→809",
+      "antena-sin-luz-9x16.mp4 798→807",
+      "icon-192.png 388→392",
+      "antena-sin-luz-9x16.webp 164→177"
     ],
     "celular.navegacion": {
-      "responseStart": 30.800000000745058,
-      "responseEnd": 31.700000002980232,
-      "domContentLoadedEventEnd": 832.5
+      "responseStart": 11.199999999254942,
+      "responseEnd": 11.699999999254942,
+      "domContentLoadedEventEnd": 364.5
     },
     "celular.cls": 0,
-    "celular.bytesTrasRecorrer": 2423527
+    "celular.bytesTrasRecorrer": 3166697
   },
   "resumen": "50/50"
 }
