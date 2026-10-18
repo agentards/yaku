@@ -9,7 +9,7 @@ import { all, putIfAbsent, clearAll, type Source, type StoredObs } from './db';
 import { flushQueue, serverStats, MOCK_ENDPOINT, DEFAULT_ENDPOINT } from './sync';
 import { listCameras, startCamera, scanLoop, decodeImageFile, type ScanStats } from './scanner';
 import { OFFICIAL_LAYERS, forecastStatus } from './layers';
-import { initMap, setVisible, setCenepredSinCobertura, setCitizen, placeDraft, draftPos, centerOf, getMap, mapLoaded, startBasemapOffline, basemapInfo, BASEMAP, type BasemapStatus } from './map';
+import { initMap, diferirMapa2D, setVisible, setCenepredSinCobertura, setCitizen, placeDraft, draftPos, centerOf, getMap, mapLoaded, startBasemapOffline, basemapInfo, BASEMAP, type BasemapStatus } from './map';
 import { fmtMB } from './basemap';
 import { montarVista3D } from './vista3d/conmutador';
 import { FEAT, PHASE } from './features';
@@ -61,8 +61,21 @@ addEventListener('offline', renderNet);
 renderNet();
 
 // ---------- mapa + leyenda ----------
-initMap($('map'));
-montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
+// El mapa 2D solo se crea si se va a ver: el Centro de monitoreo trae su propia escena 3D y el modo poblador no usa
+// mapa. Antes quedaba vivo y oculto debajo (un segundo contexto WebGL con sus teselas); ahora nace al pulsar «Vista 2D».
+function arrancarMapa2D() {
+  initMap($('map'));
+  montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
+  // Aviso cuando se acerca más allá del detalle del mapa base (las teselas se amplían, con menos detalle)
+  getMap()!.on('zoomend', () => {
+    const m = getMap()!;
+    const h = $('map-hint');
+    h.hidden = m.getZoom() < BASEMAP.maxzoom + 2;
+    h.textContent = `Mapa base con detalle hasta zoom ${BASEMAP.maxzoom}: más cerca se amplía con menos detalle.`;
+  });
+}
+if (ruta.vista === 'tecnica') arrancarMapa2D();
+else diferirMapa2D(() => { arrancarMapa2D(); getMap()!.once('load', () => void renderList()); });
 // Centro de monitoreo: primero el acceso con PIN municipal (src/auth/), luego la interfaz unificada (src/vista3d/monitoreo/).
 // portal | municipalidad | incidentes son alias de la misma pantalla; «incidentes» y «municipalidad» abren la pestaña Incidentes.
 if (ruta.vista === 'monitoreo') import('./auth/sesion').then((a) => a.exigirSesion(document.body)).then(async (sesion) => {
@@ -405,11 +418,3 @@ $('diag').addEventListener('toggle', renderDiag);
   document.body.dataset.ready = '1';
   doSync('inicio');
 })();
-
-// Aviso cuando se acerca más allá del detalle del mapa base (las teselas se amplían, con menos detalle)
-getMap()?.on('zoomend', () => {
-  const m = getMap()!;
-  const h = $('map-hint');
-  h.hidden = m.getZoom() < BASEMAP.maxzoom + 2;
-  h.textContent = `Mapa base con detalle hasta zoom ${BASEMAP.maxzoom}: más cerca se amplía con menos detalle.`;
-});

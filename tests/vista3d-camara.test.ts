@@ -6,7 +6,7 @@ import path from 'node:path';
 import { PMTiles } from 'pmtiles';
 import { PNG } from 'pngjs';
 import { Recorrido, planRecorrido, presetCuenca, rumboOrbita, normalizarRumbo, duracionVuelo, distanciaKm, easeInOutCubic, type Fase, type MapaCamara, type Reloj } from '../src/vista3d/camara';
-import { CUENCA, DEM, DEM_BOUNDS, EXAGERACION, NOTA_RELIEVE, PITCH_MAX_3D, VISTA_REGIONAL } from '../src/vista3d/config';
+import { CUENCA, DEM, DEM_BOUNDS, EXAGERACION, NOTA_RELIEVE, ORBITA_MAX_S, PITCH_MAX_3D, VISTA_REGIONAL } from '../src/vista3d/config';
 
 describe('cámara: lógica pura', () => {
   it('normaliza rumbos a (-180, 180]', () => {
@@ -138,6 +138,20 @@ describe('cámara: más casos de cancelación', () => {
     c.avanzar(3000);
     expect(d.rumbo()).toBe(b);
     expect(rec.fase).toBe('inactivo');
+  });
+
+  it('la órbita se detiene sola a los ORBITA_MAX_S segundos (sin cuadros pendientes)', () => {
+    const d = mapaDoble(), c = relojDoble();
+    const rec = new Recorrido(d.m, c.r, () => false);
+    rec.orbitar(5, 2);
+    c.avanzar((ORBITA_MAX_S - 1) * 1000);
+    expect(rec.fase).toBe('orbita');
+    c.avanzar(2000);
+    const b = d.rumbo();
+    expect(rec.fase).toBe('inactivo');
+    expect(c.pendientes()).toBe(0);
+    c.avanzar(1000);
+    expect(d.rumbo()).toBe(b);
   });
 
   it('saltarRegional parte del centro y rumbo actuales (giro de 35° desde ahí)', async () => {

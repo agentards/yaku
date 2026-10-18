@@ -53,6 +53,12 @@ const bm = basemapLayers();
 const bmBase = bm.filter((l) => l.type !== 'symbol');
 const bmLabels = bm.filter((l) => l.type === 'symbol');
 
+// Capas oficiales de Piura: en Lima (prueba en sala) quedan vacías. Están a ~900 km, fuera de la vista, y cada mapa
+// (2D y escena 3D) gastaría en descargarlas, partirlas en teselas y dibujarlas al alejar.
+const piura = (data: string, attribution?: string) => (REGION.id === 'piura'
+  ? { type: 'geojson' as const, data, ...(attribution ? { attribution } : {}) }
+  : { type: 'geojson' as const, data: { type: 'FeatureCollection' as const, features: [] } });
+
 // Estilo 100 % local: teselas, glyphs y sprites se sirven desde el propio sitio (sin CDN ni tile.openstreetmap.org).
 export const style: StyleSpecification = {
   version: 8,
@@ -60,11 +66,11 @@ export const style: StyleSpecification = {
   sprite: location.origin + '/basemap/sprites/light',
   sources: {
     protomaps: { type: 'vector', url: 'pmtiles://' + BASEMAP_URL, attribution: BASEMAP_ATTRIBUTION },
-    limite: { type: 'geojson', data: 'data/piura-limite.geojson', attribution: 'Límite: INDECI' },
-    senamhi: { type: 'geojson', data: 'data/senamhi-quebradas.geojson', attribution: 'Pronóstico: SENAMHI vía INDECI (15/10/2026)' },
-    erosion: { type: 'geojson', data: 'data/sigrid-erosion.geojson', attribution: 'Erosión: SIGRID/CENEPRED vía geoservicio de INDECI' },
-    erosionPts: { type: 'geojson', data: 'data/sigrid-erosion-pts.geojson' },
-    ...(FEAT.cenepred ? { cenepred: { type: 'geojson', data: 'data/cenepred-ccpp.geojson', attribution: 'Escenario de riesgo: CENEPRED/SIGRID 23077 · CCPP: IGN' + (FEAT.osiptel ? ' · Cobertura móvil: OSIPTEL (ODC-By)' : '') } as const } : {}),
+    limite: piura('data/piura-limite.geojson', 'Límite: INDECI'),
+    senamhi: piura('data/senamhi-quebradas.geojson', 'Pronóstico: SENAMHI vía INDECI (15/10/2026)'),
+    erosion: piura('data/sigrid-erosion.geojson', 'Erosión: SIGRID/CENEPRED vía geoservicio de INDECI'),
+    erosionPts: piura('data/sigrid-erosion-pts.geojson'),
+    ...(FEAT.cenepred ? { cenepred: piura('data/cenepred-ccpp.geojson', 'Escenario de riesgo: CENEPRED/SIGRID 23077 · CCPP: IGN' + (FEAT.osiptel ? ' · Cobertura móvil: OSIPTEL (ODC-By)' : '')) } : {}),
     citizen: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
   },
   layers: [
@@ -100,6 +106,11 @@ let map: MLMap | null = null;
 let draft: maplibregl.Marker | null = null;
 let loaded: Promise<void>;
 export const getMap = () => map;
+let iniciar2D: (() => void) | null = null;
+/** Deja el mapa 2D para cuando haga falta (Centro de monitoreo y modo poblador no lo muestran al abrir). */
+export function diferirMapa2D(iniciar: () => void) { iniciar2D = iniciar; }
+/** Crea el mapa 2D diferido (una vez) antes de mostrarlo. */
+export function asegurarMapa2D() { const f = iniciar2D; iniciar2D = null; f?.(); }
 export const mapLoaded = () => loaded;
 
 const senamhiStatus = () => { const l = OFFICIAL_LAYERS.find((x) => x.id === 'senamhi')!; return forecastStatus(l.emision!, l.vigenciaH!).etiqueta; };

@@ -9,7 +9,7 @@ import { CENEPRED_23077_BOUNDS } from '../layers';
 import type { CapaId, CentroPoblado, EscenaYaku, PuntoReporte } from './ui/contrato';
 import { CAPAS_RELIEVE, SRC_TERRENO, terreno } from './relieve';
 import { prepararFuenteDem, registrarProtocoloDem } from './dem';
-import { PITCH_MAX_3D, PIXEL_RATIO_MAX_3D, VISTA_REGIONAL } from './config';
+import { PITCH_MAX_3D, PIXEL_RATIO_MAX_3D, TESELAS_CACHE_3D, VISTA_REGIONAL } from './config';
 import { CAPA_EDIFICIOS, estiloRegion } from './edificios';
 import { REGION, type Region } from '../region';
 import { Recorrido } from './camara';
@@ -47,9 +47,12 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
   if (REGION.terreno) { registrarProtocoloDem(); prepararFuenteDem(); }
   const style = estiloEscena();
   const R = VISTA_REGIONAL;
+  // Lima: el vuelo de entrada arranca en el mismo nivel de teselas que la vista final (z14): no se cargan dos niveles
+  // de edificios para la misma escena.
   const map = new maplibregl.Map({
-    container: cont, style, center: R.center, zoom: R.zoom - 1.2, pitch: 45, bearing: R.bearing - 30,
-    maxPitch: PITCH_MAX_3D, attributionControl: false, maxZoom: 16, minZoom: 5, pixelRatio: Math.min(devicePixelRatio, PIXEL_RATIO_MAX_3D),
+    container: cont, style, center: R.center, zoom: R.zoom - (REGION.edificios ? 0.5 : 1.2), pitch: 45, bearing: R.bearing - 30,
+    maxPitch: PITCH_MAX_3D, attributionControl: false, maxZoom: 16, minZoom: REGION.zoomMin, pixelRatio: Math.min(devicePixelRatio, PIXEL_RATIO_MAX_3D),
+    ...TESELAS_CACHE_3D,
   });
   map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: 'MapLibre' }), 'bottom-left');
   const cam = new Recorrido(map);

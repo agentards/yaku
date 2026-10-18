@@ -21,6 +21,10 @@ export interface Region {
   terreno: boolean;
   /** Edificios en 3D (capa «buildings» de Protomaps/OSM; requiere teselas z13+). */
   edificios: boolean;
+  /** Zoom mínimo de la escena 3D: más afuera el recorte no tiene mapa y solo se gastan teselas vacías. */
+  zoomMin: number;
+  /** Inclinación máxima en 3D: cuanto más se inclina, más teselas se piden hacia el horizonte. */
+  pitchMax: number;
   chip: string;
   chipTitulo: string;
 }
@@ -31,7 +35,7 @@ export const REGIONES: Record<RegionId, Region> = {
     bounds: [[-80.77, -5.94], [-79.21, -4.08]],
     vista: { center: [-80.05, -5.05], zoom: 8.1, pitch: 72, bearing: 62 },
     acercamiento: { zoom: 11.6, pitch: 64 },
-    terreno: true, edificios: false,
+    terreno: true, edificios: false, zoomMin: 5, pitchMax: 80,
     chip: 'Piura · Aviso 421 / FEN 2027',
     chipTitulo: 'Escenario de riesgo CENEPRED/SIGRID 23077',
   },
@@ -39,10 +43,12 @@ export const REGIONES: Record<RegionId, Region> = {
     id: 'lima', nombre: 'Lima', basemap: 'lima',
     // Lima Metropolitana y Callao (bbox del recorte z15, data/basemap/LICENSE_BASEMAP.md).
     bounds: [[-77.2, -12.3], [-76.8, -11.87]],
-    // Mirando al noreste desde la Costa Verde: Miraflores y San Isidro en primer plano.
-    vista: { center: [-77.032, -12.112], zoom: 14.6, pitch: 66, bearing: 28 },
-    acercamiento: { zoom: 16.4, pitch: 66 },
-    terreno: false, edificios: true,
+    // Sala del pitch: San Isidro (centro financiero, junto al Olivar), mirando al noreste. Pitch 60 y no 66: hacia el
+    // horizonte se piden muchas menos teselas con edificios (carga más rápida y menos memoria de GPU).
+    vista: { center: [-77.035, -12.098], zoom: 14.8, pitch: 60, bearing: 28 },
+    acercamiento: { zoom: 16.4, pitch: 62 },
+    // 70° bastan para ver el horizonte entre edificios y dejan fuera la franja lejana, la más cara en teselas.
+    terreno: false, edificios: true, zoomMin: 10, pitchMax: 70,
     chip: 'Lima · prueba en sala',
     chipTitulo: 'Prueba en sala en Lima: reportes reales de la demo sobre el mapa de OpenStreetMap. El escenario oficial CENEPRED/SIGRID 23077 es de Piura.',
   },

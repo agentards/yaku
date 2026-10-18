@@ -3,7 +3,7 @@
 //    histórico real del servidor + monitor en vivo + incidentes, con la Sesion (PIN municipal).
 //  · arrancar(): el portal de relevo de campo anterior (IndexedDB de este equipo y demo SIMULADO), en ?vista=portal-relevo.
 import { crearEscena, type EscenaYaku3D } from './escena';
-import { getMap } from '../map';
+import { asegurarMapa2D, getMap } from '../map';
 import { montarInterfaz3D } from './ui/index';
 import { montarCuencaPortal } from './cuenca';
 import { montarMonitoreo, type PestanaMonitoreo } from './monitoreo/index';
@@ -16,6 +16,7 @@ export const esVistaPortal = (search: string) => new URLSearchParams(search).get
 function botonVolver(texto: string, volver: () => void) {
   let b: HTMLButtonElement | null = null;
   return () => {
+    asegurarMapa2D(); // el mapa 2D nace aquí, la primera vez que se pide (src/main.ts)
     requestAnimationFrame(() => getMap()?.resize());
     if (!b) {
       b = document.createElement('button');
