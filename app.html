@@ -12,6 +12,13 @@
       var mon = v === 'portal' || v === 'municipalidad' || v === 'incidentes' || (!v && p === '/municipalidad');
       var pob = v === 'poblador' || (!v && (p === '/reportar' || p === '/estoy-bien'));
       if (mon || pob) document.documentElement.classList.add(mon ? 'arranque-monitoreo' : 'vista-poblador');
+      // Modo oscuro del monitoreo (src/vista3d/ui/modo.ts, clave yaku-modo) desde el primer cuadro: sin destello crema.
+      if (mon) {
+        var m = 'sistema';
+        try { m = localStorage.getItem('yaku-modo') || 'sistema'; } catch (e) {}
+        var osc = m === 'oscuro' || (m !== 'claro' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (osc) document.documentElement.dataset.modo = 'oscuro';
+      }
     })();
   </script>
   <style>
@@ -20,6 +27,8 @@
     html.arranque-monitoreo body, html.vista-poblador body { background: #f3eee4; }
     html.arranque-monitoreo body::before { content: 'Yaku 3D · Centro de monitoreo'; position: fixed; inset: 0; display: grid; place-items: center;
       font: 600 15px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #6a6052; }
+    html.arranque-monitoreo[data-modo="oscuro"] body { background: #0e0e0e; }
+    html.arranque-monitoreo[data-modo="oscuro"] body::before { color: #a1a1a1; }
   </style>
   <meta name="theme-color" content="#14212b" />
   <link rel="icon" href="/icon-192.png" />
