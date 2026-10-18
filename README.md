@@ -14,23 +14,20 @@ Cadena de apoyo vecinal ante el Fenómeno El Niño. El vecino reporta un inciden
 | `/municipalidad` | Centro de monitoreo (nombre + PIN municipal) |
 | `/app` | Vista técnica 2D |
 
-## Desplegar con Docker Compose (Dokploy u otro VPS con Traefik)
-Una sola imagen: la PWA compilada + un servidor Node con SQLite (`node:sqlite`). Datos y fotos en el volumen `yaku-datos`. La app no publica puertos: Traefik entra por su red al puerto 8080.
+## Desplegar en Dokploy
+Una sola imagen: la PWA compilada + un servidor Node con SQLite (`node:sqlite`). Datos y fotos en el volumen `yaku-datos`. El compose no trae Traefik ni publica puertos: el proxy y HTTPS los pone Dokploy. La app escucha en el **puerto 8080** del contenedor.
 
 1. DNS: registros **A** de `yaku.lat` y `www.yaku.lat` a la IP del VPS (si el DNS está en Cloudflare, en «DNS only»).
-2. Dokploy → Create Service → **Compose** (tipo «Docker Compose», no «Stack») → este repo, rama `main`, `./docker-compose.yml`, «Isolated Deployments» apagado.
-3. Pestaña **Environment** (plantilla en `yaku.env.ejemplo`):
+2. Dokploy → Create Service → **Compose** (tipo «Docker Compose», no «Stack») → este repo, rama `main`, `./docker-compose.yml`.
+3. **Environment** (plantilla en `yaku.env.ejemplo`):
 
 | Variable | Valor | Nota |
 |---|---|---|
 | `MUNI_PIN` | el que acuerden | **Obligatoria y secreta.** Es el PIN que se escribe en `/municipalidad` (el mismo para todos) |
-| `YAKU_HOST` | `yaku.lat` | `www` redirige a la raíz y `http` a `https` |
-| `TRAEFIK_NETWORK` | `dokploy-network` | Red del Traefik que ya existe |
-| `TRAEFIK_EXTERNA` | `true` | `false` solo en un VPS limpio (ver abajo) |
+| `YAKU_MODO_ESTRICTO` | `0` (por defecto) | `1` activa las protecciones extra (ver Seguridad) |
 
-4. **Deploy**, sin agregar el dominio en «Domains»: los labels de Traefik ya van en el compose. En los logs debe aparecer `Yaku servidor local en http://localhost:8080`.
-
-VPS limpio, sin proxy: `TRAEFIK_EXTERNA=false ACME_EMAIL=<correo> docker compose --profile traefik up -d --build` levanta también Traefik con HTTPS de Let's Encrypt (publica 80 y 443).
+4. **Domains**: servicio `yaku`, host `yaku.lat`, **Container Port `8080`**, HTTPS activado con Let's Encrypt. Repetir con `www.yaku.lat` si se quiere.
+5. **Deploy**. En los logs debe aparecer `Yaku servidor local en http://localhost:8080`.
 
 Requisitos del VPS: unos 2 GB de RAM para compilar la imagen (o swap).
 

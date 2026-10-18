@@ -1,97 +1,25 @@
-# Yaku en un VPS con Docker Compose. Una sola imagen de la app (PWA + API + SQLite); sin «ports:» publicados:
-# Traefik entra por la red «traefik» al puerto 8080 del contenedor. Variables en .env junto a este archivo
-# (plantilla: yaku.env.ejemplo; nunca al repo).
-#
-#   Dokploy: servicio «Compose» (no «Stack») con este archivo; en Environment: MUNI_PIN, YAKU_HOST=yaku.lat,
-#     TRAEFIK_NETWORK=dokploy-network y TRAEFIK_EXTERNA=true. No agregar el dominio en «Domains» (ya va en los labels).
-#   Otro VPS que ya tiene Traefik (Easypanel, Coolify o uno propio en la red «traefik»):
-#     docker compose up -d --build
-#   VPS limpio, sin proxy: el perfil «traefik» levanta también Traefik (80/443, HTTPS con Let's Encrypt):
-#     TRAEFIK_EXTERNA=false docker compose --profile traefik up -d --build
-#
-#   MUNI_PIN (obligatorio) · YAKU_HOST (yaku.lat por defecto; DNS: registros A de yaku.lat y www.yaku.lat a la IP del
-#   VPS, www redirige a yaku.lat) · ACME_EMAIL (perfil
-#   traefik) · TRAEFIK_ENTRYPOINT (websecure) · TRAEFIK_CERTRESOLVER (letsencrypt) · TRAEFIK_TLS (true)
-#   TRAEFIK_NETWORK (traefik) · TRAEFIK_EXTERNA=false si la red de Traefik no existe todavía (compose la crea).
+# Yaku en Dokploy: una sola imagen (PWA + API + SQLite). Sin Traefik ni puertos publicados: el proxy y HTTPS los
+# pone Dokploy. Dominio en Dokploy → Domains: servicio «yaku», host yaku.lat (y www.yaku.lat), Container Port 8080,
+# HTTPS con Let's Encrypt. Variables en Dokploy → Environment (plantilla: yaku.env.ejemplo).
 services:
   yaku:
     build: .
-    image: yaku-local:latest
+    image: yaku:latest
     restart: unless-stopped
     expose:
       - "8080"
     environment:
-      MUNI_PIN: ${MUNI_PIN:?Define MUNI_PIN en .env}
+      MUNI_PIN: ${MUNI_PIN:?Define MUNI_PIN en Dokploy → Environment}
       YAKU_MODO_ESTRICTO: ${YAKU_MODO_ESTRICTO:-0}
       PORT: "8080"
       YAKU_DATOS: /datos
     volumes:
       - yaku-datos:/datos
-    networks:
-      - traefik
     security_opt:
       - no-new-privileges:true
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
-      - traefik.http.routers.yaku.rule=Host(`${YAKU_HOST:-yaku.lat}`)
-      - traefik.http.routers.yaku.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
-      - traefik.http.routers.yaku.tls=${TRAEFIK_TLS:-true}
-      - traefik.http.routers.yaku.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
-      - traefik.http.routers.yaku.service=yaku
-      - traefik.http.services.yaku.loadbalancer.server.port=8080
-      # www.<YAKU_HOST> → <YAKU_HOST> (301, conserva ruta y parámetros). Su propio certificado; DNS «www» al mismo VPS.
-      # «$$» es el «$» literal en compose: Traefik recibe «https://${1}».
-      - traefik.http.routers.yaku-www.rule=Host(`www.${YAKU_HOST:-yaku.lat}`)
-      - traefik.http.routers.yaku-www.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
-      - traefik.http.routers.yaku-www.tls=${TRAEFIK_TLS:-true}
-      - traefik.http.routers.yaku-www.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
-      - traefik.http.routers.yaku-www.middlewares=yaku-www-a-raiz
-      - traefik.http.routers.yaku-www.service=yaku
-      - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.regex=^https?://www\.(.+)
-      - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.replacement=https://$${1}
-      - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.permanent=true
-      # http:// → https:// (yaku.lat y www) en la entrada «web» de Traefik.
-      - traefik.http.routers.yaku-http.rule=Host(`${YAKU_HOST:-yaku.lat}`) || Host(`www.${YAKU_HOST:-yaku.lat}`)
-      - traefik.http.routers.yaku-http.entrypoints=${TRAEFIK_ENTRYPOINT_HTTP:-web}
-      - traefik.http.routers.yaku-http.middlewares=yaku-a-https
-      - traefik.http.routers.yaku-http.service=yaku
-      - traefik.http.middlewares.yaku-a-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.yaku-a-https.redirectscheme.permanent=true
-
-  # Solo con «--profile traefik» (VPS sin proxy). Es el único servicio que publica puertos: 80 (redirige a HTTPS) y 443.
-  traefik:
-    image: traefik:v3.7.13
-    profiles: ["traefik"]
-    restart: unless-stopped
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=${TRAEFIK_NETWORK:-traefik}
-      - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-certs:/letsencrypt
-    networks:
-      - traefik
-
-networks:
-  traefik:
-    name: ${TRAEFIK_NETWORK:-traefik}
-    external: ${TRAEFIK_EXTERNA:-true}
 
 volumes:
   yaku-datos:
-  traefik-certs:
