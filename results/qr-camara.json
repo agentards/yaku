@@ -1,0 +1,206 @@
+{
+  "fecha": "2026-10-18T01:18:35.880Z",
+  "simulado": true,
+  "rows": [
+    {
+      "res": "1280×720",
+      "payload": "1 registro (v7)",
+      "n": 20,
+      "antes": 16,
+      "ahora": 20,
+      "regionQueLeyo": {
+        "c60x2": 13,
+        "c85x1.5": 7
+      },
+      "msPorRecorteNode": {
+        "c60x2": 62,
+        "c85x1.5": 75,
+        "c85@480": 48,
+        "c100@640": 108,
+        "c50@960": 81,
+        "c70@800": 54,
+        "todo": 142
+      }
+    },
+    {
+      "res": "1280×720",
+      "payload": "20 registros, fragmento chunk 450 (v13)",
+      "n": 20,
+      "antes": 8,
+      "ahora": 19,
+      "regionQueLeyo": {
+        "c85x1.5": 7,
+        "c60x2": 8,
+        "c70@800": 2,
+        "c50@960": 1,
+        "c85@480": 1
+      },
+      "msPorRecorteNode": {
+        "c60x2": 78,
+        "c85x1.5": 86,
+        "c85@480": 68,
+        "c100@640": 165,
+        "c50@960": 97,
+        "c70@800": 68,
+        "todo": 216
+      }
+    },
+    {
+      "res": "1280×720",
+      "payload": "20 registros, fragmento chunk 300 (v11)",
+      "n": 20,
+      "antes": 8,
+      "ahora": 18,
+      "regionQueLeyo": {
+        "c60x2": 8,
+        "c85x1.5": 9,
+        "c85@480": 1
+      },
+      "msPorRecorteNode": {
+        "c60x2": 71,
+        "c85x1.5": 80,
+        "c85@480": 72,
+        "c100@640": 159,
+        "c50@960": 90,
+        "c70@800": 62,
+        "todo": 238
+      }
+    },
+    {
+      "res": "1920×1080",
+      "payload": "1 registro (v7)",
+      "n": 20,
+      "antes": 19,
+      "ahora": 19,
+      "regionQueLeyo": {
+        "c85x1.5": 11,
+        "c60x2": 8
+      },
+      "msPorRecorteNode": {
+        "c60x2": 84,
+        "c85x1.5": 94,
+        "c85@480": 30,
+        "c100@640": 60,
+        "c50@960": 86,
+        "c70@800": 65,
+        "todo": 64
+      }
+    },
+    {
+      "res": "1920×1080",
+      "payload": "20 registros, fragmento chunk 450 (v13)",
+      "n": 20,
+      "antes": 14,
+      "ahora": 19,
+      "regionQueLeyo": {
+        "c60x2": 9,
+        "c85x1.5": 9,
+        "todo": 1
+      },
+      "msPorRecorteNode": {
+        "c60x2": 88,
+        "c85x1.5": 102,
+        "c85@480": 37,
+        "c100@640": 73,
+        "c50@960": 91,
+        "c70@800": 72,
+        "todo": 68
+      }
+    },
+    {
+      "res": "1920×1080",
+      "payload": "20 registros, fragmento chunk 300 (v11)",
+      "n": 20,
+      "antes": 8,
+      "ahora": 19,
+      "regionQueLeyo": {
+        "c85x1.5": 8,
+        "c60x2": 10,
+        "c85@480": 1
+      },
+      "msPorRecorteNode": {
+        "c60x2": 92,
+        "c85x1.5": 101,
+        "c85@480": 37,
+        "c100@640": 70,
+        "c50@960": 93,
+        "c70@800": 72,
+        "todo": 64
+      }
+    }
+  ],
+  "fails": [
+    {
+      "W": 1280,
+      "H": 720,
+      "name": "20 registros, fragmento chunk 450 (v13)",
+      "seed": 1280521,
+      "frac": 0.57,
+      "pxPerModule": 5.4,
+      "rotDeg": -15,
+      "blur": 0,
+      "glare": 41,
+      "version": 13
+    },
+    {
+      "W": 1280,
+      "H": 720,
+      "name": "20 registros, fragmento chunk 300 (v11)",
+      "seed": 1280456,
+      "frac": 0.4,
+      "pxPerModule": 4.1,
+      "rotDeg": -4,
+      "blur": 2,
+      "glare": 34,
+      "version": 11
+    },
+    {
+      "W": 1280,
+      "H": 720,
+      "name": "20 registros, fragmento chunk 300 (v11)",
+      "seed": 1280609,
+      "frac": 0.48,
+      "pxPerModule": 5,
+      "rotDeg": -8,
+      "blur": 2,
+      "glare": 0,
+      "version": 11
+    },
+    {
+      "W": 1920,
+      "H": 1080,
+      "name": "1 registro (v7)",
+      "seed": 1920370,
+      "frac": 0.47,
+      "pxPerModule": 9.6,
+      "rotDeg": -2,
+      "blur": 3,
+      "glare": 0,
+      "version": 7
+    },
+    {
+      "W": 1920,
+      "H": 1080,
+      "name": "20 registros, fragmento chunk 450 (v13)",
+      "seed": 1920504,
+      "frac": 0.31,
+      "pxPerModule": 4.4,
+      "rotDeg": -13,
+      "blur": 2,
+      "glare": 0,
+      "version": 13
+    },
+    {
+      "W": 1920,
+      "H": 1080,
+      "name": "20 registros, fragmento chunk 300 (v11)",
+      "seed": 1920524,
+      "frac": 0.57,
+      "pxPerModule": 8.9,
+      "rotDeg": 12,
+      "blur": 3,
+      "glare": 0,
+      "version": 11
+    }
+  ]
+}
