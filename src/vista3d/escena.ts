@@ -13,6 +13,7 @@ import { PITCH_MAX_3D, PIXEL_RATIO_MAX_3D, VISTA_REGIONAL } from './config';
 import { CAPA_EDIFICIOS, estiloRegion } from './edificios';
 import { REGION, type Region } from '../region';
 import { Recorrido } from './camara';
+import { CAPA_TECHOS, conTema, temaInicial } from './temas';
 
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -45,7 +46,8 @@ export type EscenaYaku3D = EscenaYaku & { verCuenca(): Promise<boolean> };
 
 export function crearEscena(cont: HTMLElement): EscenaYaku3D {
   if (REGION.terreno) { registrarProtocoloDem(); prepararFuenteDem(); }
-  const style = estiloEscena();
+  // Lima: arranca ya con el tema elegido (./temas.ts); el selector lo cambia en caliente.
+  const style = REGION.edificios ? conTema(estiloEscena(), temaInicial()) : estiloEscena();
   const R = VISTA_REGIONAL;
   const map = new maplibregl.Map({
     container: cont, style, center: R.center, zoom: R.zoom - 1.2, pitch: 45, bearing: R.bearing - 30,
@@ -60,7 +62,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
 
   const grupos: Record<CapaId, string[]> = {
     terreno: REGION.terreno ? [...CAPAS_RELIEVE] : [],
-    basemap: REGION.edificios ? [...LAYER_GROUPS.basemap, CAPA_EDIFICIOS] : LAYER_GROUPS.basemap, cenepred: LAYER_GROUPS.cenepred ?? [], senamhi: LAYER_GROUPS.senamhi,
+    basemap: REGION.edificios ? [...LAYER_GROUPS.basemap, CAPA_EDIFICIOS, CAPA_TECHOS] : LAYER_GROUPS.basemap, cenepred: LAYER_GROUPS.cenepred ?? [], senamhi: LAYER_GROUPS.senamhi,
     erosion: LAYER_GROUPS.erosion, limite: LAYER_GROUPS.limite, citizen: LAYER_GROUPS.citizen,
   };
   const base = new Map(style.layers.map((l) => [l.id, l]));

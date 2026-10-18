@@ -1,0 +1,15 @@
+/* Selector de tema de la escena 3D de Lima (./selector-tema.ts). */
+.v3d-tema button { min-width: 0; font-size: 13px; }
+.v3d[data-tema="noche"] .v3d-escena { background: #060a13; }
+.v3d[data-tema="contraste"] .v3d-escena { background: #ffffff; }
+/* Noche: controles sobre el mapa en oscuro para no deslumbrar; el ámbar del acento se mantiene. */
+.v3d[data-tema="noche"] .v3d-escena .v3d-seg,
+.v3d[data-tema="noche"] .v3d-escena .v3d-chip,
+.v3d[data-tema="noche"] .v3d-escena .v3d-btn-ic,
+.v3d[data-tema="noche"] .v3d-escena .v3d-brujula { background: #101827e6; color: #dbe4f5; border-color: #2a3858; }
+.v3d[data-tema="noche"] .v3d-escena .v3d-seg button { color: #dbe4f5; }
+.v3d[data-tema="noche"] .v3d-escena .v3d-seg button[aria-pressed="true"] { color: #fff; }
+.v3d[data-tema="noche"] .v3d-escena .v3d-brujula svg { color: #dbe4f5; }
+.v3d[data-tema="noche"] .maplibregl-ctrl-attrib.maplibregl-compact { background: #101827d9; color: #b8c4dc; }
+.v3d[data-tema="noche"] .maplibregl-ctrl-attrib a { color: #c9d4ff; }
+@media (max-width: 600px) { .v3d-tema button { padding: 0 6px; font-size: 12px; } }
