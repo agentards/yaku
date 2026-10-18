@@ -13,6 +13,7 @@ import { PITCH_MAX_3D, PIXEL_RATIO_MAX_3D, TESELAS_CACHE_3D, VISTA_REGIONAL } fr
 import { CAPA_EDIFICIOS, estiloRegion } from './edificios';
 import { REGION, type Region } from '../region';
 import { Recorrido } from './camara';
+import { CAPA_TECHOS, aplicarTema, conTema, type TemaId } from './temas';
 
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -41,11 +42,20 @@ export function estiloEscena(region: Region = REGION): StyleSpecification {
 }
 
 /** EscenaYaku más el preset «Ver desde la cuenca» (lo monta entrada-portal.ts sin tocar ui/). */
-export type EscenaYaku3D = EscenaYaku & { verCuenca(): Promise<boolean> };
+export type EscenaYaku3D = EscenaYaku & {
+  verCuenca(): Promise<boolean>;
+  /** Tema del mapa (./temas.ts): claro o noche, en caliente y sin perder cámara ni reportes. */
+  setTema(id: TemaId): void;
+  tema(): TemaId;
+};
+/** tema: con el que nace el mapa (sin destello del tema claro mientras carga). */
+export interface OpcionesEscena { tema?: TemaId }
 
-export function crearEscena(cont: HTMLElement): EscenaYaku3D {
+export function crearEscena(cont: HTMLElement, opc: OpcionesEscena = {}): EscenaYaku3D {
   if (REGION.terreno) { registrarProtocoloDem(); prepararFuenteDem(); }
-  const style = estiloEscena();
+  let tema: TemaId = opc.tema ?? 'claro';
+  const original = estiloEscena();
+  const style = conTema(original, tema);
   const R = VISTA_REGIONAL;
   // Lima: el vuelo de entrada arranca en el mismo nivel de teselas que la vista final (z14): no se cargan dos niveles
   // de edificios para la misma escena.
@@ -63,10 +73,10 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
 
   const grupos: Record<CapaId, string[]> = {
     terreno: REGION.terreno ? [...CAPAS_RELIEVE] : [],
-    basemap: REGION.edificios ? [...LAYER_GROUPS.basemap, CAPA_EDIFICIOS] : LAYER_GROUPS.basemap, cenepred: LAYER_GROUPS.cenepred ?? [], senamhi: LAYER_GROUPS.senamhi,
+    basemap: REGION.edificios ? [...LAYER_GROUPS.basemap, CAPA_EDIFICIOS, CAPA_TECHOS] : LAYER_GROUPS.basemap, cenepred: LAYER_GROUPS.cenepred ?? [], senamhi: LAYER_GROUPS.senamhi,
     erosion: LAYER_GROUPS.erosion, limite: LAYER_GROUPS.limite, citizen: LAYER_GROUPS.citizen,
   };
-  const base = new Map(style.layers.map((l) => [l.id, l]));
+  const base = new Map(original.layers.map((l) => [l.id, l]));
 
   const elegir = new Set<(cod: string) => void>();
   map.on('click', 'cenepred-ccpp', (e) => { const cod = e.features?.[0]?.properties?.cod; if (cod) elegir.forEach((cb) => cb(String(cod))); });
@@ -122,7 +132,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
     onElegirCentro(cb) { elegir.add(cb); return () => elegir.delete(cb); },
     estiloMiniVista() {
       // Mini-vista liviana: sin etiquetas ni capas densas; el terreno lo pone la UI con terrenoMiniVista().
-      const s = estiloEscena();
+      const s = conTema(estiloEscena(), tema);
       s.layers = s.layers.filter((l) => l.type !== 'symbol' && !l.id.startsWith('erosion') && !l.id.startsWith('citizen'));
       delete s.terrain;
       return s;
@@ -136,6 +146,12 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
       if (on) map.once('moveend', () => { if (es2D) map.setMaxPitch(0); }); // 2D plano, como el FireTrace
     },
     verCuenca: () => (es2D || !REGION.terreno ? Promise.resolve(false) : cam.verCuenca()),
+    setTema(id) {
+      if (id === tema) return;
+      tema = id;
+      void listo.then(() => { if (tema === id) aplicarTema(map, id, original.layers); });
+    },
+    tema: () => tema,
     destruir() { cam.detener(); map.remove(); },
   };
   (window as any).__yakuEscena = { map, cam, fuente: SRC_TERRENO };

@@ -10,8 +10,11 @@ export const ALTURA_SIN_DATO = 9;
 export const CAPA_EDIFICIOS = 'v3d-edificios';
 export const ATRIB_EDIFICIOS = `Edificios: OpenStreetMap vía Protomaps (altura OSM; sin dato = ${ALTURA_SIN_DATO} m supuestos)`;
 
+/** Altura del edificio en m (OSM «height»; sin dato = ALTURA_SIN_DATO). */
+export const alturaEdificio = () => ['coalesce', ['get', 'height'], ALTURA_SIN_DATO];
+
 export function capaEdificios(): LayerSpecification {
-  const alto = ['coalesce', ['get', 'height'], ALTURA_SIN_DATO];
+  const alto = alturaEdificio();
   return {
     id: CAPA_EDIFICIOS, type: 'fill-extrusion', source: 'protomaps', 'source-layer': 'buildings', minzoom: 13.5,
     paint: {
