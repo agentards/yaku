@@ -43,13 +43,18 @@ export function iniciar(o: Opciones = {}) {
   const datos = path.resolve(o.datos ?? env.YAKU_DATOS ?? 'servidor-local/datos');
   fs.mkdirSync(datos, { recursive: true });
   let pin = o.pin ?? env.MUNI_PIN ?? '';
-  if (!o.pin && env.NODE_ENV === 'production' && pin.length < 8) throw new Error('MUNI_PIN es obligatorio en producción y debe tener al menos 8 caracteres');
+  if (!o.pin && env.NODE_ENV === 'production' && pin.length < 8) console.warn('Aviso: MUNI_PIN tiene menos de 8 caracteres. Funciona, pero conviene uno más largo.');
   const pinTemporal = !pin;
   if (pinTemporal) pin = String(randomInt(100000, 1000000));
   let cambios: unknown = o.reglas;
   if (cambios === undefined && env.YAKU_REGLAS) { try { cambios = JSON.parse(env.YAKU_REGLAS); } catch { console.warn('YAKU_REGLAS no es JSON válido: se usan las reglas por defecto'); } }
   const almacen = new Almacen(path.join(datos, 'yaku.db'), conCambios(REGLAS, cambios));
-  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos') });
+  // Bloqueo por PIN incorrecto: YAKU_PIN_INTENTOS fallos (0 = sin bloqueo) en 10 min → YAKU_PIN_BLOQUEO_MIN minutos.
+  const intentos = Number(env.YAKU_PIN_INTENTOS ?? 10), bloqueoMin = Number(env.YAKU_PIN_BLOQUEO_MIN ?? 5);
+  const api = crearApi({
+    almacen, pin, fotosDir: path.join(datos, 'fotos'),
+    intentosPin: { max: Number.isFinite(intentos) && intentos >= 0 ? intentos : 10, ventanaMs: 10 * 60_000, bloqueoMs: (Number.isFinite(bloqueoMin) && bloqueoMin > 0 ? bloqueoMin : 5) * 60_000 },
+  });
 
   const server = http.createServer(async (req, res) => {
     for (const [k, v] of Object.entries(SEGURIDAD)) res.setHeader(k, v);

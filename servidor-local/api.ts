@@ -38,7 +38,7 @@ export function tipoImagen(b: Uint8Array): { mime: string; ext: string } | null 
 
 export interface OpcionesApi {
   almacen: Almacen; pin: string; fotosDir: string; ahora?: () => number;
-  /** Bloqueo por PIN incorrecto: tras `max` fallos dentro de `ventanaMs`, esa IP espera `bloqueoMs` (429). */
+  /** Bloqueo por PIN incorrecto: tras `max` fallos dentro de `ventanaMs`, esa IP espera `bloqueoMs` (429). max 0 = sin bloqueo. */
   intentosPin?: { max: number; ventanaMs: number; bloqueoMs: number };
   /** Escrituras públicas (POST /api/sync y /api/fotos) por IP y minuto. */
   postsPorMinuto?: number;
@@ -61,7 +61,7 @@ export function crearApi(op: OpcionesApi) {
   const pinOk = (p: string) => timingSafeEqual(createHash('sha256').update(p).digest(), pinHash);
 
   // ---- límites por IP (en memoria: se reinician con el proceso) ----
-  const LIM = { max: 5, ventanaMs: 15 * 60_000, bloqueoMs: 15 * 60_000, ...op.intentosPin };
+  const LIM = { max: 10, ventanaMs: 10 * 60_000, bloqueoMs: 5 * 60_000, ...op.intentosPin };
   const fallos = new Map<string, { n: number; desde: number; hasta: number }>();
   const POSTS_MIN = op.postsPorMinuto ?? 120;
   const posts = new Map<string, { n: number; desde: number }>();
@@ -76,6 +76,7 @@ export function crearApi(op: OpcionesApi) {
     const p = req.headers.get('x-muni-pin');
     if (!p) return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)', codigo: 'sin_credencial' }, 401);
     if (pinOk(p)) { fallos.delete(ip); return { modo: 'pin', usuario: 'pin', rol: 'operador' }; }
+    if (LIM.max <= 0) return json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
     const g = f && t - f.desde <= LIM.ventanaMs ? f : { n: 0, desde: t, hasta: 0 };
     g.n++;
     if (g.n >= LIM.max) { g.hasta = t + LIM.bloqueoMs; console.warn(`PIN incorrecto ${g.n} veces desde ${ip}: bloqueada ${Math.round(LIM.bloqueoMs / 60_000)} min`); }

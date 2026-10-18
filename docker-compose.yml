@@ -22,6 +22,8 @@ services:
       - "8080"
     environment:
       MUNI_PIN: ${MUNI_PIN:?Define MUNI_PIN en .env}
+      YAKU_PIN_INTENTOS: ${YAKU_PIN_INTENTOS:-10}
+      YAKU_PIN_BLOQUEO_MIN: ${YAKU_PIN_BLOQUEO_MIN:-5}
       PORT: "8080"
       YAKU_DATOS: /datos
     volumes:

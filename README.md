@@ -23,7 +23,7 @@ Una sola imagen: la PWA compilada + un servidor Node con SQLite (`node:sqlite`).
 
 | Variable | Valor | Nota |
 |---|---|---|
-| `MUNI_PIN` | 12+ caracteres | **Obligatoria y secreta.** Sin ella (o con menos de 8) el servidor no arranca |
+| `MUNI_PIN` | 8+ caracteres | **Obligatoria y secreta.** Es el PIN que se escribe en `/municipalidad`. Con menos de 8 funciona, pero avisa en los logs |
 | `YAKU_HOST` | `yaku.lat` | `www` redirige a la raíz y `http` a `https` |
 | `TRAEFIK_NETWORK` | `dokploy-network` | Red del Traefik que ya existe |
 | `TRAEFIK_EXTERNA` | `true` | `false` solo en un VPS limpio (ver abajo) |
@@ -35,7 +35,7 @@ VPS limpio, sin proxy: `TRAEFIK_EXTERNA=false ACME_EMAIL=<correo> docker compose
 Requisitos del VPS: unos 2 GB de RAM para compilar la imagen (o swap).
 
 ## Seguridad
-- Lo de la municipalidad (incidentes, fotos, histórico de reportes y cambios de estado) exige el PIN (`X-Muni-Pin`). Tras 5 intentos fallidos desde una IP, esa IP espera 15 minutos.
+- Lo de la municipalidad (incidentes, fotos, histórico de reportes y cambios de estado) exige el PIN (`X-Muni-Pin`). Tras 10 PIN incorrectos seguidos desde una IP, esa IP espera 5 minutos (`YAKU_PIN_INTENTOS`, `YAKU_PIN_BLOQUEO_MIN`; `YAKU_PIN_INTENTOS=0` lo apaga). Un acierto reinicia el contador, y reiniciar el contenedor borra los bloqueos.
 - Público: enviar reportes y fotos (con límite por IP y minuto, máximo 3 fotos por reporte y cuota total), el acuse de cada vecino por id y contadores agregados.
 - Sin CORS abierto (la API y la app comparten origen); cabeceras `nosniff`, `X-Frame-Options`, `Referrer-Policy` y HSTS.
 - Nunca subas un `.env` ni valores reales de variables al repo.

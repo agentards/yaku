@@ -21,7 +21,7 @@ const nuevaApi = (extra: Partial<OpcionesApi> = {}) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-seg-'));
   dirs.push(dir);
   A = new Almacen(path.join(dir, 'yaku.db'), REGLAS);
-  api = crearApi({ almacen: A, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj, ...extra });
+  api = crearApi({ almacen: A, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj, intentosPin: { max: 5, ventanaMs: 15 * 60_000, bloqueoMs: 15 * 60_000 }, ...extra });
 };
 const pedir = (ruta: string, { body, h = {}, ip = '203.0.113.7' }: { body?: unknown; h?: Record<string, string>; ip?: string } = {}) =>
   api(new Request('http://x' + ruta, body === undefined
@@ -40,6 +40,25 @@ describe('PIN municipal', () => {
     assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'pin-largo-123' }, ip: '198.51.100.9' })).status, 200);
     reloj += 15 * 60_000 + 1;
     assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'pin-largo-123' } })).status, 200);
+  });
+  it('con max 0 no hay bloqueo (para eventos), pero el PIN malo sigue sin entrar', async () => {
+    nuevaApi({ intentosPin: { max: 0, ventanaMs: 60_000, bloqueoMs: 60_000 } });
+    for (let i = 0; i < 20; i++) assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'malo' } })).status, 403);
+    assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'pin-largo-123' } })).status, 200);
+  });
+  it('por defecto tolera 9 fallos seguidos y bloquea 5 min al 10.º', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-seg-'));
+    dirs.push(dir);
+    const B = new Almacen(path.join(dir, 'yaku.db'), REGLAS);
+    const api2 = crearApi({ almacen: B, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj });
+    const p2 = (pin: string) => api2(new Request('http://x/api/incidentes', { headers: { [CABECERA_IP]: '203.0.113.50', 'x-muni-pin': pin } })).then((r) => r.status);
+    for (let i = 0; i < 9; i++) assert.equal(await p2('malo'), 403);
+    assert.equal(await p2('pin-largo-123'), 200); // el operador conectado (consulta cada 3 s) reinicia el contador
+    for (let i = 0; i < 10; i++) await p2('malo');
+    assert.equal(await p2('pin-largo-123'), 429);
+    reloj += 5 * 60_000 + 1;
+    assert.equal(await p2('pin-largo-123'), 200);
+    B.cerrar();
   });
   it('un acierto reinicia el contador de fallos', async () => {
     for (let i = 0; i < 4; i++) await pedir('/api/incidentes', { h: { 'x-muni-pin': 'x' } });
