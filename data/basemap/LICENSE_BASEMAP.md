@@ -16,6 +16,16 @@ Variantes más livianas: `piura_basemap_z11.pmtiles` (z0–11, 2 594 101 B) y `p
 - Doc de descargas: https://docs.protomaps.com/basemaps/downloads (pide no hacer hotlink y copiar el tileset
   a almacenamiento propio — por eso se sirve desde la propia app).
 
+## Recorte de Lima (prueba en sala, `?region=lima`)
+- **Archivo:** `public/basemap/lima_basemap_z15.c2041e0d.pmtiles`, zoom 0–15, 21 181 493 bytes,
+  sha256 `c2041e0d16206c690ddb7b9611b351bddf0bea28e980a57e151b8ee4f06982f9`. Mismo build 20261017 de arriba.
+- Extracción (18/10/2026, go-pmtiles 1.31.2):
+  `pmtiles extract https://build.protomaps.com/20261017.pmtiles lima_basemap_z15.pmtiles --bbox=-77.22,-12.32,-76.78,-11.85 --maxzoom=15`
+- bbox = Lima Metropolitana y Callao (de Ventanilla/Puente Piedra a Chorrillos/La Molina), elegido a mano.
+- Incluye la capa `buildings` (z13+). Medido en la tesela z15 de Miraflores (15/9372/17495): 2 638 edificios,
+  243 con `height` de OSM (mediana 18 m, máx. 92 m). Los que no tienen altura se dibujan con **9 m supuestos**
+  (src/vista3d/edificios.ts) y la atribución del mapa lo dice. Es cartografía de referencia, no dato de riesgo.
+
 ## Licencia de los datos (teselas)
 - Datos **© OpenStreetMap contributors**, bajo la **Open Database License (ODbL) 1.0** —
   https://www.openstreetmap.org/copyright . El tileset es un *Produced Work* de OpenStreetMap

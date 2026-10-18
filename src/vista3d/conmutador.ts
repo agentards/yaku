@@ -1,6 +1,7 @@
 // Conmutador 2D|3D sobre el MISMO mapa de la vista 2D (un solo contexto WebGL, mismas capas y estado).
 // 2D sigue siendo el predeterminado; ?vista=3d entra directo al relieve. Si no hay WebGL 2, si se pierde el
 // contexto o si el DEM no está guardado y no hay red, se queda (o vuelve) en 2D con un aviso.
+// En Lima (REGION sin DEM) el 3D no usa relieve: inclina el mapa y levanta los edificios de OpenStreetMap.
 import './vista3d.css';
 import type { IControl, Map as MLMap, MapMouseEvent } from 'maplibre-gl';
 import { Recorrido, type LngLat } from './camara';
@@ -10,6 +11,15 @@ import { DEM, PITCH_MAX_2D, PITCH_MAX_3D, PIXEL_RATIO_MAX_3D } from './config';
 import { medirFps } from './rendimiento';
 import { ControlCuenca } from './cuenca';
 import { basemapInfo } from '../map';
+import { REGION } from '../region';
+import { CAPA_EDIFICIOS, capaEdificios } from './edificios';
+
+function ponerEdificios(m: MLMap) {
+  if (m.getLayer(CAPA_EDIFICIOS)) return;
+  const etiqueta = m.getStyle().layers.find((l) => l.type === 'symbol')?.id;
+  m.addLayer(capaEdificios(), etiqueta);
+}
+function quitarEdificios(m: MLMap) { if (m.getLayer(CAPA_EDIFICIOS)) m.removeLayer(CAPA_EDIFICIOS); }
 
 export type Modo = '2d' | '3d';
 export const modoInicial = (search: string): Modo => (new URLSearchParams(search).get('vista') === '3d' ? '3d' : '2d');
@@ -85,7 +95,7 @@ export class Vista3D implements IControl {
   private pintar() {
     this.b2.setAttribute('aria-pressed', String(this.modo === '2d'));
     this.b3.setAttribute('aria-pressed', String(this.modo === '3d'));
-    this.b3.title = textoDem(demInfo);
+    this.b3.title = REGION.terreno ? textoDem(demInfo) : 'Edificios 3D (OpenStreetMap)';
     this.el.dataset.modo = this.modo;
     this.el.dataset.dem = demInfo.estado;
     document.body.dataset.vista = this.modo;
@@ -105,12 +115,14 @@ export class Vista3D implements IControl {
       const m = this.map;
       if (modo === '3d') {
         if (!soportaWebGL2()) { this.avisar('Este equipo no tiene WebGL 2: se mantiene el mapa 2D.'); return this.modo; }
-        registrarProtocoloDem();
-        this.el.dataset.cargando = '1';
-        const guardado = await prepararFuenteDem();
-        delete this.el.dataset.cargando;
-        if (!guardado && !navigator.onLine) { this.avisar(textoDem(demInfo)); return this.modo; }
-        activarRelieve(m);
+        if (REGION.terreno) {
+          registrarProtocoloDem();
+          this.el.dataset.cargando = '1';
+          const guardado = await prepararFuenteDem();
+          delete this.el.dataset.cargando;
+          if (!guardado && !navigator.onLine) { this.avisar(textoDem(demInfo)); return this.modo; }
+          activarRelieve(m);
+        } else ponerEdificios(m);
         m.dragRotate.enable(); m.touchZoomRotate.enableRotation(); m.keyboard.enable();
         m.setMaxPitch(PITCH_MAX_3D);
         this.pr2D = m.getPixelRatio();
@@ -120,7 +132,7 @@ export class Vista3D implements IControl {
         else m.easeTo({ pitch: 60, duration: reducido() ? 0 : 900 });
       } else {
         this.recorrido.detener();
-        quitarRelieve(m);
+        quitarRelieve(m); quitarEdificios(m);
         m.setPixelRatio(this.pr2D);
         this.modo = '2d'; this.pintar(); this.avisar(aviso);
         await new Promise<void>((res) => {
@@ -138,14 +150,14 @@ export class Vista3D implements IControl {
   /** Deja el mapa como lo crea la vista 2D (plano, sin rotación). Tolerante a un contexto WebGL perdido. */
   private restaurar2D() {
     const m = this.map;
-    try { quitarRelieve(m); } catch { /* contexto perdido: el estilo se limpia al restaurarse */ }
+    try { quitarRelieve(m); quitarEdificios(m); } catch { /* contexto perdido: el estilo se limpia al restaurarse */ }
     try { m.setPixelRatio(this.pr2D); m.jumpTo({ pitch: 0, bearing: 0 }); } catch { /* ídem */ }
     m.setMaxPitch(PITCH_MAX_2D);
     m.dragRotate.disable(); m.touchZoomRotate.disableRotation();
   }
 
   /** Preset «Ver desde la cuenca» (río Piura aguas arriba → Bajo Piura), solo en 3D. */
-  verCuenca() { return this.modo === '3d' ? this.recorrido.verCuenca() : Promise.resolve(false); }
+  verCuenca() { return this.modo === '3d' && REGION.terreno ? this.recorrido.verCuenca() : Promise.resolve(false); }
 
   /** Vuelo de cámara a un punto (acercamiento + órbita), solo en 3D. */
   volarA(lon: number, lat: number) { return this.modo === '3d' ? this.recorrido.iniciar([lon, lat], { saltarRegional: true }) : Promise.resolve(false); }
@@ -169,12 +181,12 @@ function guardarDemEnReposo(listoBase: () => boolean) {
 export function montarVista3D(map: MLMap, { listoBase = () => basemapInfo().state === 'saved' }: { listoBase?: () => boolean } = {}) {
   const v = new Vista3D(map);
   map.addControl(v, 'top-right');
-  map.addControl(new ControlCuenca(() => v.verCuenca()), 'bottom-right');
+  if (REGION.terreno) map.addControl(new ControlCuenca(() => v.verCuenca()), 'bottom-right');
   (window as any).__yaku3d = { vista: v, dem: () => ({ ...demInfo }), fps: (ms?: number) => medirFps(map, ms) };
   const inicio = modoInicial(location.search);
   const alCargar = () => {
     if (inicio === '3d') v.set('3d');
-    guardarDemEnReposo(listoBase);
+    if (REGION.terreno) guardarDemEnReposo(listoBase); // el DEM es de Piura: en Lima no se descarga
   };
   if (map.loaded()) alCargar(); else map.once('load', alCargar);
   return v;

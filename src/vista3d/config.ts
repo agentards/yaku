@@ -4,6 +4,7 @@
 // para que en Cloudflare lo sirva la misma ruta KV (scripts/upload-basemap.mjs) y para quedar fuera del
 // precache del service worker (igual que el mapa base: se guarda completo en Cache Storage con sha256).
 import type { BasemapFile } from '../basemap-config';
+import { REGION } from '../region';
 
 export const DEM: BasemapFile = {
   key: 'dem-z9',
@@ -51,8 +52,10 @@ export const CIELO = {
   'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 9, 1, 12, 0.3],
 } as const;
 
-/** Vista regional oblicua con horizonte (andes de Piura, mirando al este desde la costa). */
-export const VISTA_REGIONAL = { center: [-80.05, -5.05] as [number, number], zoom: 8.1, pitch: 72, bearing: 62 };
+/** Vista regional oblicua con horizonte (Piura: andes mirando al este desde la costa; Lima: Miraflores y San Isidro). */
+export const VISTA_REGIONAL = REGION.vista;
+/** Zoom y pitch al volar a un reporte o centro poblado (Lima más cerca: se ven los edificios). */
+export const ACERCAMIENTO = REGION.acercamiento;
 
 /**
  * Preset «Ver desde la cuenca»: cámara sobre el río Piura aguas arriba, mirando río abajo al Bajo Piura.

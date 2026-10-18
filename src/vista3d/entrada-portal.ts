@@ -8,6 +8,7 @@ import { montarInterfaz3D } from './ui/index';
 import { montarCuencaPortal } from './cuenca';
 import { montarMonitoreo, type PestanaMonitoreo } from './monitoreo/index';
 import type { Sesion } from '../auth/sesion';
+import { REGION } from '../region';
 
 export const esVistaPortal = (search: string) => new URLSearchParams(search).get('vista') === 'portal';
 
@@ -35,7 +36,8 @@ export function arrancarMonitoreo(sesion: Sesion, o: { pestana?: PestanaMonitore
     crearEscena: (cont) => crearEscena(cont),
     alSalir: botonVolver('Volver al Centro de monitoreo', () => api?.volver()),
   });
-  if (api) { const e = api.escena; montarCuencaPortal(api.raiz, () => e.verCuenca()); }
+  // «Ver desde la cuenca» es del río Piura (DEM de Piura): en Lima no se monta.
+  if (api && REGION.terreno) { const e = api.escena; montarCuencaPortal(api.raiz, () => e.verCuenca()); }
   return api;
 }
 
@@ -47,6 +49,6 @@ export function arrancar() {
     alSalir: botonVolver('Volver a Yaku 3D', () => api?.volver()),
   });
   // «Ver desde la cuenca»: botón en .v3d-ctrl.ad + nota fija del relieve.
-  if (api) montarCuencaPortal(api.raiz, () => escena?.verCuenca());
+  if (api && REGION.terreno) montarCuencaPortal(api.raiz, () => escena?.verCuenca());
   return api;
 }

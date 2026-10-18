@@ -1,14 +1,17 @@
 // Escena 3D real de Yaku (implementa EscenaYaku de ./ui/contrato): el estilo local de la vista 2D + relieve
 // DEM de Piura (terreno 1,6×, color por altitud, sombreado, cielo con bruma) y la cámara cinematográfica.
+// En Lima (REGION, ?region=lima) no hay DEM: en su lugar, edificios en 3D con alturas de OpenStreetMap.
 // Reemplaza a ./escena-prueba.ts sin cambiar la UI. Todo local: PMTiles (mapa base y DEM) desde Cache Storage.
 import * as maplibregl from 'maplibre-gl';
 import type { GeoJSONSource, LayerSpecification, StyleSpecification } from 'maplibre-gl';
 import { style as estilo2D, LAYER_GROUPS } from '../map';
 import { CENEPRED_23077_BOUNDS } from '../layers';
 import type { CapaId, CentroPoblado, EscenaYaku, PuntoReporte } from './ui/contrato';
-import { CAPAS_RELIEVE, conRelieve, SRC_TERRENO, terreno } from './relieve';
+import { CAPAS_RELIEVE, SRC_TERRENO, terreno } from './relieve';
 import { prepararFuenteDem, registrarProtocoloDem } from './dem';
 import { PITCH_MAX_3D, PIXEL_RATIO_MAX_3D, VISTA_REGIONAL } from './config';
+import { CAPA_EDIFICIOS, estiloRegion } from './edificios';
+import { REGION, type Region } from '../region';
 import { Recorrido } from './camara';
 
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,8 +29,8 @@ export function opacidadEscalada(base: unknown, v: number, porDefecto = 1): unkn
   return JSON.stringify(base).includes('"zoom"') ? v : ['*', base, v];
 }
 
-export function estiloEscena(): StyleSpecification {
-  const s = conRelieve(structuredClone(estilo2D));
+export function estiloEscena(region: Region = REGION): StyleSpecification {
+  const s = estiloRegion(structuredClone(estilo2D), region);
   s.sources['v3d-sel'] = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
   const sel: LayerSpecification[] = [
     { id: 'v3d-sel-halo', type: 'circle', source: 'v3d-sel', paint: { 'circle-radius': 18, 'circle-color': '#c9541f', 'circle-opacity': 0.18, 'circle-stroke-color': '#c9541f', 'circle-stroke-width': 2, 'circle-pitch-alignment': 'map' } },
@@ -41,8 +44,7 @@ export function estiloEscena(): StyleSpecification {
 export type EscenaYaku3D = EscenaYaku & { verCuenca(): Promise<boolean> };
 
 export function crearEscena(cont: HTMLElement): EscenaYaku3D {
-  registrarProtocoloDem();
-  prepararFuenteDem();
+  if (REGION.terreno) { registrarProtocoloDem(); prepararFuenteDem(); }
   const style = estiloEscena();
   const R = VISTA_REGIONAL;
   const map = new maplibregl.Map({
@@ -57,8 +59,8 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
   for (const ev of ['pointerdown', 'wheel', 'keydown', 'touchstart'] as const) map.getCanvasContainer().addEventListener(ev, cancelar, { passive: true });
 
   const grupos: Record<CapaId, string[]> = {
-    terreno: [...CAPAS_RELIEVE],
-    basemap: LAYER_GROUPS.basemap, cenepred: LAYER_GROUPS.cenepred ?? [], senamhi: LAYER_GROUPS.senamhi,
+    terreno: REGION.terreno ? [...CAPAS_RELIEVE] : [],
+    basemap: REGION.edificios ? [...LAYER_GROUPS.basemap, CAPA_EDIFICIOS] : LAYER_GROUPS.basemap, cenepred: LAYER_GROUPS.cenepred ?? [], senamhi: LAYER_GROUPS.senamhi,
     erosion: LAYER_GROUPS.erosion, limite: LAYER_GROUPS.limite, citizen: LAYER_GROUPS.citizen,
   };
   const base = new Map(style.layers.map((l) => [l.id, l]));
@@ -68,7 +70,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
   map.on('mouseenter', 'cenepred-ccpp', () => (map.getCanvas().style.cursor = 'pointer'));
   map.on('mouseleave', 'cenepred-ccpp', () => (map.getCanvas().style.cursor = ''));
 
-  let es2D = false, terrenoOn = true;
+  let es2D = false, terrenoOn = REGION.terreno;
   const aplicarTerreno = () => map.setTerrain(terrenoOn && !es2D ? terreno() : null);
   const esc: EscenaYaku3D = {
     map, listo,
@@ -102,7 +104,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
     },
     async vistaRegional() {
       cam.detener();
-      if (es2D) await new Promise<void>((res) => { map.once('moveend', () => res()); map.fitBounds(CENEPRED_23077_BOUNDS, { padding: 24, pitch: 0, bearing: 0, duration: reducido() ? 0 : 1800 }); });
+      if (es2D) await new Promise<void>((res) => { map.once('moveend', () => res()); map.fitBounds(REGION.id === 'piura' ? CENEPRED_23077_BOUNDS : REGION.bounds, { padding: 24, pitch: 0, bearing: 0, duration: reducido() ? 0 : 1800 }); });
       else await cam.vistaRegional();
     },
     altitud(lon, lat) {
@@ -122,7 +124,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
       delete s.terrain;
       return s;
     },
-    terrenoMiniVista: () => terreno(),
+    terrenoMiniVista: () => (REGION.terreno ? terreno() : null),
     set2D(on) {
       es2D = on; cam.detener();
       aplicarTerreno();
@@ -130,7 +132,7 @@ export function crearEscena(cont: HTMLElement): EscenaYaku3D {
       map.easeTo({ pitch: on ? 0 : 60, bearing: on ? 0 : map.getBearing(), duration: reducido() ? 0 : 900 });
       if (on) map.once('moveend', () => { if (es2D) map.setMaxPitch(0); }); // 2D plano, como el FireTrace
     },
-    verCuenca: () => (es2D ? Promise.resolve(false) : cam.verCuenca()),
+    verCuenca: () => (es2D || !REGION.terreno ? Promise.resolve(false) : cam.verCuenca()),
     destruir() { cam.detener(); map.remove(); },
   };
   (window as any).__yakuEscena = { map, cam, fuente: SRC_TERRENO };

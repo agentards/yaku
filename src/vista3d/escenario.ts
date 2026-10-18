@@ -2,6 +2,7 @@
 // (CENEPRED/SIGRID 23077, Aviso SENAMHI 421, IGN, OSIPTEL 2025-IV). Son datos oficiales con fuente y fecha, no
 // datos de monitoreo: la línea de tiempo NO se ata a estas fechas (su rango sale del histórico real del servidor).
 // Leen de aquí la cabecera, el panel «Escenario», el portal de campo y ui/tiempo.ts.
+import { REGION } from '../region';
 
 /** Hora de Lima: UTC−5 fijo, sin horario de verano. */
 const lima = (iso: string) => Date.parse(`${iso}T00:00:00-05:00`);
@@ -12,8 +13,9 @@ export const ESCENARIO = {
   fin: lima('2026-10-20'),
   /** Firmado el 16/10/2026 (la fuente no da hora: se ubica al inicio del día). */
   firma: lima('2026-10-16'),
-  chip: 'Piura · Aviso 421 / FEN 2027',
-  chipTitulo: 'Escenario de riesgo CENEPRED/SIGRID 23077',
+  /** Chip de la cabecera: depende de la región (Piura = escenario oficial; Lima = prueba en sala). */
+  chip: REGION.chip,
+  chipTitulo: REGION.chipTitulo,
   lugar: '23 distritos andinos · CENEPRED/SIGRID',
   codigo: 'CENEPRED/SIGRID 23077 · Aviso SENAMHI 421',
   vigencia: '17–19/10/2026',

@@ -13,13 +13,14 @@ import { selectBasemap, BASEMAP_ATTRIBUTION } from './basemap-config';
 import { BlobOrFetchSource, BASEMAP_CACHE, cachedBasemap, downloadBasemap, pruneBasemaps } from './basemap';
 import { BASEMAPS } from './basemap-config';
 import { FEAT } from './features';
+import { REGION } from './region';
 
 const C = {
   n2: '#b8860b', n3: '#a63d1f', erosion: '#5b3f8c', limite: '#1d2b36', citizen: '#e08a00', water: '#d7dde2',
 };
 
-// ---------- Mapa base vectorial (PMTiles de Piura, Protomaps, © OpenStreetMap contributors, ODbL) ----------
-export const BASEMAP = selectBasemap(location.search);
+// ---------- Mapa base vectorial (PMTiles de Piura o de Lima según REGION, Protomaps, © OpenStreetMap contributors, ODbL) ----------
+export const BASEMAP = selectBasemap(location.search, BASEMAPS, REGION.basemap);
 export const BASEMAP_URL = new URL(BASEMAP.file, location.origin + '/').href;
 export const basemapSource = new BlobOrFetchSource(BASEMAP_URL);
 // Antes de pedir la primera tesela se consulta la copia guardada: así una apertura sin red lee del Blob.
@@ -106,7 +107,7 @@ const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.ch
 
 export function initMap(container: HTMLElement) {
   map = new maplibregl.Map({
-    container, style, bounds: CENEPRED_23077_BOUNDS, fitBoundsOptions: { padding: CENEPRED_FIT_PADDING },
+    container, style, bounds: REGION.id === 'piura' ? CENEPRED_23077_BOUNDS : REGION.bounds, fitBoundsOptions: { padding: CENEPRED_FIT_PADDING },
     attributionControl: false, maxZoom: 17, minZoom: 5, dragRotate: false, pitchWithRotate: false,
   });
   map.touchZoomRotate.disableRotation();

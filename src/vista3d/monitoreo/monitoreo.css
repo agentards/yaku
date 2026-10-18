@@ -200,3 +200,7 @@ button.mon-toast { cursor: pointer; }
 /* etiqueta del cabezal: no se corta en los bordes de la pista */
 .mon .v3d-pista .cabezal[data-borde="der"] span { transform: translateX(calc(-100% + 10px)); }
 .mon .v3d-pista .cabezal[data-borde="izq"] span { transform: translateX(-10px); }
+
+/* Selector de región (Piura | Lima) en la cabecera del Centro de monitoreo. */
+.mon-region { flex: none; }
+@media (max-width: 600px) { .mon-region button { min-width: 0; padding: 0 6px; font-size: 12px; } }
