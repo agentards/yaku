@@ -19,30 +19,40 @@ export function intentos(ladoOriginal: number): { lado: number; q: number }[] {
 
 export interface FotoComprimida { blob: Blob; w: number; h: number; bytes: number }
 
-async function abrir(file: Blob): Promise<ImageBitmap> {
-  try { return await createImageBitmap(file, { imageOrientation: 'from-image' } as ImageBitmapOptions); }
-  catch { return await createImageBitmap(file); }
+type Fuente = { img: CanvasImageSource; w: number; h: number; cerrar(): void };
+/** createImageBitmap; si falla (memoria justa en celulares de gama baja, formatos raros), un <img> normal. */
+async function abrir(file: Blob): Promise<Fuente> {
+  for (const op of [{ imageOrientation: 'from-image' } as ImageBitmapOptions, undefined]) {
+    try { const b = await createImageBitmap(file, op); return { img: b, w: b.width, h: b.height, cerrar: () => b.close() }; } catch { /* siguiente */ }
+  }
+  const url = URL.createObjectURL(file);
+  const im = new Image();
+  im.decoding = 'async';
+  im.src = url;
+  try { await im.decode(); } catch (e) { URL.revokeObjectURL(url); throw e; }
+  return { img: im, w: im.naturalWidth, h: im.naturalHeight, cerrar: () => URL.revokeObjectURL(url) };
 }
 
 const aBlob = (c: HTMLCanvasElement, q: number) =>
   new Promise<Blob>((ok, ko) => c.toBlob((b) => (b ? ok(b) : ko(new Error('toBlob vacío'))), 'image/jpeg', q));
 
 export async function comprimirFoto(file: Blob, objetivo = OBJETIVO_BYTES): Promise<FotoComprimida> {
-  const bmp = await abrir(file);
+  const f = await abrir(file);
   const c = document.createElement('canvas');
   const ctx = c.getContext('2d')!;
   let mejor: FotoComprimida | null = null;
   try {
-    for (const { lado, q } of intentos(Math.max(bmp.width, bmp.height))) {
-      const k = lado / Math.max(bmp.width, bmp.height);
-      const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
-      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h); }
+    for (const { lado, q } of intentos(Math.max(f.w, f.h))) {
+      const k = lado / Math.max(f.w, f.h);
+      const w = Math.max(1, Math.round(f.w * k)), h = Math.max(1, Math.round(f.h * k));
+      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(f.img, 0, 0, w, h); }
       const blob = await aBlob(c, q);
       mejor = { blob, w, h, bytes: blob.size };
       if (blob.size <= objetivo) break;
     }
-  } finally { bmp.close?.(); }
-  return mejor!;
+  } finally { f.cerrar(); c.width = c.height = 0; }
+  if (!mejor) throw new Error('foto vacía');
+  return mejor;
 }
 
 export function blobABase64(b: Blob): Promise<string> {
