@@ -13,14 +13,16 @@ import { initMap, setVisible, setCenepredSinCobertura, setCitizen, placeDraft, d
 import { fmtMB } from './basemap';
 import { montarVista3D } from './vista3d/conmutador';
 import { FEAT, PHASE } from './features';
-import { esVistaPoblador, entornoActual, prepararVistaPoblador } from './poblador/ruta';
+import { entornoActual, prepararVistaPoblador } from './poblador/ruta';
+import { decidirRuta } from './rutas';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 registerSW({ immediate: true });
 history.scrollRestoration = 'manual';
-if (esVistaPoblador(location.search, entornoActual())) { prepararVistaPoblador(); import('./poblador/app').then((m) => m.arrancar()); } // modo poblador (celular por defecto)
+const ruta = decidirRuta(location.search, entornoActual()); // ver src/rutas.ts
+if (ruta.vista === 'poblador') { prepararVistaPoblador(); import('./poblador/app').then((m) => m.arrancar()); } // modo poblador (celular por defecto)
 
 function deviceId(): string {
   let d = localStorage.getItem('yaku-device');
@@ -58,9 +60,15 @@ renderNet();
 // ---------- mapa + leyenda ----------
 initMap($('map'));
 montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
-if (new URLSearchParams(location.search).get('vista') === 'portal') import('./vista3d/entrada-portal').then((m) => m.arrancar()); // interfaz 3D completa con portal de campo
-if (new URLSearchParams(location.search).get('vista') === 'municipalidad') import('./vista3d/municipalidad/pantalla').then((m) => m.arrancar()); // pantalla grande en vivo, solo lectura
-if (new URLSearchParams(location.search).get('vista') === 'incidentes') import('./vista3d/municipalidad/pantalla-incidentes').then((m) => m.arrancar()); // operador: incidentes agrupados, respaldo y acciones con PIN
+// Centro de monitoreo: primero el acceso (Clerk o PIN, src/auth/), luego la pantalla. Hasta que exista la interfaz
+// unificada, cada pestaña abre la pantalla actual: portal 3D, monitor en vivo o incidentes del operador.
+if (ruta.vista === 'monitoreo') import('./auth/sesion').then((a) => a.exigirSesion(document.body)).then(async (sesion) => {
+  if (ruta.pestana === 'municipalidad') return (await import('./vista3d/municipalidad/pantalla')).arrancar(); // pantalla grande en vivo, solo lectura
+  if (ruta.pestana === 'incidentes') return (await import('./vista3d/municipalidad/pantalla-incidentes')).arrancar(); // operador: incidentes agrupados, respaldo y acciones
+  (await import('./vista3d/entrada-portal')).arrancar(); // interfaz 3D completa con portal de campo
+  const der = document.querySelector('.v3d-der');
+  if (der) { const el = document.createElement('span'); der.append(el); sesion.montarBotonUsuario(el); }
+});
 const legend = $('legend');
 for (const l of OFFICIAL_LAYERS) {
   const li = document.createElement('li');

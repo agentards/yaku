@@ -4,6 +4,7 @@
 // 1920×1080 en docs/evidencia-3d/ y medidas en results/e2e-municipalidad.json.
 //   npm run build && node scripts/e2e-municipalidad.mjs
 import { chromium } from 'playwright';
+import { accederConPin } from './acceso-pin.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,6 +57,7 @@ try {
 
   // 1) Al abrir: siembra con los 2 existentes y no anima nada.
   await page.goto(BASE + '?vista=municipalidad');
+  await accederConPin(page);
   await page.waitForFunction(() => window.__yakuMuni?.estado().sembrado, null, { timeout: 30000 });
   const s0 = await est();
   const texto = await page.evaluate(() => document.body.innerText);

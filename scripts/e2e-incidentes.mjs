@@ -5,6 +5,7 @@
 // si el servidor no tiene /api/incidentes. Datos de prueba etiquetados SIMULADO. Capturas 1920×1080 en docs/evidencia-3d/.
 //   npm run e2e:municipalidad        (vite build + este script; Node ≥ 23.6 importa los .ts directo)
 import { chromium } from 'playwright';
+import { accederConPin } from './acceso-pin.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -50,6 +51,7 @@ try {
 
   // 1) Al abrir: el incidente previo está en la lista, sin vuelo ni tarjeta.
   await page.goto(BASE + '?vista=incidentes');
+  await accederConPin(page, { pin: PIN });
   await esperar(() => window.__yakuMuni?.estado().sembrado, null, 30000);
   const s0 = await est();
   check('mismo origen: lee /api/incidentes del servidor local (sin agrupar en pantalla)', s0.fuente === 'incidentes' && s0.incidentes.length === 1, { fuente: s0.fuente, n: s0.incidentes.length });
@@ -145,6 +147,7 @@ try {
 
   // 7) Persistencia: recargar la pantalla mantiene estados y acción (vienen de SQLite).
   await page.reload();
+  await accederConPin(page, { pin: PIN });
   await esperar(() => window.__yakuMuni?.estado().sembrado, null, 30000);
   const s7 = await est();
   const lista7 = await page.locator('.muni-lista').innerText();
@@ -160,6 +163,7 @@ try {
   await ctx2.route('**/api/incidentes', (r) => r.fulfill({ status: 404, contentType: 'application/json', body: '{"error":"no encontrado"}' }));
   const p2 = await ctx2.newPage();
   await p2.goto(BASE + '?vista=incidentes');
+  await accederConPin(p2, { pin: PIN });
   await p2.waitForFunction(() => window.__yakuMuni?.estado().sembrado, null, { timeout: 30000 });
   const s8 = await p2.evaluate(() => window.__yakuMuni.estado());
   await p2.click('.muni-lista li[data-id] .muni-item');

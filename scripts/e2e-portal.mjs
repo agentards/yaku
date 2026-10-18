@@ -3,6 +3,7 @@
 //   npm run build && node scripts/e2e-portal.mjs
 //   VIEWPORT=android|desktop  CHROME=…  VIDEO=1
 import { chromium } from 'playwright';
+import { accederConPin } from './acceso-pin.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -32,6 +33,7 @@ const sinProhibidos = async (page) => {
 };
 const entrar = async (page) => {
   await page.goto(BASE + '?vista=portal');
+  await accederConPin(page);
   await page.waitForSelector('body[data-ready="1"]', { timeout: 30000 });
   await page.waitForSelector('body[data-v3d="listo"]', { timeout: 30000 });
   await page.waitForFunction(() => window.__yaku3dUI?.tienda.centros.length > 0, null, { timeout: 15000 });
