@@ -1,93 +1,139 @@
 {
-  "fecha": "2026-10-18T00:26:08.114Z",
+  "fecha": "2026-10-18T01:04:17.765Z",
+  "servidor": "servidor-local (SQLite temporal)",
   "checks": [
     {
-      "name": "título «Municipalidad · reportes de campo» y sin la palabra COE en pantalla",
+      "name": "mismo origen: lee /api/incidentes del servidor local (sin agrupar en pantalla)",
+      "ok": true,
+      "fuente": "incidentes",
+      "n": 1
+    },
+    {
+      "name": "al abrir: incidentes previos en la lista, sin tarjeta ni vuelo",
       "ok": true
     },
     {
-      "name": "al iniciar ignora los reportes existentes (2), sin tarjeta ni lista",
-      "ok": true,
-      "previos": 2
-    },
-    {
-      "name": "mapa 3D de Piura con relieve y capas reales (CENEPRED, SENAMHI, reportes)",
+      "name": "mapa 3D con relieve y capas reales (servido por el servidor local con Range)",
       "ok": true,
       "capas": {
         "terreno": true,
         "cenepred": true,
-        "senamhi": true,
         "citizen": true
       }
     },
     {
-      "name": "botón de sonido se activa con un clic",
+      "name": "incidente nuevo: tarjeta con rótulo vecinal, respaldo y «1 vecino · 0 fotos · primer reporte hh:mm»",
       "ok": true,
-      "sonido": "true"
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 20:03 Respaldo 1 vecino lo reporta Personas 25 · Fotos 0 · Cercanía 0 · Recencia ×1,00 Reportes 1 reporte de 1 vecino Severidad Severidad m"
     },
     {
-      "name": "detecta el reporte nuevo en ≤ 1 ciclo de consulta (3 s + margen)",
-      "ok": true,
-      "msDeteccion": 253
-    },
-    {
-      "name": "tarjeta: tipo, severidad, hora, NO VERIFICADO y «llegó hace N s»",
-      "ok": true,
-      "tarjeta": "NO VERIFICADO llegó hace 0 s × Huaico / flujo de lodo Severidad 3 de 3 (la marca quien reporta) Hora del reporte 07:25 p. m. reloj del celular Llegó al servidor 07:26:14 p. m. Ubicación -4.63860, -79.71420 «SIMULADO e2e:"
-    },
-    {
-      "name": "aviso sonoro disparado una vez",
-      "ok": true,
-      "avisos": 1
-    },
-    {
-      "name": "marcador pulsante en el mapa",
-      "ok": true
-    },
-    {
-      "name": "la cámara vuela hasta el reporte y queda en órbita lenta",
+      "name": "la cámara vuela al incidente nuevo y queda en órbita lenta",
       "ok": true,
       "fase": "orbita",
-      "dLon": 0,
-      "dLat": 1.7763568394002505e-14,
-      "zoom": 11.6,
+      "dLon": 1.4210854715202004e-14,
+      "dLat": 1.9539925233402755e-14,
       "pitch": 64
     },
     {
-      "name": "columna: más nuevo arriba y contador en 2",
+      "name": "servidor: A duplicado no se repite (relevo) y la foto de B sube",
       "ok": true,
-      "ids": [
-        "nuevo000002",
-        "nuevo000001"
-      ],
-      "n": "2"
+      "sync": {
+        "accepted": [
+          "1xn3d9mnai5",
+          "1auun8vqela"
+        ],
+        "inserted": 1,
+        "duplicates": 1,
+        "rejected": [],
+        "persisted": true
+      },
+      "foto": 200
     },
     {
-      "name": "dos reportes nuevos = dos avisos",
+      "name": "2 reportes cercanos = 1 incidente con contador 2 (sin duplicar)",
+      "ok": true,
+      "personas": 2,
+      "fotos": 1,
+      "puntaje": 75
+    },
+    {
+      "name": "el contador se anima cuando otro vecino coincide (+ aviso «Otro vecino coincide»)",
+      "ok": true,
+      "animado": 2,
+      "toast": [
+        "Otro vecino coincide: Casa dañada o caída · ahora 2 vecinos"
+      ]
+    },
+    {
+      "name": "tarjeta: «2 vecinos · 1 foto», detalle y desglose del respaldo",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar Respaldo 75 · N2 último hace 2 s × Casa dañada o caída 2 vecinos · 1 foto · primer reporte 20:03 Respaldo 2 vecinos lo reportan · 1 foto Personas 40 · Fotos 15 · Cercanía 20 · Recencia ×1,00 Reportes 2 reportes de 2 vecinos Severidad Severidad máx. 3 de 3 la marca quien"
+    },
+    {
+      "name": "galería: la foto se ve desde GET /api/fotos/:id",
+      "ok": true,
+      "galeria": {
+        "w": 480,
+        "src": "/api/fotos/30aff0b7ebf2779090e4"
+      }
+    },
+    {
+      "name": "galería a pantalla completa con leyenda «enviada por un vecino · por validar» y cierra con Esc",
+      "ok": true,
+      "cap": "Foto 1 de 1 · enviada por un vecino · por validar"
+    },
+    {
+      "name": "prioridad: personas atrapadas arriba, aviso 116 / 105 y vuelo al nuevo",
+      "ok": true,
+      "orden": [
+        "Personas atrapadas",
+        "Casa dañada o caída",
+        "Acumulación de agua"
+      ]
+    },
+    {
+      "name": "PIN incorrecto se rechaza (403) y se vuelve a pedir; con el correcto queda «Validado por la municipalidad»",
+      "ok": true,
+      "errPin": "PIN incorrecto. Intenta de nuevo."
+    },
+    {
+      "name": "servidor: validado → acción «bomberos», con quién y cuándo en el historial",
+      "ok": true,
+      "historial": [
+        "en_revision",
+        "validado",
+        "accion_asignada"
+      ],
+      "congelado": true
+    },
+    {
+      "name": "el estado vuelve al celular de B por /api/estado (acuse)",
+      "ok": true,
+      "acuseB": {
+        "id": "1auun8vqela",
+        "recibido": true,
+        "recibido_at": 1792285466380,
+        "incidente": "inc-1xn3d9mnai5",
+        "estado": "accion_asignada",
+        "accion": "bomberos",
+        "motivo": "",
+        "cuando": 1792285472193,
+        "personas": 2
+      }
+    },
+    {
+      "name": "descartar pide motivo, pasa por «en revisión» y queda «Revisado por la municipalidad», al final de la lista",
+      "ok": true,
+      "motivo": "No se encontró nada en el lugar: prueba e2e"
+    },
+    {
+      "name": "tras recargar: «Bomberos asignados» y el descarte persisten",
       "ok": true
     },
     {
-      "name": "«Visto» marca localmente, rotulado demo, sin llamar al servidor",
+      "name": "las escrituras desde la pantalla son solo POST /api/incidentes/:id/estado y siempre con PIN",
       "ok": true,
-      "sinver": "1",
-      "rotulo": "✓ Visto demo"
-    },
-    {
-      "name": "consulta GET /api/reports cada 3 s (3 ± 1 en 9 s)",
-      "ok": true,
-      "consultas9s": 3
-    },
-    {
-      "name": "error del servidor visible y recuperación sin duplicar",
-      "ok": true,
-      "eErr": "error",
-      "eOk": "ok"
-    },
-    {
-      "name": "solo lectura: todas las peticiones a /api fueron GET a /api/reports",
-      "ok": true,
-      "total": 11,
-      "otras": []
+      "posts": 6
     },
     {
       "name": "cero peticiones a CDN o servicios externos",
@@ -95,12 +141,18 @@
       "externas": []
     },
     {
+      "name": "sin /api/incidentes: agrupa en pantalla (A+B = 1 incidente de 2 vecinos) y desactiva las acciones",
+      "ok": true,
+      "fuente": "agrupado-en-pantalla",
+      "n": 3
+    },
+    {
       "name": "/ sigue en 2D sin la pantalla de la municipalidad",
       "ok": true
     }
   ],
   "fps": {
-    "cuadros": 225,
-    "fps": 75
+    "cuadros": 226,
+    "fps": 75.3
   }
 }
