@@ -24,10 +24,19 @@ export const DEM_BOUNDS: [number, number, number, number] = [-81.36, -6.4, -79.1
 
 /** Exageración vertical: 1,6× (rango pedido 1,4–1,8×). Los Andes de Piura llegan a ~3.900 m. */
 export const EXAGERACION = 1.6;
-export const PITCH_MAX_3D = 80;
+/** Inclinación máxima en 3D según la región (Piura 80°, Lima 70°: src/region.ts). */
+export const PITCH_MAX_3D = REGION.pitchMax;
 export const PITCH_MAX_2D = 60;
 /** Resolución máxima en 3D: en un celular con DPR 2,6 el terreno dibuja 3× menos píxeles y no se nota a la vista. */
 export const PIXEL_RATIO_MAX_3D = 1.5;
+/**
+ * Caché de teselas de la escena 3D. Por defecto MapLibre guarda 5 niveles de zoom × las teselas en pantalla: con la
+ * cámara inclinada y edificios extruidos eso son cientos de teselas con sus búferes en la GPU, y la memoria solo
+ * sube durante el vuelo y la órbita. 2 niveles y un tope fijo alcanzan para volver atrás sin recargar.
+ */
+export const TESELAS_CACHE_3D = { maxTileCacheSize: 160, maxTileCacheZoomLevels: 2 };
+/** Órbita lenta tras volar a un incidente: se detiene sola a los N s (la GPU queda en reposo con la vista quieta). */
+export const ORBITA_MAX_S = 30;
 
 /** Paleta cálida y desaturada (desierto costero → bosque seco → páramo), en la línea del tema crema de Yaku. */
 export const RELIEVE_COLORES: [number, string][] = [

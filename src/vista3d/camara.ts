@@ -1,7 +1,7 @@
 // Cámara cinematográfica: vuelo regional oblicuo → acercamiento al centro poblado → órbita lenta.
 // Lógica pura (testeable sin WebGL) + un controlador que habla con una interfaz mínima del mapa.
 // Cualquier gesto del usuario (puntero, rueda, teclado) cancela el recorrido.
-import { ACERCAMIENTO, CUENCA, EXAGERACION, VISTA_REGIONAL } from './config';
+import { ACERCAMIENTO, CUENCA, EXAGERACION, ORBITA_MAX_S, VISTA_REGIONAL } from './config';
 
 export type LngLat = [number, number];
 export interface Vista { center: LngLat; zoom: number; pitch: number; bearing: number }
@@ -167,13 +167,16 @@ export class Recorrido {
     return true;
   }
 
-  /** Órbita lenta alrededor del centro actual hasta que algo la cancele. */
-  orbitar(gradosPorS = 5, rampaS = 2, tok = ++this.token) {
+  /** Órbita lenta alrededor del centro actual hasta que algo la cancele o pasen maxS segundos (la vista queda quieta
+   *  y MapLibre deja de dibujar 60 cuadros por segundo). */
+  orbitar(gradosPorS = 5, rampaS = 2, tok = ++this.token, maxS = ORBITA_MAX_S) {
     this.setFase('orbita');
     const b0 = this.m.getBearing(), t0 = this.reloj.ahora();
     const paso = () => {
       if (tok !== this.token) return;
-      this.m.jumpTo({ bearing: rumboOrbita((this.reloj.ahora() - t0) / 1000, b0, gradosPorS, rampaS) });
+      const s = (this.reloj.ahora() - t0) / 1000;
+      if (s > maxS) { this.rafId = 0; this.setFase('inactivo'); return; }
+      this.m.jumpTo({ bearing: rumboOrbita(s, b0, gradosPorS, rampaS) });
       this.rafId = this.reloj.raf(paso);
     };
     this.rafId = this.reloj.raf(paso);
