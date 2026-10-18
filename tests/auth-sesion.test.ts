@@ -83,9 +83,22 @@ describe('usuario + contraseña con sesión guardada en el equipo', () => {
     expect(await restaurarSesion({ pedir: async () => ({ status: 401 }) })).toBeNull();
     expect(sesionGuardada()).toBeNull();
   });
+  it('sin nombre escrito (la pantalla ya no lo pide): el chip y el historial usan el nombre que da el servidor', async () => {
+    memoria.set('yaku-muni-nombre', 'Nombre viejo del formulario');
+    const r = await entrar({ usuario: 'central', clave: 'secreta' }, { pedir: ok });
+    expect(r.ok && r.sesion.nombre).toBe('Municipio central');
+    const s = await restaurarSesion({ pedir: ok });
+    expect(s?.nombre).toBe('Municipio central');
+    expect(memoria.has('yaku-muni-nombre')).toBe(false);
+  });
   it('contraseña mala → mensaje claro; servidor sin usuarios (404) → entra con el PIN como antes', async () => {
     expect(await entrar({ usuario: 'central', clave: 'mala' }, { pedir: async () => ({ status: 403 }) })).toEqual({ ok: false, error: 'Usuario o contraseña incorrectos.' });
     const r = await entrar({ usuario: 'central', clave: '4321', nombre: 'Rosa' }, { pedir: async (url) => ({ status: url === '/api/sesion' ? 404 : 200 }) });
     expect(r.ok && r.sesion.modo).toBe('pin');
+    // PIN de respaldo sin nombre escrito: «Municipio» para central, o el usuario escrito.
+    const sinNombre = await entrar({ usuario: 'central', clave: '4321' }, { pedir: async (url) => ({ status: url === '/api/sesion' ? 404 : 200 }) });
+    expect(sinNombre.ok && sinNombre.sesion.nombre).toBe('Municipio');
+    const otro = await entrar({ usuario: 'castilla', clave: '4321' }, { pedir: async (url) => ({ status: url === '/api/sesion' ? 404 : 200 }) });
+    expect(otro.ok && otro.sesion.nombre).toBe('castilla');
   });
 });

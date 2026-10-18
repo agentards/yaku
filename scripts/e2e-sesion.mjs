@@ -14,7 +14,7 @@ const CLAVE = 'Prueba-' + Math.random().toString(36).slice(2, 10);
 const checks = [];
 const check = (name, ok, detail = {}) => { checks.push({ name, ok }); console.log(`${ok ? '✅' : '❌'} ${name}`, JSON.stringify(detail).slice(0, 300)); };
 
-const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: 'pin-respaldo-e2e', clave: CLAVE, silencioso: true });
+const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: 'pin-respaldo-e2e', clave: CLAVE, nombre: 'Operadora de turno', silencioso: true });
 await srv.listo;
 const browser = await chromium.launch({ executablePath: CHROME, headless: process.env.HEADLESS !== '0', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
 const errores = [];
@@ -38,15 +38,15 @@ try {
   const monitor = () => page.waitForSelector('[data-usuario] .ycm-acc-chip', { timeout: 30000 }).then(() => true).catch(() => false);
 
   await page.goto(BASE + 'municipalidad');
-  check('sin sesión pide usuario y contraseña (usuario «central» ya escrito)', (await pideAcceso()) && (await page.inputValue('.ycm-acc-pin input[name="usuario"]')) === 'central');
+  check('sin sesión pide solo usuario y contraseña (usuario «central» ya escrito, sin campo de nombre)', (await pideAcceso()) && (await page.inputValue('.ycm-acc-pin input[name="usuario"]')) === 'central'
+    && (await page.locator('.ycm-acc-pin input').count()) === 2);
   await page.fill('.ycm-acc-pin input[name="clave"]', 'mala');
   await page.click('.ycm-acc-pin .ycm-acc-entrar');
   const error = await page.waitForSelector('.ycm-acc-error:not([hidden])', { timeout: 8000 }).then((e) => e.textContent()).catch(() => '');
   check('contraseña mala: «Usuario o contraseña incorrectos.»', /incorrectos/.test(error ?? ''), { error });
   await page.fill('.ycm-acc-pin input[name="clave"]', CLAVE);
-  await page.fill('.ycm-acc-pin input[name="nombre"]', 'Operadora de turno');
   await page.click('.ycm-acc-pin .ycm-acc-entrar');
-  check('entra y el chip muestra quién opera', (await monitor()) && /Operadora de turno/.test(await page.locator('[data-usuario]').innerText()));
+  check('entra y el chip muestra quién opera (el nombre del usuario en el servidor)', (await monitor()) && /Operadora de turno/.test(await page.locator('[data-usuario]').innerText()));
   const token = await page.evaluate(() => JSON.parse(localStorage.getItem('yaku-muni-sesion') ?? 'null')?.token ?? '');
   check('la sesión queda guardada en este equipo (token, no la contraseña)', token.length === 43 && !(await page.evaluate((c) => JSON.stringify(localStorage).includes(c), CLAVE)));
 

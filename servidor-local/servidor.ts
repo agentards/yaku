@@ -38,6 +38,8 @@ export interface Opciones {
   puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean; estricto?: boolean;
   /** Usuario y contraseña de la municipalidad (por defecto MUNI_USUARIO / MUNI_CLAVE o el PIN). */
   usuario?: string; clave?: string;
+  /** Nombre que ve el Centro de monitoreo y queda en el historial (por defecto MUNI_NOMBRE o «Municipio central»). */
+  nombre?: string;
 }
 
 export function iniciar(o: Opciones = {}) {
@@ -61,7 +63,7 @@ export function iniciar(o: Opciones = {}) {
   const usuarioMuni = (o.usuario?.trim() || env.MUNI_USUARIO?.trim() || 'central').toLowerCase();
   const claveMuni = o.clave || env.MUNI_CLAVE || pin;
   let cambio: ReturnType<typeof asegurarUsuario> | 'error' = 'error';
-  try { cambio = asegurarUsuario(almacen, { usuario: usuarioMuni, nombre: env.MUNI_NOMBRE?.trim() || 'Municipio central', clave: claveMuni }, Date.now()); }
+  try { cambio = asegurarUsuario(almacen, { usuario: usuarioMuni, nombre: o.nombre?.trim() || env.MUNI_NOMBRE?.trim() || 'Municipio central', clave: claveMuni }, Date.now()); }
   catch (e) { console.error(`MUNI_USUARIO: ${(e as Error).message}. Se entra solo con el PIN.`); }
   const sesionHoras = Number(env.YAKU_SESION_HORAS) || 72;
   const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto, firmante: cargarFirmante(datos), sesionHoras });

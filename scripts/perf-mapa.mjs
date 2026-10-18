@@ -87,7 +87,7 @@ try {
       page.waitForSelector('.ycm-acc-pin', { timeout: 30000 }).then(() => true),
       page.waitForFunction(() => document.body.dataset.v3d === 'listo', null, { timeout: 30000 }).then(() => false),
     ]);
-    if (pide) await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
+    if (pide) await accederConPin(page, { pin: PIN });
     const tLogin = pide ? Date.now() : t0;
     f.pidioAcceso = pide;
     await page.waitForFunction(() => document.body.dataset.v3d === 'listo', null, { timeout: 60000 });

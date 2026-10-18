@@ -112,7 +112,6 @@ try {
     await page.goto(BASE + '/municipalidad');
     await pideAcceso();
     await page.fill('.ycm-acc-pin input[name="clave"]', C1);
-    await page.fill('.ycm-acc-pin input[name="nombre"]', 'QA despliegue');
     await page.click('.ycm-acc-pin .ycm-acc-entrar');
     check('navegador: entra al Centro de monitoreo con central + contraseña', await dentro());
   }

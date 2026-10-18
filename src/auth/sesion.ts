@@ -2,6 +2,8 @@
 // servidor devuelve un token de sesión que este equipo guarda (localStorage): recargar o cambiar de región (Piura ↔
 // Lima) no vuelve a pedir la contraseña hasta que la sesión venza (72 h por defecto) o alguien toque «Salir».
 // Si el servidor no tiene /api/sesion (p. ej. la versión de Cloudflare), se entra como antes con el PIN.
+// Solo se piden usuario y contraseña: el nombre del chip y del historial («quien») es el que devuelve el servidor para
+// ese usuario (MUNI_NOMBRE, por defecto «Municipio central»). Con el PIN de respaldo, el usuario escrito o «Municipio».
 // Contrato fijo del plan del Centro de monitoreo: Sesion + exigirSesion. Se carga con import dinámico desde main.ts.
 import './acceso.css';
 import { IC } from '../vista3d/ui/iconos';
@@ -20,7 +22,9 @@ export interface Sesion {
 
 export const TITULO = 'Yaku 3D · Centro de monitoreo';
 export const ROTULO_PIN = 'Acceso del personal municipal';
-const CLAVE_SESION = 'yaku-muni-sesion', CLAVE_NOMBRE = 'yaku-muni-nombre', CLAVE_USUARIO = 'yaku-muni-usuario';
+// CLAVE_NOMBRE: nombre de operador que pasa una integración a entrar(); el de antes («yaku-muni-nombre», escrito en el
+// formulario viejo) ya no se usa y se borra al restaurar, para que el chip muestre el nombre que da el servidor.
+const CLAVE_SESION = 'yaku-muni-sesion', CLAVE_NOMBRE = 'yaku-muni-operador', CLAVE_USUARIO = 'yaku-muni-usuario', CLAVE_NOMBRE_VIEJA = 'yaku-muni-nombre';
 
 export interface SesionGuardada { token: string; usuario: string; nombre: string; expira: number }
 export type Respuesta = { status: number; json?: () => Promise<any> };
@@ -61,7 +65,10 @@ export function sesionToken(g: SesionGuardada, operador: string, opc: { pedir?: 
   return s;
 }
 
-/** Usuario + contraseña → token guardado en este equipo. Sin /api/sesion (404) se entra con el PIN como antes. */
+/**
+ * Usuario + contraseña → token guardado en este equipo. Sin /api/sesion (404) se entra con el PIN como antes.
+ * `nombre` (opcional) solo lo usan integraciones: la pantalla de acceso ya no lo pide.
+ */
 export async function entrar(datos: { usuario: string; clave: string; nombre?: string }, opc: { pedir?: Pedir; alSalir?: () => void; esperaMs?: number } = {}): Promise<ResultadoPin> {
   const usuario = datos.usuario.trim().toLowerCase(), clave = datos.clave, operador = (datos.nombre ?? '').trim().slice(0, 60);
   if (!usuario) return { ok: false, error: 'Escribe tu usuario (por ejemplo «central»).' };
@@ -71,7 +78,7 @@ export async function entrar(datos: { usuario: string; clave: string; nombre?: s
   try {
     r = await pedir('/api/sesion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ usuario, clave }), cache: 'no-store' });
   } catch { return { ok: false, error: 'No hay conexión con el servidor. Revisa el internet y vuelve a intentar.' }; }
-  if (r.status === 404) return entrarConPin({ nombre: operador || usuario, pin: clave }, opc); // servidor sin usuarios
+  if (r.status === 404) return entrarConPin({ nombre: operador || (usuario === 'central' ? 'Municipio' : usuario), pin: clave }, opc); // servidor sin usuarios
   if (r.status === 429) return { ok: false, error: 'Demasiados intentos desde esta conexión. Espera unos minutos y vuelve a intentar.' };
   if (r.status === 401 || r.status === 403) return { ok: false, error: 'Usuario o contraseña incorrectos.' };
   if (r.status !== 200 || !r.json) return { ok: false, error: `El servidor respondió ${r.status}. Vuelve a intentar.` };
@@ -84,6 +91,7 @@ export async function entrar(datos: { usuario: string; clave: string; nombre?: s
 
 /** La sesión guardada en este equipo, si el servidor la reconoce. Sin red, se confía en la guardada hasta que venza. */
 export async function restaurarSesion(opc: { pedir?: Pedir; alSalir?: () => void; ahora?: number } = {}): Promise<Sesion | null> {
+  ls.del(CLAVE_NOMBRE_VIEJA);
   const g = sesionGuardada(opc.ahora);
   if (!g) return null;
   try {
@@ -189,20 +197,18 @@ function formulario(slot: HTMLElement): Promise<Sesion> {
     <p class="ycm-acc-nota">La sesión queda guardada en este equipo (también al cambiar de región). Toca «Salir» si es un equipo compartido.</p>
     <label>Usuario <input name="usuario" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32" required></label>
     <label>Contraseña <input name="clave" type="password" autocomplete="current-password" maxlength="64" required></label>
-    <label>Tu nombre (opcional, queda en el historial) <input name="nombre" autocomplete="name" maxlength="60"></label>
     <p class="ycm-acc-error" role="alert" hidden></p>
     <button type="submit" class="ycm-acc-entrar">Entrar</button>`;
   slot.append(f);
   const err = f.querySelector<HTMLElement>('.ycm-acc-error')!, btn = f.querySelector<HTMLButtonElement>('button')!;
   const campo = (n: string) => f.elements.namedItem(n) as HTMLInputElement;
   campo('usuario').value = ls.get(CLAVE_USUARIO) ?? 'central';
-  campo('nombre').value = ls.get(CLAVE_NOMBRE) ?? '';
   queueMicrotask(() => campo('clave').focus());
   return new Promise((ok) => {
     f.onsubmit = async (ev) => {
       ev.preventDefault();
       btn.disabled = true; btn.textContent = 'Comprobando…'; err.hidden = true;
-      const r = await entrar({ usuario: campo('usuario').value, clave: campo('clave').value, nombre: campo('nombre').value });
+      const r = await entrar({ usuario: campo('usuario').value, clave: campo('clave').value });
       btn.disabled = false; btn.textContent = 'Entrar';
       if (r.ok) return ok(r.sesion);
       err.textContent = r.error; err.hidden = false;

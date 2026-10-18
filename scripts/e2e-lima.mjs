@@ -39,7 +39,7 @@ try {
     if (u.pathname.endsWith('.pmtiles')) pmtiles.add(u.pathname);
   });
   await page.goto(BASE + 'municipalidad?region=lima');
-  await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
+  await accederConPin(page, { pin: PIN });
   await page.waitForFunction(() => document.body.dataset.v3d === 'listo', null, { timeout: 30000 });
   const m = () => page.evaluate(() => { const map = window.__yakuMonitoreo.escena.map; return { terreno: !!map.getTerrain(), edificios: !!map.getLayer('v3d-edificios'), z: map.getZoom(), c: map.getCenter() }; });
   await page.waitForTimeout(6000); // vuelo de entrada

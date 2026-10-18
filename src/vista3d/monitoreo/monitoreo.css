@@ -186,7 +186,7 @@ button.mon-toast:hover { background: var(--hover); }
   gap: 2px 10px; align-items: center; padding: 10px 12px; text-align: left; border-radius: 10px; cursor: pointer; background: var(--card); border: 1px solid var(--line); transition: background-color .12s, border-color .12s; }
 .mon-i-vis:not(.con-foto) { height: 22px; }
 .mon-item:hover { background: var(--hover); }
-.mon-lista li.actual .mon-item { background: var(--hover); border-color: var(--ink-2); }
+.mon-lista li.actual .mon-item { background: var(--hover); border-color: var(--muted); }
 .mon-lista li.cerrado .mon-item { opacity: .7; }
 .mon-lista li.cerrado .mon-item:hover { opacity: 1; }
 .mon-i-tipo { grid-area: tipo; min-width: 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

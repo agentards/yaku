@@ -23,7 +23,8 @@ fs.mkdirSync(OUT, { recursive: true }); fs.mkdirSync(EVID, { recursive: true });
 const res = { fecha: new Date().toISOString(), servidor: 'servidor-local (SQLite temporal, usuario + sesión)', checks: [] };
 const check = (name, ok, detail = {}) => { res.checks.push({ name, ok, ...detail }); console.log(`${ok ? '✅' : '❌'} ${name}`, JSON.stringify(detail).slice(0, 400)); };
 
-const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: PIN, silencioso: true });
+// El nombre del usuario «central» (lo que se ve en el chip y queda en el historial) lo pone el servidor.
+const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: PIN, nombre: 'Operador SIMULADO', silencioso: true });
 await srv.listo;
 const api = (p, o = {}) => fetch(`http://127.0.0.1:${PORT}${p}`, o).then(async (r) => ({ status: r.status, body: await r.json().catch(() => null) }));
 const conPin = { 'x-muni-pin': PIN };
@@ -59,13 +60,13 @@ try {
   // 1) Acceso con usuario «central» + contraseña → Centro de monitoreo con el histórico real.
   await page.goto(BASE + 'municipalidad');
   const textoAcceso = await page.locator('.ycm-acc').innerText({ timeout: 30000 });
-  await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
+  await accederConPin(page, { pin: PIN });
   await esperar(() => window.__yakuMonitoreo?.estado().sembrado, null, 30000);
   await page.evaluate(() => window.__yakuMonitoreo.escena.listo);
   await esperar(() => document.body.dataset.v3d === 'listo', null, 30000);
   const s0 = await est();
   const tPrevio = (await api(`/api/reports?ids=${PREVIO.id}`)).body.reports[0].received_at;
-  check('login con «Acceso del personal municipal» (usuario + contraseña) y sesión en la cabecera', /Acceso del personal municipal/.test(textoAcceso) && s0.sesion.modo === 'usuario' && /Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()), { sesion: s0.sesion });
+  check('login con «Acceso del personal municipal» (solo usuario + contraseña) y sesión en la cabecera con el nombre del servidor', /Acceso del personal municipal/.test(textoAcceso) && !/Tu nombre/.test(textoAcceso) && s0.sesion.modo === 'usuario' && /Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()), { sesion: s0.sesion });
   const cab = (await page.locator('.v3d-top').innerText()).replace(/\s+/g, ' ');
   check('cabecera: «Yaku 3D · Centro de monitoreo», chip del escenario, «En vivo · consulta cada 3 s», pestañas Incidentes · Campo · Escenario, Vista 2D',
     /Yaku 3D · Centro de monitoreo/.test(cab) && /Aviso 421/.test(cab) && /En vivo · consulta cada 3 s · \d\d:\d\d:\d\d/.test(cab) && /Incidentes/.test(cab) && /Campo/.test(cab) && /Escenario/.test(cab) && /Vista 2D/.test(cab), { cab });
