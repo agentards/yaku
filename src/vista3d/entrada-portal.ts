@@ -1,28 +1,50 @@
-// Entrada de la interfaz 3D completa (?vista=portal): shell estilo FireTrace + portal de campo sobre la escena
-// real (./escena.ts). Se carga con import dinámico desde main.ts: la vista 2D no paga nada si no se usa.
+// Entradas de la interfaz 3D completa. Se cargan con import dinámico desde main.ts: la vista 2D no paga nada si no se usan.
+//  · arrancarMonitoreo(sesion, { pestana }): «Yaku 3D · Centro de monitoreo» (?vista=portal|municipalidad|incidentes),
+//    histórico real del servidor + monitor en vivo + incidentes, con la Sesion (Clerk o PIN).
+//  · arrancar(): el portal de relevo de campo anterior (IndexedDB de este equipo y demo SIMULADO), en ?vista=portal-relevo.
 import { crearEscena, type EscenaYaku3D } from './escena';
 import { getMap } from '../map';
 import { montarInterfaz3D } from './ui/index';
 import { montarCuencaPortal } from './cuenca';
+import { montarMonitoreo, type PestanaMonitoreo } from './monitoreo/index';
+import type { Sesion } from '../auth/sesion';
 
 export const esVistaPortal = (search: string) => new URLSearchParams(search).get('vista') === 'portal';
 
+/** Botón «Volver a …» sobre la vista 2D: solo quien ya entró a la vista 3D lo ve. */
+function botonVolver(texto: string, volver: () => void) {
+  let b: HTMLButtonElement | null = null;
+  return () => {
+    requestAnimationFrame(() => getMap()?.resize());
+    if (!b) {
+      b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'v3d-volver';
+      b.textContent = texto;
+      b.onclick = () => { b!.hidden = true; volver(); };
+      document.getElementById('mapwrap')?.append(b);
+    }
+    b.hidden = false;
+  };
+}
+
+export function arrancarMonitoreo(sesion: Sesion, o: { pestana?: PestanaMonitoreo } = {}) {
+  let api: ReturnType<typeof montarMonitoreo> = null;
+  api = montarMonitoreo(sesion, {
+    pestana: o.pestana,
+    crearEscena: (cont) => crearEscena(cont),
+    alSalir: botonVolver('Volver al Centro de monitoreo', () => api?.volver()),
+  });
+  if (api) { const e = api.escena; montarCuencaPortal(api.raiz, () => e.verCuenca()); }
+  return api;
+}
+
 export function arrancar() {
-  let volverBtn: HTMLButtonElement | null = null;
   let escena: EscenaYaku3D | null = null;
-  const api = montarInterfaz3D({
+  let api: ReturnType<typeof montarInterfaz3D> = null;
+  api = montarInterfaz3D({
     crearEscena: (cont) => (escena = crearEscena(cont)),
-    alSalir() {
-      requestAnimationFrame(() => getMap()?.resize());
-      // Solo quien ya entró al portal ve el botón de vuelta: la vista 2D predeterminada no cambia.
-      if (!api || volverBtn) { if (volverBtn) volverBtn.hidden = false; return; }
-      volverBtn = document.createElement('button');
-      volverBtn.type = 'button';
-      volverBtn.className = 'v3d-volver';
-      volverBtn.textContent = 'Volver a Yaku 3D';
-      volverBtn.onclick = () => { volverBtn!.hidden = true; api.volver(); };
-      document.getElementById('mapwrap')?.append(volverBtn);
-    },
+    alSalir: botonVolver('Volver a Yaku 3D', () => api?.volver()),
   });
   // «Ver desde la cuenca»: botón en .v3d-ctrl.ad + nota fija del relieve.
   if (api) montarCuencaPortal(api.raiz, () => escena?.verCuenca());

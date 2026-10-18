@@ -4,8 +4,9 @@ import type { CentroPoblado } from './contrato';
 import { asociar, fichasSimuladas, type Ficha, type ResumenEscenario } from './datos';
 import { ESCENARIO_INICIO, clamp, rango } from './tiempo';
 
-export type Pestana = 'escenario' | 'campo' | 'relevo';
-interface Eventos { t: number; fichas: Ficha[]; seleccion: CentroPoblado | null; pestana: Pestana; red: boolean; demo: boolean }
+/** 'incidentes' solo la usa el Centro de monitoreo (../monitoreo). */
+export type Pestana = 'escenario' | 'campo' | 'relevo' | 'incidentes';
+interface Eventos { t: number; fichas: Ficha[]; seleccion: CentroPoblado | null; pestana: Pestana; red: boolean; demo: boolean; rango: [number, number] }
 
 export class Tienda {
   centros: CentroPoblado[] = [];
@@ -22,9 +23,14 @@ export class Tienda {
   red: boolean;
   private subs: Partial<Record<keyof Eventos, Set<(v: never) => void>>> = {};
 
-  constructor(public ahora = () => Date.now(), red = true) {
+  /** Rango de la línea de tiempo según los instantes de las fichas. Por defecto el del escenario (tiempo.ts);
+   * el Centro de monitoreo lo reemplaza por el del histórico real del servidor. */
+  rangoDe: (ts: number[], ahora: number) => [number, number];
+
+  constructor(public ahora = () => Date.now(), red = true, rangoDe: (ts: number[], ahora: number) => [number, number] = rango) {
     this.red = red;
-    this.rango = rango([], ahora());
+    this.rangoDe = rangoDe;
+    this.rango = rangoDe([], ahora());
     this.t = clamp(ahora(), ...this.rango);
   }
 
@@ -60,9 +66,18 @@ export class Tienda {
   private recalcular() {
     const fs = this.fichas();
     this.asoc = asociar(fs, this.centros);
-    this.rango = rango(fs.flatMap((f) => [f.ts, ...(f.syncedAt ? [f.syncedAt] : [])]), this.ahora());
+    this.rango = this.rangoDe(this.instantes(fs), this.ahora());
     this.t = clamp(this.t, ...this.rango);
     this.emit('fichas', fs);
+  }
+  private instantes(fs: Ficha[]) { return fs.flatMap((f) => [f.ts, ...(f.syncedAt ? [f.syncedAt] : [])]); }
+  /** Recalcula el rango sin cambiar las fichas (el «ahora» avanzó). */
+  extenderRango() {
+    const r = this.rangoDe(this.instantes(this.fichas()), this.ahora());
+    if (r[0] === this.rango[0] && r[1] === this.rango[1]) return;
+    this.rango = r;
+    this.t = clamp(this.t, ...r);
+    this.emit('rango', r);
   }
 
   setT(t: number) {

@@ -60,15 +60,13 @@ renderNet();
 // ---------- mapa + leyenda ----------
 initMap($('map'));
 montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
-// Centro de monitoreo: primero el acceso (Clerk o PIN, src/auth/), luego la pantalla. Hasta que exista la interfaz
-// unificada, cada pestaña abre la pantalla actual: portal 3D, monitor en vivo o incidentes del operador.
+// Centro de monitoreo: primero el acceso (Clerk o PIN, src/auth/), luego la interfaz unificada (src/vista3d/monitoreo/).
+// portal | municipalidad | incidentes son alias de la misma pantalla; «incidentes» y «municipalidad» abren la pestaña Incidentes.
 if (ruta.vista === 'monitoreo') import('./auth/sesion').then((a) => a.exigirSesion(document.body)).then(async (sesion) => {
-  if (ruta.pestana === 'municipalidad') return (await import('./vista3d/municipalidad/pantalla')).arrancar(); // pantalla grande en vivo, solo lectura
-  if (ruta.pestana === 'incidentes') return (await import('./vista3d/municipalidad/pantalla-incidentes')).arrancar(); // operador: incidentes agrupados, respaldo y acciones
-  (await import('./vista3d/entrada-portal')).arrancar(); // interfaz 3D completa con portal de campo
-  const der = document.querySelector('.v3d-der');
-  if (der) { const el = document.createElement('span'); der.append(el); sesion.montarBotonUsuario(el); }
+  (await import('./vista3d/entrada-portal')).arrancarMonitoreo(sesion, { pestana: ruta.pestana === 'portal' ? 'escenario' : 'incidentes' });
 });
+// Portal de relevo de campo anterior (fichas de IndexedDB de este equipo y demo SIMULADO): público, como la vista 2D.
+if (new URLSearchParams(location.search).get('vista') === 'portal-relevo') import('./vista3d/entrada-portal').then((m) => m.arrancar());
 const legend = $('legend');
 for (const l of OFFICIAL_LAYERS) {
   const li = document.createElement('li');
