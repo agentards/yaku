@@ -10,7 +10,9 @@ export type Pregunta = { p: string; r: string };
 export type Captura = { archivo: string; pestana: string; alt: string; pie: string };
 export type ImagenIA = { archivo: string; alt: string; ancho: number; alto: number };
 
-/** Contacto del CTA «Solicitar un piloto». Jorge pone aquí el correo o el WhatsApp (wa.me/51…) definitivo. */
+/** Contacto del CTA «Solicitar un piloto». Lo usan los 4 botones del piloto y el texto del cierre.
+ * TODO(Jorge): confirmar que piloto@yaku.lat recibe correo o cambiarlo por el WhatsApp (https://wa.me/51…) definitivo;
+ * cambiarlo también en public/llms.txt. */
 export const CONTACTO = {
   href: 'mailto:piloto@yaku.lat?subject=Piloto%20de%20Yaku%20en%20mi%20municipalidad',
   texto: 'piloto@yaku.lat',
@@ -20,9 +22,9 @@ export const RUTAS = { reportar: '/reportar', ingresar: '/municipalidad' } as co
 
 export const SEO = {
   url: 'https://yaku.lat/',
-  titulo: 'Yaku: cadena de apoyo vecinal ante El Niño para municipalidades',
+  titulo: 'Yaku: reportes vecinales sin señal para municipalidades',
   descripcion:
-    'Yaku permite que el vecino reporte sin señal, que el reporte pase de celular en celular por QR y que la municipalidad lo reciba agrupado, lo valide y responda.',
+    'El vecino reporta sin señal, el reporte pasa de celular en celular por QR y su municipalidad lo recibe agrupado para validarlo y responder ante El Niño.',
   ogImagen: 'https://yaku.lat/landing/og.jpg',
   ogAlt: 'Centro de monitoreo de Yaku con un reporte respaldado por dos vecinos en Piura',
   actualizado: '2026-10-17',
@@ -39,7 +41,7 @@ export const HERO = {
   antetitulo: 'Para municipalidades y gobiernos regionales · Fenómeno El Niño',
   titulo: 'Cuando cae la señal, el reporte sigue viajando.',
   bajada:
-    'Yaku arma una cadena de apoyo vecinal: el vecino reporta sin internet, el reporte pasa de celular en celular por QR y llega a su municipalidad como reporte vecinal por validar, con foto, ubicación y cuántos vecinos lo respaldan.',
+    'Yaku es una cadena de apoyo vecinal: el vecino reporta sin internet, el reporte pasa de celular en celular por QR y llega a su municipalidad como reporte vecinal por validar, con foto, ubicación y cuántos vecinos lo respaldan.',
   ctaPrincipal: 'Solicitar un piloto',
   ctaVecino: 'Soy vecino: reportar un incidente',
   etiquetaIA: 'Imagen generada con IA',
@@ -52,14 +54,19 @@ export const PROBLEMA = {
     {
       valor: 275,
       unidad: 'antenas',
-      texto: 'quedaron fuera de servicio durante las lluvias de marzo de 2023, por cortes de energía e inundación.',
-      fuente: { texto: 'OSIPTEL, nota de prensa del 14-mar-2023', url: 'https://www.osiptel.gob.pe/media/hzteo0hr/np14032023-centro-monitoreo.pdf' },
+      texto:
+        'cayeron en seis regiones con las lluvias de marzo de 2023, por falta de energía e instalaciones inundadas. 142 dejaron sin teléfono ni internet a más de 130 localidades.',
+      fuente: { texto: 'OSIPTEL, nota de prensa 34-2023 (14-mar-2023)', url: 'https://www.osiptel.gob.pe/media/hzteo0hr/np14032023-centro-monitoreo.pdf' },
     },
     {
       valor: 445,
       unidad: 'de 928 centros poblados',
-      texto: 'del escenario de riesgo del Aviso 421 en Piura no tienen cobertura móvil garantizada.',
-      fuente: { texto: 'CENEPRED/SIGRID, escenario 23077, cruzado con cobertura declarada por operadoras (OSIPTEL, datos abiertos)' },
+      texto:
+        'con dato de cobertura, en el escenario de riesgo del Aviso 421 en Piura, no tienen cobertura móvil garantizada según lo que declaran las operadoras.',
+      fuente: {
+        texto: 'CENEPRED/SIGRID, escenario 23077 (Aviso SENAMHI 421, oct-2026), cruzado con la cobertura móvil por centro poblado de OSIPTEL (datos abiertos)',
+        url: 'https://www.datosabiertos.gob.pe/dataset/porcentaje-de-cobertura-m%C3%B3vil-por-centro-poblado-empresa-operadora-y-tecnolog%C3%ADa',
+      },
     },
   ],
   cierre:
@@ -111,7 +118,7 @@ export const MUNICIPALIDAD = {
   puntos: [
     'Cada reporte con foto, ubicación y cuántos vecinos lo respaldan.',
     'Validar, descartar o unir reportes del mismo lugar, con historial de quién hizo qué.',
-    'Asignar bomberos, rescate, provisiones, maquinaria o evaluación EDAN.',
+    'Asignar bomberos, rescate, provisiones, maquinaria o un equipo de evaluación de daños (EDAN).',
     'Capas oficiales al lado: escenario CENEPRED/SIGRID, pronóstico SENAMHI y cobertura OSIPTEL.',
     'Entrada con nombre y PIN municipal. No hay registro abierto.',
   ],
@@ -160,12 +167,12 @@ export const VECINO = {
 
 export const REGIONAL = {
   antetitulo: 'Para gobiernos regionales',
-  titulo: 'Una cadena por distrito, una sola vista para el COER.',
+  titulo: 'Empezar por un distrito y extender la cadena a toda la región.',
   puntos: [
     { t: 'Empezar chico, sumar provincias', d: 'El piloto arranca en un distrito expuesto; cada municipalidad que se suma extiende la misma cadena.' },
-    { t: 'Sobre datos oficiales', d: 'Escenarios CENEPRED/SIGRID, pronósticos SENAMHI y cobertura móvil OSIPTEL, siempre con fuente y fecha.' },
-    { t: 'Complementa EDAN y SINPAD', d: 'Yaku no reemplaza la evaluación oficial: le dice al equipo EDAN dónde hay vecinos pidiendo ayuda.' },
-    { t: 'En su propio servidor', d: 'Un solo proceso con base SQLite que puede correr en la red de la municipalidad. Los datos se quedan con ustedes.' },
+    { t: 'Sobre datos oficiales', d: 'Escenarios CENEPRED/SIGRID, pronósticos SENAMHI y cobertura móvil OSIPTEL, siempre con fuente y fecha. Hoy están cargados los de Piura; cada región suma su escenario vigente.' },
+    { t: 'Complementa EDAN y SINPAD', d: 'Yaku no reemplaza la evaluación oficial: le dice al equipo de evaluación de daños dónde hay vecinos pidiendo ayuda.' },
+    { t: 'En su propio servidor', d: 'Yaku es un solo programa que puede instalarse en un servidor de la municipalidad o del gobierno regional. Los datos se quedan con ustedes.' },
   ],
   cta: 'Solicitar un piloto',
   etiquetaIA: 'Imagen generada con IA',
@@ -173,7 +180,7 @@ export const REGIONAL = {
 
 export const VIDEOS = {
   antetitulo: 'En un minuto',
-  titulo: 'Véalo funcionar sin red.',
+  titulo: 'Cómo funciona sin red, en un minuto.',
   lista: [
     { archivo: 'si-se-cae-la-red-voz-grok-9x16', titulo: 'Si se cae la red', descripcion: 'Por qué el reporte tiene que poder viajar sin señal.', etiquetaIA: 'Voz e imágenes generadas con IA' },
     { archivo: 'modo-avion-qr-grok-audio-9x16', titulo: 'Modo avión y QR', descripcion: 'Un reporte que pasa de un celular a otro en modo avión.', etiquetaIA: 'Voz e imágenes generadas con IA' },
@@ -192,30 +199,31 @@ export const CONFIANZA = {
   ],
 };
 
+// Entre 4 y 6 preguntas de 40 a 60 palabras cada una. El JSON-LD FAQPage sale solo de aquí (plantilla.ts).
 export const PREGUNTAS: Pregunta[] = [
   {
-    p: '¿El vecino necesita internet para reportar?',
-    r: 'No. El reporte se guarda en su celular y pasa a otros celulares por QR sin datos ni wifi. Sube al servidor cuando cualquier celular de la cadena encuentra señal.',
+    p: '¿Qué es Yaku?',
+    r: 'Yaku es una cadena de apoyo vecinal para municipalidades y gobiernos regionales del Perú ante el Fenómeno El Niño. El vecino reporta desde su celular aunque no haya señal, el reporte pasa de celular en celular por QR y llega al Centro de monitoreo municipal como reporte vecinal por validar, con foto y ubicación.',
   },
   {
-    p: '¿Hay que instalar una aplicación?',
-    r: 'No es obligatorio. Se abre en el navegador en yaku.lat/reportar y se puede instalar en la pantalla de inicio para usarla sin conexión.',
+    p: '¿El vecino necesita internet o instalar una aplicación?',
+    r: 'Solo necesita internet la primera vez, para abrir yaku.lat/reportar en el navegador e instalarla en la pantalla de inicio; por eso conviene difundirla antes de las lluvias. Después funciona sin conexión: el reporte se guarda en el celular, pasa a otros por QR sin datos ni wifi y sube cuando un celular de la cadena encuentra señal.',
   },
   {
     p: '¿Reemplaza a EDAN Digital o al SINPAD?',
-    r: 'No. Yaku es una capa complementaria de reporte vecinal. La evaluación oficial y su registro siguen por los canales del SINAGERD.',
+    r: 'No. Yaku es una capa complementaria de reporte vecinal. Cuando el equipo municipal valida un reporte en Yaku, es una validación operativa para decidir a dónde ir primero. La evaluación de daños oficial (EDAN), su registro en el SINPAD y la firma de la autoridad siguen su curso de siempre.',
   },
   {
     p: '¿Qué pasa con los reportes repetidos o falsos?',
-    r: 'Los reportes del mismo lugar se agrupan en un incidente que muestra cuántos vecinos lo respaldan. La municipalidad valida o descarta cada uno, y el vecino sabe que un aviso falso es delito.',
+    r: 'Cada reporte se registra una sola vez aunque lo suban varios celulares. Los reportes del mismo lugar se agrupan en un incidente que muestra cuántos vecinos lo respaldan, y el equipo municipal lo valida o lo descarta. Antes de enviar, el vecino lee que avisar algo falso a propósito es delito (Código Penal, art. 315-A).',
   },
   {
-    p: '¿Cómo entra la municipalidad?',
-    r: 'Con nombre y PIN municipal en yaku.lat/municipalidad. No hay registro abierto: el acceso se entrega con el piloto.',
+    p: '¿Qué datos del vecino guarda y quién los controla?',
+    r: 'No pide nombre ni DNI: guarda la ubicación, la hora, la foto y un código anónimo del equipo, con el principio de proporcionalidad de la Ley 29733. Las fotos solo se ven en el Centro de monitoreo, con nombre y PIN municipal, y el servidor puede instalarse en la red de la municipalidad.',
   },
   {
     p: '¿Cómo empieza un piloto?',
-    r: 'Escríbanos con el distrito y el equipo de gestión del riesgo que lo usaría. Preparamos el mapa con las capas oficiales de su zona y el acceso del Centro de monitoreo.',
+    r: 'Escríbanos con el distrito y el área de gestión del riesgo que lo usaría. Preparamos el mapa con las capas oficiales de su zona y el acceso con PIN al Centro de monitoreo. El alcance, los plazos y el costo se acuerdan con su equipo; si aplica el Programa Presupuestal 0068, se confirma con su área de logística.',
   },
 ];
 
@@ -228,9 +236,12 @@ export const CIERRE = {
 
 export const PIE = {
   fuentes: [
-    { texto: 'OSIPTEL, NP 14-mar-2023', url: 'https://www.osiptel.gob.pe/media/hzteo0hr/np14032023-centro-monitoreo.pdf' },
+    { texto: 'OSIPTEL, nota de prensa 34-2023 (14-mar-2023)', url: 'https://www.osiptel.gob.pe/media/hzteo0hr/np14032023-centro-monitoreo.pdf' },
     { texto: 'CENEPRED/SIGRID, escenario 23077 (Aviso SENAMHI 421)' },
-    { texto: 'OSIPTEL, cobertura móvil declarada (datos abiertos)' },
+    {
+      texto: 'OSIPTEL, cobertura móvil por centro poblado (datos abiertos)',
+      url: 'https://www.datosabiertos.gob.pe/dataset/porcentaje-de-cobertura-m%C3%B3vil-por-centro-poblado-empresa-operadora-y-tecnolog%C3%ADa',
+    },
   ] satisfies Fuente[],
   ia: 'Las imágenes y videos marcados fueron generados con IA. Las capturas del producto son reales, con reportes de prueba.',
 };
