@@ -1,0 +1,168 @@
+{
+  "fecha": "2026-10-18T01:36:34.466Z",
+  "servidor": "servidor-local (SQLite temporal)",
+  "checks": [
+    {
+      "name": "mismo origen: lee /api/incidentes del servidor local (sin agrupar en pantalla)",
+      "ok": true,
+      "fuente": "incidentes",
+      "n": 1
+    },
+    {
+      "name": "al abrir: incidentes previos en la lista, sin tarjeta ni vuelo",
+      "ok": true
+    },
+    {
+      "name": "mapa 3D con relieve y capas reales (servido por el servidor local con Range)",
+      "ok": true,
+      "capas": {
+        "terreno": true,
+        "cenepred": true,
+        "citizen": true
+      }
+    },
+    {
+      "name": "incidente nuevo: tarjeta con rótulo vecinal, respaldo y «1 vecino · 0 fotos · primer reporte hh:mm»",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 20:36 Respaldo 1 vecino lo reporta Personas 25 · Fotos 0 · Cercanía 0 · Recencia ×1,00 = 25 Reportes 1 reporte de 1 vecino Severidad Severi"
+    },
+    {
+      "name": "la cámara vuela al incidente nuevo y queda en órbita lenta",
+      "ok": true,
+      "fase": "orbita",
+      "dLon": 1.4210854715202004e-14,
+      "dLat": 1.9539925233402755e-14,
+      "pitch": 64
+    },
+    {
+      "name": "servidor: A duplicado no se repite (relevo) y la foto de B sube",
+      "ok": true,
+      "sync": {
+        "accepted": [
+          "13bjnaro7zy",
+          "1se1kvkoepn"
+        ],
+        "inserted": 1,
+        "duplicates": 1,
+        "rejected": [],
+        "persisted": true
+      },
+      "foto": 200
+    },
+    {
+      "name": "2 reportes cercanos = 1 incidente con contador 2 (sin duplicar)",
+      "ok": true,
+      "personas": 2,
+      "fotos": 1,
+      "puntaje": 75
+    },
+    {
+      "name": "el contador se anima cuando otro vecino coincide (+ aviso «Otro vecino coincide»)",
+      "ok": true,
+      "animado": 2,
+      "toast": [
+        "Otro vecino coincide: Casa dañada o caída · ahora 2 vecinos"
+      ]
+    },
+    {
+      "name": "rodillo 1 → 2 vecinos en la tarjeta (el 1 sale, entra el 2; innerText solo «2 vecinos»)",
+      "ok": true,
+      "rodillo": 1
+    },
+    {
+      "name": "tarjeta: «2 vecinos · 1 foto», detalle y desglose del respaldo",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar Respaldo 75 · N2 último hace 3 s × Casa dañada o caída 2 vecinos · 1 foto · primer reporte 20:36 Respaldo 2 vecinos lo reportan · 1 foto Personas 40 · Fotos 15 · Cercanía 20 · Recencia ×1,00 = 75 Reportes 2 reportes de 2 vecinos Severidad Severidad máx. 3 de 3 la marca "
+    },
+    {
+      "name": "galería: la foto se ve desde GET /api/fotos/:id",
+      "ok": true,
+      "galeria": {
+        "w": 480,
+        "src": "/api/fotos/30aff0b7ebf2779090e4"
+      }
+    },
+    {
+      "name": "galería a pantalla completa con leyenda «enviada por un vecino · por validar» y cierra con Esc",
+      "ok": true,
+      "cap": "Foto 1 de 1 · enviada por un vecino · por validar"
+    },
+    {
+      "name": "prioridad: personas atrapadas arriba, aviso 116 / 105 y vuelo al nuevo",
+      "ok": true,
+      "orden": [
+        "Personas atrapadas",
+        "Casa dañada o caída",
+        "Acumulación de agua"
+      ]
+    },
+    {
+      "name": "marca «con foto» sin imagen recibida: «1 foto pendiente de subir» y respaldo sin fotos",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Personas atrapadas Riesgo de vida: si hay señal, que llamen al 116 (bomberos) o al 105 (policía). Yaku no reemplaza esas líneas. 1 veci"
+    },
+    {
+      "name": "PIN incorrecto se rechaza (403) y se vuelve a pedir; con el correcto queda «Validado por la municipalidad»",
+      "ok": true,
+      "errPin": "PIN incorrecto. Intenta de nuevo."
+    },
+    {
+      "name": "servidor: validado → acción «bomberos», con quién y cuándo en el historial",
+      "ok": true,
+      "historial": [
+        "en_revision",
+        "validado",
+        "accion_asignada"
+      ],
+      "congelado": true
+    },
+    {
+      "name": "el estado vuelve al celular de B por /api/estado (acuse)",
+      "ok": true,
+      "acuseB": {
+        "id": "1se1kvkoepn",
+        "recibido": true,
+        "recibido_at": 1792287403657,
+        "incidente": "inc-13bjnaro7zy",
+        "estado": "accion_asignada",
+        "accion": "bomberos",
+        "motivo": "",
+        "cuando": 1792287410533,
+        "personas": 2
+      }
+    },
+    {
+      "name": "descartar pide motivo, pasa por «en revisión» y queda «Revisado · no validado», al final de la lista",
+      "ok": true,
+      "motivo": "No se encontró nada en el lugar: prueba e2e"
+    },
+    {
+      "name": "tras recargar: «Bomberos asignados» y el descarte persisten",
+      "ok": true
+    },
+    {
+      "name": "las escrituras desde la pantalla son solo POST /api/incidentes/:id/estado y siempre con PIN",
+      "ok": true,
+      "posts": 6
+    },
+    {
+      "name": "cero peticiones a CDN o servicios externos",
+      "ok": true,
+      "externas": []
+    },
+    {
+      "name": "sin /api/incidentes: agrupa en pantalla (A+B = 1 incidente de 2 vecinos) y desactiva las acciones",
+      "ok": true,
+      "fuente": "agrupado-en-pantalla",
+      "n": 3
+    },
+    {
+      "name": "/ sigue en 2D sin la pantalla de la municipalidad",
+      "ok": true
+    }
+  ],
+  "fps": {
+    "cuadros": 233,
+    "fps": 77.7
+  }
+}

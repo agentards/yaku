@@ -76,7 +76,7 @@ try {
       check('Chrome móvil por HTTPS: contexto seguro, cámara disponible y service worker activo', seg.seguro && seg.camara && seg.sw, seg);
     } finally { await browser.close(); }
 
-    console.log(`\nURL para los celulares: ${URL_PUB}/   (municipalidad: ${URL_PUB}/?vista=municipalidad)`);
+    console.log(`\nURL para los celulares: ${URL_PUB}/   (municipalidad: ${URL_PUB}/?vista=municipalidad · operador: ${URL_PUB}/?vista=incidentes)`);
     console.log(await QRCode.toString(URL_PUB + '/', { type: 'terminal', small: true }));
     if (process.env.MANTENER === '1') {
       console.log('Túnel abierto. La primera vez, en cada celular toca «Visit Site» en el aviso de ngrok. Ctrl+C para cerrar.');

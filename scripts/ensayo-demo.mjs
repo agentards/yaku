@@ -110,7 +110,7 @@ try {
   const cM = await browser.newContext({ viewport: { width: 1920, height: 1080 }, locale: 'es-PE', timezoneId: 'America/Lima', serviceWorkers: 'block' });
   const M = await cM.newPage();
   vigilar(M);
-  await M.goto(BASE + '?vista=municipalidad');
+  await M.goto(BASE + '?vista=incidentes');
   await M.waitForFunction(() => window.__yakuMuni?.estado().sembrado, null, { timeout: 30000 });
   // Procedencia: ¿la pantalla municipal dice fuente y fecha de las capas? (se informa; no detiene el ensayo)
   res.procedenciaMunicipalidad = await M.evaluate(() => (document.body.innerText.match(/Fuente[^\n]{0,80}/) ?? [null])[0]);

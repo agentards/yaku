@@ -10,9 +10,10 @@ Historia: `agentards/producto/plan-implementacion-local.md`. Textos: `agentards/
 | Narrador | — | Habla al jurado; no toca nada |
 | Poblador **A** | Celular A (modo avión desde el inicio) | `URL/` (modo poblador, por defecto en celular) |
 | Poblador **B** | Celular B (modo avión hasta el paso 4) | `URL/` |
-| Operador municipal | Laptop + pantalla grande, Chrome en pantalla completa (F11) | `URL/?vista=municipalidad` |
+| Pantalla de la municipalidad | Pantalla grande, Chrome en pantalla completa (F11) | `URL/?vista=municipalidad` (monitor 3D en vivo: vuela al reporte nuevo, tarjeta grande, columna de recibidos) |
+| Operador municipal | Laptop, otra pestaña o ventana | `URL/?vista=incidentes` (incidentes agrupados, respaldo, Validar y acciones con PIN) |
 
-`URL` = la dirección HTTPS del túnel (ver «HTTPS para los celulares»). La laptop puede usar `http://localhost:8080`.
+`URL` = la dirección HTTPS del túnel (ver «HTTPS para los celulares»). La laptop puede usar `http://localhost:8080` (en la laptop de Jorge el 8080 lo ocupa `AgentService.exe`: usar `PORT=8787` y `http://localhost:8787`).
 
 ## Guion (3:00)
 | Tiempo | Paso | Qué se toca | Qué dice el narrador | Qué ve el jurado |
@@ -27,7 +28,7 @@ Historia: `agentards/producto/plan-implementacion-local.md`. Textos: `agentards/
 | 1:20–1:45 | **3 · B coincide** | B: «Casa dañada o caída» → **Foto** (tomarla) → Guardar | «B ve lo mismo a 40 metros y lo reporta con foto. Su celular ya sabe que dos vecinos coinciden.» | En B: «2 vecinos lo reportan · 1 foto» |
 | 1:45–2:05 | **4 · B recupera red** | B: quitar modo avión. No tocar nada más | «B llega a donde hay señal. No tiene que hacer nada: se sincroniza solo, con la foto.» | Chip de red de B cambia; B sube los 2 reportes y la foto sin tocar nada |
 | 2:05–2:30 | **5 · La municipalidad lo ve** | Nada (la pantalla reacciona sola) | «En la municipalidad el mapa vuela al punto. No son dos alertas: es **un** incidente con su respaldo: dos vecinos, una foto. Sigue siendo un reporte vecinal hasta que la municipalidad lo valide.» | Vuelo 3D, tarjeta «2 vecinos · 1 foto · primer reporte hh:mm», respaldo con desglose, foto en la galería |
-| 2:30–2:55 | **6 · Valida y acciona** | Operador: **Validar** → nombre + PIN → **Bomberos**. B: «Actualizar estado». A y B: **Intercambiar** otra vez | «El operador valida con su PIN y asigna Bomberos. B lo recibe al sincronizar y se lo pasa a A por QR, que sigue sin red.» | En B y luego en A: «Bomberos asignados · Asignado por la municipalidad · hh:mm» |
+| 2:30–2:55 | **6 · Valida y acciona** | Operador, en `?vista=incidentes`: **Validar** → nombre + PIN → **Bomberos**. B: «Actualizar estado». A y B: **Intercambiar** otra vez | «El operador valida con su PIN y asigna Bomberos. B lo recibe al sincronizar y se lo pasa a A por QR, que sigue sin red.» | En B y luego en A: «Bomberos asignados · Asignado por la municipalidad · hh:mm» |
 | 2:55–3:00 | Cierre | — | «Yaku no reemplaza al 116 ni a SENAMHI: hace que lo que ven los vecinos llegue, sin duplicados, a quien puede actuar.» | — |
 
 Notas del guion:
@@ -108,7 +109,8 @@ cámara del sistema; `<input capture>` no necesita HTTPS). Más lento: ensayarlo
 
 **30 minutos antes**
 - [ ] Base limpia para la demo: `YAKU_DATOS=servidor-local/datos-demo MUNI_PIN=<pin> npm run servidor` (carpeta nueva = 0 reportes).
-- [ ] Laptop: `URL/?vista=municipalidad` en pantalla completa; mapa 3D cargado; PIN a mano; sonido como se quiera.
+- [ ] Pantalla grande: `URL/?vista=municipalidad` en pantalla completa; mapa 3D cargado; clic en el botón de sonido.
+- [ ] Laptop del operador: `URL/?vista=incidentes`; PIN a mano.
 - [ ] Cada celular, **con red**: abrir `URL/`, aceptar el aviso de datos, **permitir ubicación y cámara** (el permiso se pide con red, antes del modo avión), instalar («Agregar a pantalla de inicio») y abrir el ícono instalado.
 - [ ] Hacer un intercambio de prueba y borrar sus datos (Ajustes del sitio › Borrar datos) o usar otra carpeta de datos del servidor.
 - [ ] Brillo al máximo, bloqueo automático apagado, ahorro de batería apagado, no molestar activado.
