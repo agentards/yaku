@@ -45,7 +45,7 @@ export async function traerReportes(desde: number, signal?: AbortSignal, cab: Ca
 
 /** Quién opera: con PIN (pantalla vieja) o con las cabeceras de la Sesion. */
 export interface Operador { quien: string; pin?: string; cabeceras?: Cabeceras }
-export interface CambioPedido { estado: Estado; accion?: Accion; motivo?: string }
+export interface CambioPedido { estado: Estado; accion?: Accion; motivo?: string; /** Mensaje para los vecinos: va en el aviso firmado (acción o atendido). */ mensaje?: string }
 
 /** POST /api/incidentes/:id/estado. 401 = sin credencial, 403 = credencial inválida o rol insuficiente. */
 export async function cambiarEstado(id: string, c: CambioPedido, op: Operador) {
@@ -53,7 +53,7 @@ export async function cambiarEstado(id: string, c: CambioPedido, op: Operador) {
   const res = await fetch(`/api/incidentes/${encodeURIComponent(id)}/estado`, {
     method: 'POST', cache: 'no-store',
     headers: { 'content-type': 'application/json', accept: 'application/json', ...auth },
-    body: JSON.stringify({ estado: c.estado, ...(c.accion ? { accion: c.accion } : {}), ...(c.motivo ? { motivo: c.motivo } : {}), quien: op.quien }),
+    body: JSON.stringify({ estado: c.estado, ...(c.accion ? { accion: c.accion } : {}), ...(c.motivo ? { motivo: c.motivo } : {}), ...(c.mensaje ? { mensaje: c.mensaje } : {}), quien: op.quien }),
   });
   if (res.status === 401 || res.status === 403) throw new ErrorApi(res.status, op.cabeceras ? 'Sin permiso para cambiar estados' : 'PIN incorrecto');
   if (!res.ok) {

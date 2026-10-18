@@ -2,6 +2,21 @@
 // (404) o no hay red, se reintenta en la próxima sincronización: nada se pierde, todo queda en el celular.
 import { leerRespuestaEstados, type EstadoReporte } from './estados';
 import { blobABase64 } from './foto';
+import { leerAviso, type Aviso } from './avisos';
+
+const CLAVE_AVISOS = 'yaku-avisos-clave';
+/** Clave pública de la municipalidad guardada la última vez que hubo red (para verificar avisos que llegan por QR). */
+export function claveAvisos(): JsonWebKey | null {
+  try { const s = localStorage.getItem(CLAVE_AVISOS); return s ? (JSON.parse(s) as JsonWebKey) : null; } catch { return null; }
+}
+/** GET /api/avisos: los avisos de los últimos 7 días y la clave para verificarlos (se guarda). null si no hay endpoint o red. */
+export async function pedirAvisos(): Promise<Aviso[] | null> {
+  const r = await fetch('/api/avisos', { cache: 'no-store' });
+  if (!r.ok) return null;
+  const j = await r.json();
+  if (j?.clave?.kty === 'EC') { try { localStorage.setItem(CLAVE_AVISOS, JSON.stringify(j.clave)); } catch { /* sin almacenamiento */ } }
+  return (Array.isArray(j?.avisos) ? j.avisos : []).map(leerAviso).filter((a: Aviso | null): a is Aviso => !!a);
+}
 
 const LOTE = 80;
 

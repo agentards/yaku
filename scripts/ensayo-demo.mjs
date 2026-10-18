@@ -171,17 +171,24 @@ try {
   await M.click('[data-dlg-confirmar] button[value="ok"]'); // confirmación (queda a nombre del operador)
   await M.waitForFunction((id) => window.__yakuMonitoreo.estado().incidentes.find((i) => i.id === id)?.estado === 'validado', inc.id, { timeout: 10000 });
   await M.click('[data-tarjeta] .mon-acc[data-accion="bomberos"]');
+  await M.fill('[data-dlg-confirmar] input[name="mensaje"]', 'Llegan por el puente en 20 min'); // va en el aviso firmado
   await M.click('[data-dlg-confirmar] button[value="ok"]');
   await M.waitForFunction((id) => window.__yakuMonitoreo.estado().incidentes.find((i) => i.id === id)?.accion === 'bomberos', inc.id, { timeout: 10000 });
   await B.click('#pb-actualizar');
   await B.waitForFunction(() => [...document.querySelectorAll('.pb-rep[data-tipo="vivienda"] .pb-chip-muni')].filter((c) => c.textContent === 'Bomberos asignados').length === 2, null, { timeout: 15000 });
   check('6 · Municipalidad valida + «Bomberos» con PIN; B lo ve tras sincronizar', true);
+  const avisoB = await B.waitForFunction(() => window.__yakuPoblador.estado().avisos.some((a) => a.accion === 'bomberos' && a.verificado && a.via === 'red'), null, { timeout: 15000 }).then(() => true).catch(() => false);
+  const textoB = await B.evaluate(() => document.querySelector('.pb-aviso[data-accion="bomberos"]')?.textContent?.replace(/\s+/g, ' ').trim() ?? '');
+  check('6 · B (con red) recibe el aviso firmado de la municipalidad: «Bomberos en camino» + mensaje', avisoB && /Bomberos en camino/.test(textoB) && /puente/.test(textoB) && /Firmado por la municipalidad/.test(textoB), { textoB });
   for (const p of [A, B]) await p.click('.pb-nav button[data-ir="intercambiar"]');
   await A.waitForFunction(() => /Cámara lista/.test(document.getElementById('pb-cam-txt').textContent), null, { timeout: 10000 });
-  const msE = await frenteAFrente(A, B, async () => (await est(A)).estadosRecibidos >= 1);
+  const msE = await frenteAFrente(A, B, async () => { const e = await est(A); return e.estadosRecibidos >= 1 && e.avisos.some((a) => a.accion === 'bomberos'); });
   await A.click('#pb-terminar');
   const chipsA = await A.evaluate(() => [...document.querySelectorAll('.pb-rep[data-tipo="vivienda"] .pb-chip-muni')].map((c) => c.textContent));
   check('6 · A sigue sin red y recibe el estado por QR: «Bomberos asignados»', msE > 0 && !(await A.evaluate(() => navigator.onLine)) && chipsA.length === 2 && chipsA.every((c) => c === 'Bomberos asignados'), { ms: msE, chipsA });
+  const avisosA = (await est(A)).avisos;
+  const textoA = await A.evaluate(() => document.querySelector('.pb-aviso[data-accion="bomberos"]')?.textContent?.replace(/\s+/g, ' ').trim() ?? '');
+  check('6 · A sin red recibe por QR el aviso firmado y lo verifica', avisosA.some((a) => a.accion === 'bomberos' && a.verificado && a.via === 'qr') && /te lo pasó otro vecino/.test(textoA) && !(await A.evaluate(() => navigator.onLine)), { avisosA, textoA });
   paso(6, 'Validar + Bomberos y acuse por QR');
 
   // Cierre: A recupera internet y no duplica; nada salió de localhost.

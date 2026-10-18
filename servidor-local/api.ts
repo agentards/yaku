@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { OBS_TYPES, makeObservation, type NewObservation } from '../src/codec.ts';
 import type { Almacen } from './almacen.ts';
+import { idAviso, limpiarTexto, redondear, type AccionAviso, type Firmante } from './avisos.ts';
 import { validarCambio } from './estados.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
@@ -41,6 +42,8 @@ export interface OpcionesApi {
   /** false (por defecto, MVP): solo el PIN protege lo de la municipalidad. true: además bloqueo por intentos de PIN,
    *  histórico privado, límites de escritura, cuotas de fotos y sin CORS. Cada límite se puede fijar aparte abajo. */
   estricto?: boolean;
+  /** Firma los avisos de la municipalidad (sin firmante no se crean avisos). */
+  firmante?: Firmante;
   /** Bloqueo por PIN incorrecto: tras `max` fallos dentro de `ventanaMs`, esa IP espera `bloqueoMs` (429). max 0 = sin bloqueo. */
   intentosPin?: { max: number; ventanaMs: number; bloqueoMs: number };
   /** Escrituras públicas (POST /api/sync y /api/fotos) por IP y minuto. */
@@ -173,7 +176,15 @@ export function crearApi(op: OpcionesApi) {
     if (!v.ok) return json({ error: v.error, estado: inc.estado }, v.status);
     const cuando = ahora();
     A.guardarEstado({ incidente_id: id, estado: v.p.estado, accion: v.p.accion, motivo: v.p.motivo, quien: v.p.quien, usuario: acc.usuario, cuando, respaldo: inc.respaldo });
-    return json({ ok: true, incidente: incidentes().lista.find((i) => i.id === id) });
+    // Respuesta de la municipalidad (acción asignada o atendido): aviso firmado para todos los celulares y la cadena QR.
+    let aviso = null;
+    const accionAviso: AccionAviso | null = v.p.estado === 'atendido' ? 'atendido' : v.p.estado === 'accion_asignada' ? v.p.accion : null;
+    if (op.firmante && accionAviso) {
+      const min = Math.round(cuando / 60000);
+      aviso = op.firmante.firmar({ id: idAviso(id, accionAviso, min), incidente: id, accion: accionAviso, tipo: inc.tipo, lat: redondear(inc.lat), lon: redondear(inc.lon), min, texto: limpiarTexto(body?.mensaje) });
+      A.guardarAviso(aviso, cuando);
+    }
+    return json({ ok: true, incidente: incidentes().lista.find((i) => i.id === id), aviso });
   }
 
   async function unir(req: Request, id: string) {
@@ -248,6 +259,15 @@ export function crearApi(op: OpcionesApi) {
         if (acc instanceof Response) return acc;
         const { lista } = incidentes();
         return json({ count: lista.length, incidentes: lista, generado: ahora(), reglas: 'la decisión de producto «confianza» (17-oct-2026)', nota: 'Reporte vecinal · por validar: lo valida la municipalidad' });
+      }
+      // Avisos de la municipalidad: públicos (son para todos los vecinos) y firmados.
+      if (p === '/api/avisos/clave' && req.method === 'GET') return op.firmante ? json(op.firmante.jwkPublica) : json({ error: 'sin avisos' }, 404);
+      if (p === '/api/avisos' && req.method === 'GET') {
+        if (!op.firmante) return json({ error: 'sin avisos' }, 404);
+        const d = Number(url.searchParams.get('desde') ?? 0);
+        const desde = Number.isFinite(d) && d > 0 ? d : ahora() - 7 * 86_400_000;
+        const avisos = A.avisosDesde(desde, 50).map(({ creado_at: _c, ...a }) => a);
+        return json({ count: avisos.length, avisos, clave: op.firmante.jwkPublica });
       }
       if (p === '/api/estado' && req.method === 'GET') {
         const ids = (url.searchParams.get('ids') ?? '').split(',').filter((x) => ID_REP.test(x)).slice(0, 200);

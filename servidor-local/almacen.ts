@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS ajustes (
 CREATE TABLE IF NOT EXISTS fotos (
   id TEXT PRIMARY KEY, report_id TEXT NOT NULL, mime TEXT NOT NULL, bytes INTEGER NOT NULL, received_at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS fotos_rep ON fotos(report_id);
+CREATE TABLE IF NOT EXISTS avisos (
+  id TEXT PRIMARY KEY, incidente_id TEXT NOT NULL, accion TEXT NOT NULL, tipo TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL,
+  min INTEGER NOT NULL, texto TEXT NOT NULL, firma TEXT NOT NULL, creado_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS avisos_creado ON avisos(creado_at);
 `;
 
 export interface FilaEstado { seq: number; incidente_id: string; estado: Estado; accion: string | null; motivo: string; quien: string; usuario: string | null; cuando: number; respaldo: number | null }
@@ -165,6 +169,16 @@ export class Almacen {
 
   guardarFoto(f: FilaFoto): boolean {
     return Number(this.db.prepare('INSERT OR IGNORE INTO fotos (id,report_id,mime,bytes,received_at) VALUES (?,?,?,?,?)').run(f.id, f.report_id, f.mime, f.bytes, f.received_at).changes) > 0;
+  }
+
+  /** Avisos firmados de la municipalidad (respuesta a un incidente): se guardan una vez por id. */
+  guardarAviso(a: { id: string; incidente: string; accion: string; tipo: string; lat: number; lon: number; min: number; texto: string; firma: string }, creado: number): boolean {
+    return Number(this.db.prepare('INSERT OR IGNORE INTO avisos (id,incidente_id,accion,tipo,lat,lon,min,texto,firma,creado_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
+      .run(a.id, a.incidente, a.accion, a.tipo, a.lat, a.lon, a.min, a.texto, a.firma, creado).changes) > 0;
+  }
+  avisosDesde(desde: number, limite: number): { id: string; incidente: string; accion: string; tipo: string; lat: number; lon: number; min: number; texto: string; firma: string; creado_at: number }[] {
+    return this.db.prepare('SELECT id, incidente_id AS incidente, accion, tipo, lat, lon, min, texto, firma, creado_at FROM avisos WHERE creado_at >= ? ORDER BY creado_at DESC LIMIT ?')
+      .all(desde, limite) as unknown as ReturnType<Almacen['avisosDesde']>;
   }
 
   /** Fotos ya guardadas de un reporte y totales (cuotas de subida). */

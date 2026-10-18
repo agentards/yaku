@@ -1,15 +1,16 @@
 // Base propia del modo poblador (no toca la de src/db.ts): fotos de los reportes y estado de vuelta.
 import { openDB, type IDBPDatabase } from 'idb';
 import { masReciente, type EstadoReporte } from './estados';
+import type { AvisoGuardado } from './avisos';
 
 export interface FotoGuardada { id: string; blob: Blob; bytes: number; w: number; h: number; subida: boolean; subidaAt?: number }
 
 let dbp: Promise<IDBPDatabase> | null = null;
 function db() {
-  dbp ??= openDB('yaku-poblador', 1, {
-    upgrade(d) {
-      d.createObjectStore('fotos', { keyPath: 'id' });
-      d.createObjectStore('estados', { keyPath: 'id' });
+  dbp ??= openDB('yaku-poblador', 2, {
+    upgrade(d, viejo) {
+      if (viejo < 1) { d.createObjectStore('fotos', { keyPath: 'id' }); d.createObjectStore('estados', { keyPath: 'id' }); }
+      if (viejo < 2) d.createObjectStore('avisos', { keyPath: 'id' });
     },
   });
   return dbp;
@@ -23,6 +24,23 @@ export async function marcarFotoSubida(id: string) {
   const d = await db();
   const f = (await d.get('fotos', id)) as FotoGuardada | undefined;
   if (f && !f.subida) await d.put('fotos', { ...f, subida: true, subidaAt: Date.now() });
+}
+
+export async function avisos(): Promise<AvisoGuardado[]> {
+  return ((await (await db()).getAll('avisos')) as AvisoGuardado[]).sort((a, b) => b.min - a.min);
+}
+/** Guarda los avisos nuevos (o los que ahora sí se pudieron verificar). Devuelve los que son nuevos para este celular. */
+export async function guardarAvisos(xs: AvisoGuardado[]): Promise<AvisoGuardado[]> {
+  const d = await db();
+  const tx = d.transaction('avisos', 'readwrite');
+  const nuevos: AvisoGuardado[] = [];
+  for (const a of xs) {
+    const prev = (await tx.store.get(a.id)) as AvisoGuardado | undefined;
+    if (!prev) { await tx.store.put(a); nuevos.push(a); }
+    else if (!prev.verificado && a.verificado) await tx.store.put({ ...a, via: prev.via, recibidoAt: prev.recibidoAt });
+  }
+  await tx.done;
+  return nuevos;
 }
 
 export async function estados(): Promise<Map<string, EstadoReporte>> {

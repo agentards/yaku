@@ -200,3 +200,7 @@ button.mon-toast { cursor: pointer; }
 /* etiqueta del cabezal: no se corta en los bordes de la pista */
 .mon .v3d-pista .cabezal[data-borde="der"] span { transform: translateX(calc(-100% + 10px)); }
 .mon .v3d-pista .cabezal[data-borde="izq"] span { transform: translateX(-10px); }
+
+/* mensaje opcional del aviso firmado (acción asignada o atendido) */
+.mon-conf-msg { display: grid; gap: 6px; margin: 4px 0 14px; font-weight: 600; }
+.mon-conf-msg input { font: inherit; padding: 8px 10px; border: 1px solid var(--line, #cbbfa8); border-radius: 8px; }

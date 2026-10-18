@@ -10,6 +10,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Almacen } from './almacen.ts';
 import { CABECERA_IP, crearApi } from './api.ts';
+import { cargarFirmante } from './avisos.ts';
 import { servirEstatico } from './estaticos.ts';
 import { conCambios, REGLAS } from './reglas.ts';
 
@@ -51,7 +52,7 @@ export function iniciar(o: Opciones = {}) {
   const almacen = new Almacen(path.join(datos, 'yaku.db'), conCambios(REGLAS, cambios));
   // Por defecto (MVP) solo el PIN. YAKU_MODO_ESTRICTO=1 suma bloqueo por intentos (10 fallos en 10 min → 5 min),
   // histórico privado, límites de escritura, cuotas de fotos, sin CORS y cabeceras de seguridad.
-  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto });
+  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto, firmante: cargarFirmante(datos) });
 
   const server = http.createServer(async (req, res) => {
     res.setHeader('x-content-type-options', 'nosniff');

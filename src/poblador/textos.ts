@@ -118,6 +118,11 @@ export const T = {
   sinFotoEnQr: 'Las fotos no viajan por código: suben cuando el celular que las tomó tenga internet.',
 
   misReportes: 'Mis reportes',
+  avisosTitulo: 'Avisos de la municipalidad',
+  avisosVacio: 'Cuando la municipalidad responda a un incidente (rescate, provisiones, bomberos…), el aviso aparece aquí y lo puedes pasar por QR a quien no tenga internet.',
+  avisosNuevos: (n: number) => (n === 1 ? '1 aviso nuevo de la municipalidad.' : `${n} avisos nuevos de la municipalidad.`),
+  avisoRecibidoQr: 'Aviso de la municipalidad recibido por QR',
+  avisoSinFirma: 'Recibiste un aviso que no se pudo verificar: no se muestra como de la municipalidad.',
   queLlevo: 'Los que llevo de otros vecinos',
   vacioMios: 'Aún no hiciste reportes.',
   vacioLlevo: 'Cuando intercambies con otro vecino, sus reportes aparecen aquí y viajan contigo.',

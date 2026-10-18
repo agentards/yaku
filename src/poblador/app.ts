@@ -13,8 +13,9 @@ import { T, ROTULO_VECINAL, DETALLE, PIE_LEGAL, nivelLocal } from './textos';
 import { vecinosQueCoinciden } from './confianza';
 import { textoEstado, codificarEstadosQR, decodificarEstadosQR, esCodigoEstados, type EstadoReporte } from './estados';
 import { comprimirFoto, type FotoComprimida } from './foto';
-import { guardarFoto, fotos as leerFotos, marcarFotoSubida, estados as leerEstados, fusionarEstados, type FotoGuardada } from './almacen';
-import { pedirEstados, subirFoto } from './api';
+import { guardarFoto, fotos as leerFotos, marcarFotoSubida, estados as leerEstados, fusionarEstados, avisos as leerAvisos, guardarAvisos, type FotoGuardada } from './almacen';
+import { pedirEstados, subirFoto, pedirAvisos, claveAvisos } from './api';
+import { verificarAviso, codificarAvisoQR, decodificarAvisoQR, esCodigoAviso, avisosParaQR, textoAviso, type Aviso, type AvisoGuardado } from './avisos';
 import './poblador.css';
 
 type Vista = 'reportar' | 'aviso' | 'detalle' | 'intercambiar' | 'lista';
@@ -196,9 +197,31 @@ export function arrancar() {
   };
 
   // ---------- lista ----------
+  let avisosLista: AvisoGuardado[] = [];
   async function recargar() {
-    [cache, estadosMap, fotosMap] = await Promise.all([all(), leerEstados(), leerFotos().then((xs) => new Map(xs.map((f) => [f.id, f])))]);
+    [cache, estadosMap, fotosMap, avisosLista] = await Promise.all([all(), leerEstados(), leerFotos().then((xs) => new Map(xs.map((f) => [f.id, f]))), leerAvisos()]);
     render();
+  }
+  /** Verifica y guarda avisos (de la red o de un QR). Devuelve los nuevos verificados y avisa en pantalla. */
+  async function recibirAvisos(xs: Aviso[], via: 'red' | 'qr'): Promise<AvisoGuardado[]> {
+    const clave = claveAvisos();
+    const marcados = await Promise.all(xs.map(async (a) => ({ ...a, verificado: await verificarAviso(a, clave), via, recibidoAt: Date.now() })));
+    const nuevos = (await guardarAvisos(marcados)).filter((a) => a.verificado);
+    if (nuevos.length) {
+      const t = textoAviso(nuevos[0], tipoAviso);
+      aviso(`📣 ${t.titulo} · ${t.detalle}`);
+      try { navigator.vibrate?.([120, 80, 120]); } catch { /* sin vibración */ }
+    }
+    return nuevos;
+  }
+  const tipoAviso = (t: string) => (BOTON as Record<string, { texto: string } | undefined>)[t]?.texto ?? 'Incidente';
+  function tarjetaAviso(a: AvisoGuardado): string {
+    const t = textoAviso(a, tipoAviso);
+    return `<li class="pb-aviso" data-id="${esc(a.id)}" data-accion="${a.accion}" data-verificado="${a.verificado ? '1' : '0'}">
+      <b>📣 ${esc(t.titulo)}</b>
+      <div class="pb-aviso-det">${esc(t.detalle)}</div>
+      <small class="pb-meta">${esc(t.origen)}</small>
+    </li>`;
   }
   function render() {
     const pend = cache.filter((r) => !r.synced).length;
@@ -207,6 +230,9 @@ export function arrancar() {
     const mios = cache.filter((r) => r.source === 'local'), llevo = cache.filter((r) => r.source !== 'local');
     $('pb-nav-n').textContent = cache.length ? String(cache.length) : '';
     if (vista !== 'lista') return;
+    const visibles = avisosLista.filter((a) => a.verificado);
+    $('pb-n-avisos').textContent = String(visibles.length);
+    $('pb-avisos').innerHTML = visibles.length ? visibles.map(tarjetaAviso).join('') : `<li class="pb-vacio">${esc(T.avisosVacio)}</li>`;
     $('pb-n-mios').textContent = String(mios.length);
     $('pb-n-llevo').textContent = String(llevo.length);
     $('pb-mios').innerHTML = mios.length ? mios.map(tarjeta).join('') : `<li class="pb-vacio">${esc(T.vacioMios)}</li>`;
@@ -262,6 +288,10 @@ export function arrancar() {
         const xs = await pedirEstados(cache.filter((x) => x.synced).map((x) => x.id));
         if (xs?.length) { const c = await fusionarEstados(xs); if (c) partes.push(`${c === 1 ? '1 respuesta nueva' : `${c} respuestas nuevas`} de la municipalidad.`); }
       } catch { /* sin endpoint o sin red */ }
+      try {
+        const xs = await pedirAvisos();
+        if (xs?.length) { const n = (await recibirAvisos(xs, 'red')).length; if (n) partes.push(T.avisosNuevos(n)); }
+      } catch { /* sin endpoint de avisos (p. ej. Cloudflare) o sin red */ }
       syncTxt = partes.join(' ') || (manual ? 'Todo al día.' : syncTxt);
       await recargar();
     })().finally(() => { enCurso = null; });
@@ -288,6 +318,7 @@ export function arrancar() {
     frames = encodeForQR(recs).fragments;
     const ye = codificarEstadosQR([...estadosMap.values()]);
     if (ye) frames.push(ye);
+    for (const a of avisosParaQR(await leerAvisos())) frames.push(codificarAvisoQR(a)); // la respuesta de la municipalidad sigue la cadena
     fi = 0;
     $('pb-qr').dataset.frames = String(frames.length);
     await dibujar(recs.length);
@@ -334,6 +365,15 @@ export function arrancar() {
     if (vistos.has(s)) return;
     vistos.add(s);
     const txt = $('pb-cam-txt');
+    if (esCodigoAviso(s)) {
+      try {
+        const a = decodificarAvisoQR(s);
+        const nuevos = await recibirAvisos([a], 'qr');
+        if (nuevos.length) { $('pb-estados-txt').textContent = T.avisoRecibidoQr; await recargar(); }
+        else if (!(await verificarAviso(a, claveAvisos()))) $('pb-estados-txt').textContent = T.avisoSinFirma;
+      } catch { vistos.delete(s); txt.textContent = T.codigoDanado; }
+      return;
+    }
     if (esCodigoEstados(s)) {
       try {
         const c = await fusionarEstados(decodificarEstadosQR(s));
@@ -381,12 +421,12 @@ export function arrancar() {
   // La app técnica importa los enlaces #p= al arrancar (src/main.ts); recargamos cuando termina.
   new MutationObserver(() => { if (document.body.dataset.ready === '1') recargar(); }).observe(document.body, { attributes: true, attributeFilter: ['data-ready'] });
   addEventListener('hashchange', () => setTimeout(recargar, 300));
-  setInterval(() => { if (navigator.onLine && document.visibilityState === 'visible') sincronizar(); }, 45_000);
+  setInterval(() => { if (navigator.onLine && document.visibilityState === 'visible') sincronizar(); }, 20_000); // con red, los avisos de la municipalidad llegan en ≤ 20 s
   (window as any).__yakuPoblador = {
     estado: () => ({
       vista, total: cache.length, mios: cache.filter((r) => r.source === 'local').length, llevo: cache.filter((r) => r.source !== 'local').length,
       pendientes: cache.filter((r) => !r.synced).length, frames: frames.length, recibidos, estadosRecibidos, completo, lector: stats.engine,
-      estados: Object.fromEntries(estadosMap), fotos: [...fotosMap.values()].map((f) => ({ id: f.id, bytes: f.bytes, w: f.w, h: f.h, subida: f.subida })),
+      estados: Object.fromEntries(estadosMap), avisos: avisosLista.map((a) => ({ id: a.id, accion: a.accion, verificado: a.verificado, via: a.via })), fotos: [...fotosMap.values()].map((f) => ({ id: f.id, bytes: f.bytes, w: f.w, h: f.h, subida: f.subida })),
     }),
     sincronizar: () => sincronizar(true),
   };
@@ -462,6 +502,8 @@ function plantilla(): string {
     <section data-v="lista" hidden>
       <div class="pb-lista-top"><h1 tabindex="-1">${esc(T.navLista)}</h1><button type="button" class="pb-btn pb-btn-sec pb-chico" id="pb-actualizar">${esc(T.actualizar)}</button></div>
       <p id="pb-sync-txt" class="pb-ayuda" aria-live="polite"></p>
+      <h2>${esc(T.avisosTitulo)} (<span id="pb-n-avisos">0</span>)</h2>
+      <ul class="pb-avisos" id="pb-avisos"></ul>
       <h2>${esc(T.misReportes)} (<span id="pb-n-mios">0</span>)</h2>
       <ul class="pb-reps" id="pb-mios"></ul>
       <h2>${esc(T.queLlevo)} (<span id="pb-n-llevo">0</span>)</h2>

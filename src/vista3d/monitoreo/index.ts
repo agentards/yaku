@@ -88,6 +88,8 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     <footer class="mon-pie-legal"><b>${esc(ROTULO_VECINAL)}</b> · ${esc(PIE_LEGAL)} ${esc(PIE_PANEL)}</footer>
     <dialog class="mon-dlg" data-dlg-confirmar aria-labelledby="mon-conf-t"><form method="dialog">
       <h2 id="mon-conf-t" data-conf-titulo></h2><p data-conf-texto></p>
+      <label class="mon-conf-msg" data-conf-msg hidden>Mensaje para los vecinos (opcional)
+        <input name="mensaje" maxlength="120" autocomplete="off" placeholder="Ej.: llegan al colegio de Pampa Dulce a las 3 p. m."></label>
       <div class="mon-dlg-botones"><button value="cancelar" class="v3d-b" formnovalidate>Cancelar</button><button value="ok" class="v3d-b pri" data-conf-ok>Confirmar</button></div>
     </form></dialog>
     <dialog class="mon-dlg" data-dlg-descartar aria-labelledby="mon-desc-t"><form method="dialog">
@@ -335,7 +337,11 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     if (!inc) return;
     const c = ctx(inc);
     if (!c.puede) return avisar(c.motivoNo, 'error');
-    const extra: { accion?: Accion; motivo?: string } = accion ? { accion } : {};
+    const extra: { accion?: Accion; motivo?: string; mensaje?: string } = accion ? { accion } : {};
+    // Acción asignada o atendido: la municipalidad responde con un aviso firmado que llega a todos los celulares.
+    const respuesta = destino === 'accion_asignada' || destino === 'atendido';
+    const msg = $<HTMLElement>('[data-conf-msg]'), msgIn = msg.querySelector('input')!;
+    msg.hidden = !respuesta; msgIn.value = '';
     const nombre = `${tipoTxt(inc.tipo)} (${vecinos(inc.personas)})`;
     if (destino === 'descartado') {
       const m = await pedirMotivo();
@@ -343,7 +349,10 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
       extra.motivo = m;
     } else {
       const que = destino === 'accion_asignada' && accion ? `Asignar «${ACCIONES[accion]}»` : VERBO[destino];
-      if (!(await confirmar(`${que}: ${tipoTxt(inc.tipo)}`, `${nombre}. Queda en el historial a nombre de ${sesion.nombre} a las ${hhmm(Date.now())}, y el vecino lo verá en su celular.`, que))) return;
+      const texto = `${nombre}. Queda en el historial a nombre de ${sesion.nombre} a las ${hhmm(Date.now())}, y el vecino lo verá en su celular.`
+        + (respuesta ? ' Además se envía un aviso firmado de la municipalidad a todos los celulares conectados; los que no tienen internet lo reciben por QR de otro vecino.' : '');
+      if (!(await confirmar(`${que}: ${tipoTxt(inc.tipo)}`, texto, que))) return;
+      if (respuesta && msgIn.value.trim()) extra.mensaje = msgIn.value.trim().slice(0, 120);
     }
     const op = { quien: sesion.nombre, cabeceras: () => sesion.cabeceras() };
     try {
