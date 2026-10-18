@@ -7,14 +7,15 @@ import { deCodec, type TipoPoblador } from './tipos';
 interface Familia { radioM: number | null; ventanaH: number }
 export const FAMILIAS: Record<string, Familia> = {
   agua: { radioM: 250, ventanaH: 3 },
-  danos: { radioM: 100, ventanaH: 12 },
+  vivienda: { radioM: 100, ventanaH: 12 },
+  heridos: { radioM: 100, ventanaH: 12 },
   atrapados: { radioM: 50, ventanaH: 12 },
   ayuda: { radioM: 150, ventanaH: 24 },
   otro: { radioM: null, ventanaH: 3 },
 };
 const FAMILIA: Record<TipoPoblador, keyof typeof FAMILIAS> = {
   agua: 'agua', cauce: 'agua', huaico: 'agua', via_bloq: 'agua',
-  vivienda: 'danos', heridos: 'danos',
+  vivienda: 'vivienda', heridos: 'heridos',
   atrapados: 'atrapados', // nunca se agrupa con otro tipo
   ayuda: 'ayuda', otro: 'otro',
 };

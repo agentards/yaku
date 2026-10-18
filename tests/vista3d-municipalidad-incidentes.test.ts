@@ -162,10 +162,10 @@ describe('municipalidad: agrupación en pantalla (§3, sin /api/incidentes)', ()
     expect(l).toHaveLength(1);
     expect(l[0]).toMatchObject({ id: 'inc-a', personas: 2, reportes: 2, reportIds: ['a', 'b'], puntaje: 60, nivel: 'N2' });
   });
-  it('(b) agua + vivienda a 20 m → 2 · (c) atrapados + heridos a 10 m → 2 · heridos + vivienda → tipo heridos', () => {
+  it('(b) agua + vivienda a 20 m → 2 · (c) atrapados + heridos a 10 m → 2 · heridos + vivienda a 10 m → 2', () => {
     expect(agrupar([rep('a'), rep('b', { type: 'vivienda', lat: -5.0 - 20 * M })])).toHaveLength(2);
     expect(agrupar([rep('a', { type: 'atrapados' }), rep('b', { type: 'heridos', lat: -5.0 - 10 * M })])).toHaveLength(2);
-    expect(agrupar([rep('a', { type: 'vivienda' }), rep('b', { type: 'heridos', lat: -5.0 - 10 * M })])[0].tipo).toBe('heridos');
+    expect(agrupar([rep('a', { type: 'vivienda' }), rep('b', { type: 'heridos', lat: -5.0 - 10 * M })])).toHaveLength(2);
   });
   it('(d) un dispositivo, 6 reportes → 1 persona, severidad del último', () => {
     const seis = Array.from({ length: 6 }, (_, k) => rep('r' + k, { device_id: 'uno', ts: S0 + k * 120, severity: k === 5 ? 1 : 3 }));

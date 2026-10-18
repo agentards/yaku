@@ -47,6 +47,8 @@ export class Almacen {
     if (ruta !== ':memory:') this.db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;');
     this.db.exec(ESQUEMA);
     // Migración: quién ('pin') junto al nombre que manda el cliente.
+    // Migración: qué celular subió cada reporte (relevo por QR).
+    if (!(this.db.prepare('PRAGMA table_info(reports)').all() as unknown as { name: string }[]).some((c) => c.name === 'subido_por')) this.db.exec('ALTER TABLE reports ADD COLUMN subido_por TEXT');
     for (const t of ['estados', 'ajustes']) {
       const cols = this.db.prepare(`PRAGMA table_info(${t})`).all() as unknown as { name: string }[];
       if (!cols.some((c) => c.name === 'usuario')) this.db.exec(`ALTER TABLE ${t} ADD COLUMN usuario TEXT`);
@@ -62,11 +64,11 @@ export class Almacen {
   }
 
   /** INSERT OR IGNORE (idempotente por id) y asigna los nuevos a incidentes. Devuelve cuántos eran nuevos. */
-  insertarReportes(recs: { id: string; type: string; severity: number; lat: number; lon: number; note: string; ts: number; deviceId: string }[], ahora: number): number {
+  insertarReportes(recs: { id: string; type: string; severity: number; lat: number; lon: number; note: string; ts: number; deviceId: string }[], ahora: number, subidoPor: string | null = null): number {
     return this.tx(() => {
-      const st = this.db.prepare('INSERT OR IGNORE INTO reports (id,type,severity,lat,lon,note,ts,device_id,verified,received_at) VALUES (?,?,?,?,?,?,?,?,0,?)');
+      const st = this.db.prepare('INSERT OR IGNORE INTO reports (id,type,severity,lat,lon,note,ts,device_id,verified,received_at,subido_por) VALUES (?,?,?,?,?,?,?,?,0,?,?)');
       let n = 0;
-      for (const o of recs) n += Number(st.run(o.id, o.type, o.severity, o.lat, o.lon, o.note, o.ts, o.deviceId, ahora).changes);
+      for (const o of recs) n += Number(st.run(o.id, o.type, o.severity, o.lat, o.lon, o.note, o.ts, o.deviceId, ahora, subidoPor).changes);
       if (n) this.asignarPendientes(ahora);
       return n;
     });

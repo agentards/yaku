@@ -6,6 +6,8 @@ import { familiaDe, type Reglas } from './reglas.ts';
 export interface Rep {
   id: string; type: string; severity: number; lat: number; lon: number; note: string;
   ts: number; device_id: string; verified?: number; received_at: number;
+  /** Celular que lo subió al servidor (si es otro que el autor, llegó por la cadena QR). */
+  subido_por?: string | null;
 }
 
 export type Estado = 'nuevo' | 'en_revision' | 'validado' | 'descartado' | 'accion_asignada' | 'atendido';

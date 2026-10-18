@@ -18,6 +18,10 @@ function mockServer(records: StoredObs[]): { accepted: string[]; newCount: numbe
 }
 
 let inflight: Promise<SyncResult> | null = null;
+/** Código anónimo de este celular (misma clave que la app): el servidor sabe qué reportes llegaron por la cadena QR. */
+function miDispositivo(): string | undefined {
+  try { return localStorage.getItem('yaku-device') ?? undefined; } catch { return undefined; }
+}
 export interface SyncResult { attempted: number; accepted: number; inserted?: number; duplicates?: number; error?: string }
 
 export function flushQueue(endpoint: string): Promise<SyncResult> {
@@ -40,7 +44,7 @@ async function doFlush(endpoint: string): Promise<SyncResult> {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'content-type': 'text/plain' }, // evita preflight CORS
-        body: JSON.stringify({ records: pending.map(({ source, receivedAt, synced, ...r }) => r) }),
+        body: JSON.stringify({ records: pending.map(({ source, receivedAt, synced, ...r }) => r), subidoPor: miDispositivo() }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const j = await res.json();

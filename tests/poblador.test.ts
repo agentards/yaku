@@ -139,7 +139,7 @@ describe('poblador: vecinos que coinciden (estimación local, decision-confianza
 
   it('reconoce los tipos guardados con prefijo en el codec viejo', () => {
     const a = makeObservation({ ...aCodec('vivienda', '', false, VIEJOS), severity: 2, lat: -5.19449, lon: -80.63282, ts: T0, deviceId: 'd1' });
-    const b = makeObservation({ ...aCodec('heridos', '', false, VIEJOS), severity: 3, lat: norte(30), lon: -80.63282, ts: T0, deviceId: 'd2' });
+    const b = makeObservation({ ...aCodec('vivienda', '', false, VIEJOS), severity: 3, lat: norte(30), lon: -80.63282, ts: T0, deviceId: 'd2' });
     expect(vecinosQueCoinciden(a, [a, b]).vecinos).toBe(2);
   });
 });

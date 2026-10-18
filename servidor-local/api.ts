@@ -112,7 +112,9 @@ export function crearApi(op: OpcionesApi) {
     const recs: unknown[] = Array.isArray(body?.records) ? body.records.slice(0, MAX_RECORDS) : [];
     const valid = [], rejected: { id: unknown; why: string }[] = [];
     for (const r of recs) { const v = validar(r); v.ok ? valid.push(v.o) : rejected.push({ id: (r as any)?.id, why: v.why }); }
-    const inserted = valid.length ? A.insertarReportes(valid, ahora()) : 0;
+    // Celular que sube (opcional): si no es el autor del reporte, el reporte llegó por la cadena QR.
+    const subidoPor = typeof body?.subidoPor === 'string' && /^[0-9a-z]{1,16}$/.test(body.subidoPor) ? body.subidoPor : null;
+    const inserted = valid.length ? A.insertarReportes(valid, ahora(), subidoPor) : 0;
     // accepted = ids válidos (nuevos o ya existentes): el cliente puede marcarlos consolidados.
     return json({ accepted: valid.map((o) => o.id), inserted, duplicates: valid.length - inserted, rejected, persisted: true });
   }

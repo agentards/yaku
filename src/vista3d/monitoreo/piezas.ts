@@ -100,6 +100,7 @@ export function detalleHtml(i: Incidente, ctx: Ctx) {
       <dl class="v3d-dl">
         <dt>Respaldo</dt><dd><span class="mon-conf mon-conf-${i.nivel}">${esc(respaldoTxt(i.puntaje, i.nivel))}</span>${i.congelado ? ' <small>congelado al validar</small>' : ''}<br><small>${esc(DETALLE[i.nivel](i.personas, i.nFotos))}</small>${i.desglose ? `<small class="mon-desglose">${desgloseHtml(i.desglose, i.puntaje)}</small>` : ''}</dd>
         <dt>Reportes</dt><dd>${esc(plural(i.reportes, 'reporte', 'reportes'))} de ${esc(vecinos(i.personas))}</dd>
+        ${i.porCadena ? `<dt>Por la cadena</dt><dd>${esc(plural(i.porCadena, 'reporte llegó', 'reportes llegaron'))} desde otro celular (relevo por QR)</dd>` : ''}
         <dt>Severidad</dt><dd class="mon-sev${i.severidad}">Máx. ${i.severidad} de 3 <small>la marca quien reporta</small></dd>
         <dt>Último</dt><dd>${esc(hhmm(i.ultimo))} <small>reloj del celular</small></dd>
         <dt>Ubicación</dt><dd class="mono">${i.lat.toFixed(5)}, ${i.lon.toFixed(5)}</dd>

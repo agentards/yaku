@@ -53,7 +53,8 @@ export const MOTIVOS_DESCARTE = ['Duplicado de otro incidente', 'No se encontró
 export interface Familia { tipos: string[]; radioM: number | null; ventanaH: number; mediaVidaH: number }
 export const FAMILIAS: Record<string, Familia> = {
   agua: { tipos: ['agua', 'cauce', 'huaico', 'via_bloq'], radioM: 250, ventanaH: 3, mediaVidaH: 3 },
-  danos: { tipos: ['vivienda', 'heridos'], radioM: 100, ventanaH: 12, mediaVidaH: 12 },
+  vivienda: { tipos: ['vivienda'], radioM: 100, ventanaH: 12, mediaVidaH: 12 },
+  heridos: { tipos: ['heridos'], radioM: 100, ventanaH: 12, mediaVidaH: 12 },
   atrapados: { tipos: ['atrapados'], radioM: 50, ventanaH: 12, mediaVidaH: 12 },
   ayuda: { tipos: ['ayuda'], radioM: 150, ventanaH: 24, mediaVidaH: 24 },
   otro: { tipos: ['otro'], radioM: null, ventanaH: 3, mediaVidaH: 3 }, // no agrupa entre personas

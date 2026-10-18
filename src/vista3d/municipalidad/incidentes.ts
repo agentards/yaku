@@ -14,6 +14,8 @@ export interface Incidente {
   severidad: number; lat: number; lon: number;
   /** Personas distintas (device_id del autor) y reportes crudos del grupo. */
   personas: number; reportes: number;
+  /** Reportes que subió otro celular (llegaron por la cadena QR). */
+  porCadena: number;
   /** Ids de fotos recibidas (GET /api/fotos/:id), su conteo y las marcadas «tiene foto» que aún no suben. */
   fotos: string[]; nFotos: number; fotosPendientes: number;
   /** ms: primer y último reporte (reloj del celular), y última llegada al servidor (si la manda). */
@@ -80,6 +82,7 @@ export function leerIncidente(x: any, ahora = Date.now()): Incidente | null {
   const puntaje = calc ? calc.total : Math.max(0, Math.min(100, Math.round(sp)));
   return {
     id, tipo, tipos: tipos.length ? tipos : [tipo], severidad, lat, lon, personas, reportes, fotos, nFotos,
+    porCadena: Math.max(0, Math.round(num(x.por_cadena, 0))),
     fotosPendientes: Math.max(0, Math.round(num(x.fotos_pendientes, x.n_fotos_pendientes, 0))),
     primer: p, ultimo: u, recibido: Number.isFinite(recibido) ? recibido : null,
     puntaje, nivel: NIVELES_OK.includes(x.nivel) ? x.nivel : nivelDe(puntaje), desglose: calc ? calc.desglose : leerDesglose(x.desglose),
@@ -109,7 +112,7 @@ export const porPrioridad = (a: Incidente, b: Incidente) =>
 export const hhmm = (ms: number, seg = false) => new Date(ms).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Lima', ...(seg ? { second: '2-digit' } : {}) });
 export const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 /** «4 vecinos · 2 fotos · primer reporte 21:03» */
-export const contadorTxt = (i: Incidente) => `${plural(i.personas, 'vecino', 'vecinos')} · ${plural(i.nFotos, 'foto', 'fotos')} · primer reporte ${hhmm(i.primer)}`;
+export const contadorTxt = (i: Incidente) => `${plural(i.personas, 'vecino', 'vecinos')} · ${plural(i.nFotos, 'foto', 'fotos')}${i.reportes > i.personas ? ` · ${plural(i.reportes, 'reporte', 'reportes')}` : ''}${i.porCadena ? ` · ${i.porCadena} por la cadena QR` : ''} · primer reporte ${hhmm(i.primer)}`;
 
 // ---------- nuevos y coincidencias ----------
 export interface Coincidencia { inc: Incidente; personasAntes: number; fotosAntes: number }
@@ -227,7 +230,7 @@ export function agrupar(reportes: ReporteApi[], ahora = Date.now()): Incidente[]
     return {
       id: 'inc-' + ancla.id, tipo, tipos, severidad: Math.max(...porDev.map((m) => m.severity || 1)),
       lat: ancla.lat, lon: ancla.lon, personas: porDev.length, reportes: miembros.length,
-      fotos, nFotos: fotos.length, fotosPendientes: pendientes,
+      fotos, nFotos: fotos.length, fotosPendientes: pendientes, porCadena: 0,
       primer: horaDe(ancla), ultimo, recibido: Math.max(...miembros.map((m) => m.received_at)),
       puntaje: r.total, nivel: nivelDe(r.total), desglose: r.desglose, congelado: false, puntajeOrigen: 'pantalla' as const,
       estado: 'nuevo' as const, accion: null, motivo: '', historial: [],

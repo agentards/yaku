@@ -37,7 +37,9 @@ export interface Reglas {
 export const REGLAS: Reglas = {
   familias: {
     agua: { tipos: ['agua', 'cauce', 'huaico', 'via_bloq'], radioM: 250, ventanaH: 3, mediaVidaH: 3 },
-    danos: { tipos: ['vivienda', 'heridos'], radioM: 100, ventanaH: 12, mediaVidaH: 12 },
+    // Casa dañada y heridos son necesidades distintas (bomberos/EDAN vs. ambulancia): cada una es su propio incidente.
+    vivienda: { tipos: ['vivienda'], radioM: 100, ventanaH: 12, mediaVidaH: 12 },
+    heridos: { tipos: ['heridos'], radioM: 100, ventanaH: 12, mediaVidaH: 12 },
     atrapados: { tipos: ['atrapados'], radioM: 50, ventanaH: 12, mediaVidaH: 12 },
     ayuda: { tipos: ['ayuda'], radioM: 150, ventanaH: 24, mediaVidaH: 24 },
     otro: { tipos: ['otro'], radioM: null, ventanaH: 3, mediaVidaH: 3 },

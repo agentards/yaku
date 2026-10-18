@@ -10,6 +10,8 @@ export interface IncidenteVista {
   id: string; familia: string; tipo: string; tipos: string[]; severidad: number;
   lat: number; lon: number; ancla: { lat: number; lon: number };
   personas: number; reportes: number; n_reportes: number; reportes_ids: string[]; notas: string[];
+  /** Reportes que subió un celular distinto del autor: llegaron por la cadena QR. */
+  por_cadena: number;
   fotos: string[]; n_fotos: number; personas_con_foto: number;
   /** Personas que marcaron «(con foto)» y cuya imagen aún no llegó al servidor: suman 0 al respaldo. */
   fotos_pendientes: number;
@@ -59,6 +61,7 @@ export function armarIncidentes(t: Todo, ahora: number, reglas: Reglas): Inciden
       lat: inc.ancla_lat, lon: inc.ancla_lon, ancla: { lat: inc.ancla_lat, lon: inc.ancla_lon },
       personas: r.personas, reportes: miembros.length, n_reportes: miembros.length, reportes_ids: miembros.map((m) => m.id),
       notas: miembros.map((m) => m.note.trim()).filter(Boolean),
+      por_cadena: miembros.filter((m) => m.subido_por && m.subido_por !== m.device_id).length,
       fotos, n_fotos: fotos.length, personas_con_foto: r.personasConFoto, fotos_pendientes: pendientes,
       primer_reporte: Math.min(...miembros.map((m) => horaMs(m, reglas))), ultimo_reporte: r.ultimo,
       recibido: Math.max(...miembros.map((m) => m.received_at)),
