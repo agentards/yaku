@@ -48,9 +48,11 @@ function compose(vars) {
 
 const puerto = await new Promise((ok) => { const s = net.createServer().listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)); }); });
 const BASE = `http://127.0.0.1:${puerto}`;
-async function desplegar(vars) {
+const libre = () => new Promise((ok) => { const s = net.createServer().once('error', () => ok(false)).listen(puerto, '127.0.0.1', () => s.close(() => ok(true))); });
+async function desplegar(vars, intento = 1) {
   const c = compose(vars);
   if (!c.ok) return { c };
+  for (const t0 = Date.now(); !(await libre()) && Date.now() - t0 < 10_000;) await new Promise((r) => setTimeout(r, 200)); // el contenedor anterior suelta el puerto
   // El contenedor solo ve el ENV de la imagen + el environment del compose. Localmente cambian puerto, host y rutas.
   const env = { ...ENV_IMAGEN, ...c.s.environment, PORT: String(puerto), HOST: '127.0.0.1', YAKU_DIST: DIST, YAKU_DATOS: VOLUMEN, PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT ?? '' };
   const p = spawn(process.execPath, [PAQUETE], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -61,6 +63,7 @@ async function desplegar(vars) {
     sano = await fetch(BASE + '/salud').then((r) => r.status === 200).catch(() => false);
     if (sano) break;
   }
+  if (!sano && intento === 1 && /EADDRINUSE/.test(log)) { await new Promise((r) => setTimeout(r, 1000)); return desplegar(vars, 2); }
   return { c, sano, log: () => log, parar: () => new Promise((r) => { if (p.exitCode !== null) return r(); p.once('exit', r); p.kill('SIGTERM'); }) };
 }
 const pedir = async (ruta, init = {}) => { const r = await fetch(BASE + ruta, init); return { status: r.status, j: await r.json().catch(() => null) }; };
@@ -131,7 +134,7 @@ try {
 
   fase('Despliegue 3 · cambian MUNI_CLAVE en Dokploy');
   d = await desplegar({ MUNI_PIN: PIN, MUNI_CLAVE: C2 });
-  check('arranca y el log dice «contraseña actualizada: se cerraron sus sesiones»', d.sano && /contraseña actualizada/.test(d.log()));
+  check('arranca y el log dice «contraseña actualizada: se cerraron sus sesiones»', d.sano && /contraseña actualizada/.test(d.log()), d.sano && /contraseña actualizada/.test(d.log()) ? undefined : { sano: d.sano, log: d.log().slice(-600) });
   check('el token viejo ya no sirve (401) y la contraseña vieja tampoco (403)', (await conToken(token)).status === 401 && (await entrar('central', C1)).status === 403);
   check('la contraseña nueva entra', (await entrar('central', C2)).status === 200);
   if (page) { await page.reload(); check('navegador: después del cambio de contraseña vuelve a pedirla', await pideAcceso()); }
