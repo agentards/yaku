@@ -204,3 +204,7 @@ button.mon-toast { cursor: pointer; }
 /* mensaje opcional del aviso firmado (acción asignada o atendido) */
 .mon-conf-msg { display: grid; gap: 6px; margin: 4px 0 14px; font-weight: 600; }
 .mon-conf-msg input { font: inherit; padding: 8px 10px; border: 1px solid var(--line, #cbbfa8); border-radius: 8px; }
+
+/* Selector de región (Piura | Lima) en la cabecera del Centro de monitoreo. */
+.mon-region { flex: none; }
+@media (max-width: 600px) { .mon-region button { min-width: 0; padding: 0 6px; font-size: 12px; } }

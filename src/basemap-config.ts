@@ -16,6 +16,8 @@ import { FEAT } from './features';
 
 export const BASEMAPS: Record<string, BasemapFile> = {
   z11: { key: 'z11', file: 'basemap/piura_basemap_z11.5e31b1dc.pmtiles', bytes: 2594101, sha256: '5e31b1dc9c92ac4348740bf23e79641f040aab044274335f9321a200cdf58e04', maxzoom: 11, build: 'Protomaps 20261017 (OSM hasta 2026-10-17T04:00Z)' },
+  // Lima Metropolitana y Callao hasta z15, con edificios (alturas OSM) para la prueba en sala (?region=lima).
+  lima: { key: 'lima', file: 'basemap/lima_basemap_z15.c2041e0d.pmtiles', bytes: 21181493, sha256: 'c2041e0d16206c690ddb7b9611b351bddf0bea28e980a57e151b8ee4f06982f9', maxzoom: 15, build: 'Protomaps 20261017 (OSM hasta 2026-10-17T04:00Z)' },
   ...(FEAT.z12 ? { z12: { key: 'z12', file: 'basemap/piura_basemap_z12.cc6d9219.pmtiles', bytes: 5740095, sha256: 'cc6d9219ed04d853371cae00fc59f2b631ba37f82884df33dbaf5d1eaef9e1cd', maxzoom: 12, build: 'Protomaps 20261017 (OSM hasta 2026-10-17T04:00Z)' } } : {}),
 };
 

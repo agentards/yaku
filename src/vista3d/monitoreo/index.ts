@@ -20,6 +20,7 @@ import { cerrado, DetectorIncidentes, hhmm, plural, porPrioridad, type Incidente
 import { cambiarEstado, esErrorAcceso, fotoUrl, llevarA, traerIncidentes, traerReportes, type Fuente } from '../municipalidad/api';
 import { ACCION_TXT, ACCIONES, ESTADO, MOTIVOS_DESCARTE, PIE_LEGAL, PIE_PANEL, ROTULO_VECINAL, tipoTxt, vecinos, type Accion, type Estado } from '../municipalidad/textos';
 import type { Sesion } from '../../auth/sesion';
+import { REGION, REGIONES, urlRegion, type RegionId } from '../../region';
 import { contadores, fichaDeReporte, grupoDe, incidenteEn, indexar, rangoHistorico, type IncHist } from './historico';
 import { tarjetaHtml, vida, type Ctx } from './piezas';
 import { montarLineaMonitoreo } from './linea';
@@ -53,6 +54,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
       <span class="v3d-logo">${IC.logo}${esc(MONITOREO.nombre)} <small class="mon-titulo">· ${esc(MONITOREO.titulo)}</small></span>
       <span class="v3d-sep"></span>
       <span class="v3d-esc" title="${esc(ESCENARIO.chipTitulo)}">${esc(ESCENARIO.chip)}</span>
+      <span class="v3d-seg mon-region" role="group" aria-label="Región del mapa">${(Object.keys(REGIONES) as RegionId[]).map((id) => `<button type="button" data-region="${id}" aria-pressed="${id === REGION.id}">${esc(REGIONES[id].nombre)}</button>`).join('')}</span>
       ${chipFuenteHtml()}
       <span class="mon-vivo" role="status" aria-live="polite" data-vivo data-estado="iniciando"><i aria-hidden="true"></i><span data-vivo-txt>Conectando…</span></span>
       <nav class="v3d-tabs" role="tablist" aria-label="Paneles del Centro de monitoreo">
@@ -68,7 +70,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     </header>
     <div class="mon-banda" data-banda role="alert" hidden></div>
     <div class="v3d-escena" data-escena>
-      <div class="v3d-mapa" data-mapa role="region" aria-label="Escena 3D de Piura con los incidentes reportados"></div>
+      <div class="v3d-mapa" data-mapa role="region" aria-label="Escena 3D de ${esc(REGION.nombre)} con los incidentes reportados"></div>
       <div class="v3d-ctrl ai"><button type="button" class="v3d-brujula" data-norte aria-label="Orientar al norte">${IC.norte}</button></div>
       ${leyendaHtml()}
       <div class="mon-leyenda" aria-label="Leyenda de incidentes"><b>Incidentes</b>
@@ -111,6 +113,8 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
   sesion.montarBotonUsuario($('[data-usuario]'));
   const salirA2D = () => { raiz.hidden = true; document.body.classList.remove('vista-3d'); const u = new URL(location.href); u.searchParams.set('vista', '2d'); history.replaceState(null, '', u); opc.alSalir?.(); dispatchEvent(new Event('resize')); };
   $('[data-salir]').onclick = salirA2D;
+  // Cambiar de región cambia el mapa base (otro .pmtiles): se carga la página de nuevo con ?region= (queda recordada).
+  raiz.querySelectorAll<HTMLButtonElement>('[data-region]').forEach((b) => (b.onclick = () => { if (b.dataset.region !== REGION.id) location.assign(urlRegion(b.dataset.region as RegionId, location.href)); }));
 
   if (!webglDisponible()) {
     $('[data-escena]').innerHTML = '<div class="v3d-sin-webgl"><p><b>Este equipo no puede mostrar la escena 3D (WebGL no disponible).</b><br>La vista 2D tiene las mismas capas oficiales y funciona sin red.</p></div>';

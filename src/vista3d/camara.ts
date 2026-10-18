@@ -1,7 +1,7 @@
 // Cámara cinematográfica: vuelo regional oblicuo → acercamiento al centro poblado → órbita lenta.
 // Lógica pura (testeable sin WebGL) + un controlador que habla con una interfaz mínima del mapa.
 // Cualquier gesto del usuario (puntero, rueda, teclado) cancela el recorrido.
-import { CUENCA, EXAGERACION, VISTA_REGIONAL } from './config';
+import { ACERCAMIENTO, CUENCA, EXAGERACION, VISTA_REGIONAL } from './config';
 
 export type LngLat = [number, number];
 export interface Vista { center: LngLat; zoom: number; pitch: number; bearing: number }
@@ -35,7 +35,7 @@ export function planRecorrido(objetivo: LngLat, desde: LngLat = VISTA_REGIONAL.c
   const km = distanciaKm(desde, objetivo);
   return {
     regional,
-    acercamiento: { center: objetivo, zoom: 11.6, pitch: 64, bearing: normalizarRumbo(rumboDesde + 35), duration: duracionVuelo(km) },
+    acercamiento: { center: objetivo, zoom: ACERCAMIENTO.zoom, pitch: ACERCAMIENTO.pitch, bearing: normalizarRumbo(rumboDesde + 35), duration: duracionVuelo(km) },
     orbita: { gradosPorS: 5, rampaS: 2 },
   };
 }
