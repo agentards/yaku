@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { OBS_TYPES, makeObservation, type NewObservation } from '../src/codec.ts';
 import type { Almacen } from './almacen.ts';
+import type { VerificadorClerk } from './auth.ts';
 import { validarCambio } from './estados.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
@@ -35,7 +36,14 @@ export function tipoImagen(b: Uint8Array): { mime: string; ext: string } | null 
   return null;
 }
 
-export interface OpcionesApi { almacen: Almacen; pin: string; fotosDir: string; ahora?: () => number }
+export interface OpcionesApi {
+  almacen: Almacen; pin: string; fotosDir: string; ahora?: () => number;
+  /** Con Clerk activo, lo protegido exige Bearer; el PIN solo vale si permitirPin (YAKU_PERMITIR_PIN=1). */
+  clerk?: VerificadorClerk; permitirPin?: boolean;
+}
+/** Quién hizo la petición protegida: sub de Clerk o 'pin'. */
+export interface Acceso { modo: 'clerk' | 'pin'; usuario: string; rol: 'operador' | 'monitor' }
+export const MAX_HISTORICO = 5000;
 
 export function crearApi(op: OpcionesApi) {
   const { almacen: A } = op;
@@ -43,11 +51,26 @@ export function crearApi(op: OpcionesApi) {
   const pinHash = createHash('sha256').update(op.pin).digest();
   fs.mkdirSync(op.fotosDir, { recursive: true });
 
-  /** null si el PIN es correcto; si no, la respuesta 401 (falta) o 403 (incorrecto). */
-  const exigirPin = (req: Request): Response | null => {
+  const clerk = op.clerk?.activo ? op.clerk : null;
+  const pinVale = !clerk || Boolean(op.permitirPin);
+  const pinOk = (p: string) => timingSafeEqual(createHash('sha256').update(p).digest(), pinHash);
+
+  /** Acceso si la credencial vale (y el rol alcanza para escribir); si no, la respuesta 401 (falta) o 403 (inválida o rol). */
+  const autenticar = async (req: Request, escribe: boolean): Promise<Acceso | Response> => {
+    const m = /^Bearer\s+(\S+)$/i.exec(req.headers.get('authorization') ?? '');
     const p = req.headers.get('x-muni-pin');
-    if (!p) return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)' }, 401);
-    return timingSafeEqual(createHash('sha256').update(p).digest(), pinHash) ? null : json({ error: 'PIN incorrecto' }, 403);
+    if (clerk && m) {
+      const v = await clerk.verificar(m[1]);
+      if (!v.ok) return json({ error: v.error, codigo: v.codigo }, v.status);
+      if (escribe && v.rol !== 'operador') return json({ error: 'tu rol es «monitor»: solo puedes mirar; pide el rol «operador» para cambiar estados', codigo: 'rol' }, 403);
+      return { modo: 'clerk', usuario: v.sub, rol: v.rol };
+    }
+    if (p) {
+      if (!pinVale) return json({ error: 'con Clerk activo el PIN está desactivado: inicia sesión (o YAKU_PERMITIR_PIN=1 en el servidor)', codigo: 'pin_desactivado' }, 403);
+      return pinOk(p) ? { modo: 'pin', usuario: 'pin', rol: 'operador' } : json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
+    }
+    if (clerk) return json({ error: 'inicia sesión: falta la cabecera Authorization: Bearer <token de Clerk>' + (pinVale ? ' (o X-Muni-Pin)' : ''), codigo: 'sin_credencial' }, 401);
+    return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)' + (m ? ': este servidor no tiene Clerk configurado' : ''), codigo: 'sin_credencial' }, 401);
   };
   const leerJson = async (req: Request, max: number): Promise<any | Response> => {
     const text = await req.text();
@@ -105,8 +128,8 @@ export function crearApi(op: OpcionesApi) {
   }
 
   async function cambiarEstado(req: Request, id: string) {
-    const sinPin = exigirPin(req);
-    if (sinPin) return sinPin;
+    const acc = await autenticar(req, true);
+    if (acc instanceof Response) return acc;
     const body = await leerJson(req, 4096);
     if (body instanceof Response) return body;
     const { lista } = incidentes();
@@ -115,26 +138,26 @@ export function crearApi(op: OpcionesApi) {
     const v = validarCambio(inc.estado, body);
     if (!v.ok) return json({ error: v.error, estado: inc.estado }, v.status);
     const cuando = ahora();
-    A.guardarEstado({ incidente_id: id, estado: v.p.estado, accion: v.p.accion, motivo: v.p.motivo, quien: v.p.quien, cuando, respaldo: inc.respaldo });
+    A.guardarEstado({ incidente_id: id, estado: v.p.estado, accion: v.p.accion, motivo: v.p.motivo, quien: v.p.quien, usuario: acc.usuario, cuando, respaldo: inc.respaldo });
     return json({ ok: true, incidente: incidentes().lista.find((i) => i.id === id) });
   }
 
   async function unir(req: Request, id: string) {
-    const sinPin = exigirPin(req);
-    if (sinPin) return sinPin;
+    const acc = await autenticar(req, true);
+    if (acc instanceof Response) return acc;
     const body = await leerJson(req, 4096);
     if (body instanceof Response) return body;
     const otro = String(body?.con ?? ''), quien = String(body?.quien ?? '').trim();
     if (!quien || quien.length > 60) return json({ error: 'falta «quien»' }, 400);
     const { lista } = incidentes();
     if (otro === id || !lista.some((i) => i.id === id) || !lista.some((i) => i.id === otro)) return json({ error: 'incidentes no encontrados' }, 404);
-    A.unir(id, otro, quien, ahora());
+    A.unir(id, otro, quien, ahora(), acc.usuario);
     return json({ ok: true, incidente: incidentes().lista.find((i) => i.id === id) });
   }
 
   async function separar(req: Request, id: string) {
-    const sinPin = exigirPin(req);
-    if (sinPin) return sinPin;
+    const acc = await autenticar(req, true);
+    if (acc instanceof Response) return acc;
     const body = await leerJson(req, 8192);
     if (body instanceof Response) return body;
     const ids = (Array.isArray(body?.reportes) ? body.reportes : []).map(String).filter((x: string) => ID_REP.test(x)).slice(0, 200);
@@ -142,7 +165,7 @@ export function crearApi(op: OpcionesApi) {
     if (!quien || quien.length > 60) return json({ error: 'falta «quien»' }, 400);
     if (!ids.length || !A.incidente(id)) return json({ error: 'faltan reportes o el incidente no existe' }, 400);
     try {
-      const nuevo = A.separar(id, ids, quien, ahora());
+      const nuevo = A.separar(id, ids, quien, ahora(), acc.usuario);
       return json({ ok: true, nuevo });
     } catch (e) { return json({ error: String((e as Error).message) }, 400); }
   }
@@ -150,7 +173,7 @@ export function crearApi(op: OpcionesApi) {
   return async function api(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const p = url.pathname;
-    if (req.method === 'OPTIONS') return new Response(null, { headers: { ...JSONH, 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-muni-pin' } });
+    if (req.method === 'OPTIONS') return new Response(null, { headers: { ...JSONH, 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-muni-pin, authorization' } });
     try {
       if (p === '/api/sync' && req.method === 'POST') return await sync(req);
       if (p === '/api/stats' && req.method === 'GET') {
@@ -164,11 +187,22 @@ export function crearApi(op: OpcionesApi) {
           const rows = A.reportesPorId(list);
           return json({ count: rows.length, reports: rows });
         }
+        const desde = url.searchParams.get('desde');
+        if (desde !== null) {
+          // Histórico para la línea de tiempo: received_at ≥ desde (ms), del más antiguo al más nuevo.
+          const d = Number(desde);
+          if (desde === '' || !Number.isFinite(d) || d < 0) return json({ error: 'desde: milisegundos desde 1970 (número ≥ 0)' }, 400);
+          const lim = Math.min(MAX_HISTORICO, Math.max(1, Math.floor(Number(url.searchParams.get('limit') || 1000)) || 1000));
+          const rows = A.reportesDesde(d, lim);
+          return json({ count: rows.length, reports: rows, desde: d, hasta: rows.at(-1)?.received_at ?? null, truncado: rows.length === lim, note: 'Reportes ciudadanos NO VERIFICADOS' });
+        }
         const limit = Math.min(200, Math.max(1, +(url.searchParams.get('limit') || 50)));
         const rows = A.ultimosReportes(limit);
         return json({ count: rows.length, reports: rows, note: 'Reportes ciudadanos NO VERIFICADOS' });
       }
       if (p === '/api/incidentes' && req.method === 'GET') {
+        const acc = await autenticar(req, false);
+        if (acc instanceof Response) return acc;
         const { lista } = incidentes();
         return json({ count: lista.length, incidentes: lista, generado: ahora(), reglas: 'agentards/producto/decision-confianza.md (17-oct-2026)', nota: 'Reporte vecinal · por validar: lo valida la municipalidad' });
       }
@@ -179,7 +213,10 @@ export function crearApi(op: OpcionesApi) {
       }
       if (p === '/api/fotos' && req.method === 'POST') return await subirFoto(req, url);
       const mf = /^\/api\/fotos\/([^/]+)$/.exec(p);
-      if (mf && (req.method === 'GET' || req.method === 'HEAD')) return verFoto(mf[1]);
+      if (mf && (req.method === 'GET' || req.method === 'HEAD')) {
+        const acc = await autenticar(req, false);
+        return acc instanceof Response ? acc : verFoto(mf[1]);
+      }
       const mi = /^\/api\/incidentes\/([^/]+)\/(estado|unir|separar)$/.exec(p);
       if (mi && req.method === 'POST') {
         const id = decodeURIComponent(mi[1]);

@@ -26,11 +26,12 @@ const nuevaApi = () => {
   api = crearApi({ almacen: A, pin: '4321', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj });
 };
 const pedir = async (ruta: string, body?: unknown, h: Record<string, string> = {}) => {
-  const r = await api(new Request('http://x' + ruta, body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'text/plain', ...h }, body: typeof body === 'string' ? body : JSON.stringify(body) }));
+  const r = await api(new Request('http://x' + ruta, body === undefined ? { headers: h } : { method: 'POST', headers: { 'content-type': 'text/plain', ...h }, body: typeof body === 'string' ? body : JSON.stringify(body) }));
   return { status: r.status, j: (r.headers.get('content-type') ?? '').includes('json') ? await r.json() as any : null, r };
 };
+const PIN = { 'x-muni-pin': '4321' };
 const sync = (records: unknown[]) => pedir('/api/sync', { records }).then((x) => x.j);
-const incidentes = () => pedir('/api/incidentes').then((x) => x.j.incidentes as any[]);
+const incidentes = () => pedir('/api/incidentes', undefined, PIN).then((x) => x.j.incidentes as any[]);
 const estado = (id: string, body: unknown, pin = '4321') => pedir(`/api/incidentes/${id}/estado`, body, pin ? { 'x-muni-pin': pin } : {});
 
 before(nuevaApi);
@@ -86,7 +87,8 @@ describe('/api/incidentes: la historia de la demo', () => {
     assert.equal((await pedir('/api/fotos', { reportId: b.id, data: JPEG.toString('base64') })).j.duplicate, true);
     const [inc] = await incidentes();
     assert.deepEqual(inc.fotos, [f.j.id]); assert.equal(inc.puntaje, 75); assert.equal(inc.nivel, 'N2');
-    const img = await pedir(`/api/fotos/${f.j.id}`);
+    assert.equal((await pedir(`/api/fotos/${f.j.id}`)).status, 401); // foto de una casa: dato sensible
+    const img = await pedir(`/api/fotos/${f.j.id}`, undefined, PIN);
     assert.equal(img.r.headers.get('content-type'), 'image/jpeg');
     assert.deepEqual(Buffer.from(await img.r.arrayBuffer()), JPEG);
   });
@@ -94,7 +96,7 @@ describe('/api/incidentes: la historia de la demo', () => {
     assert.equal((await pedir('/api/fotos', { reportId: b.id, data: Buffer.from('hola mundo').toString('base64') })).status, 415);
     const grande = Buffer.concat([JPEG, Buffer.alloc(401 * 1024)]);
     assert.equal((await pedir('/api/fotos', { reportId: b.id, data: grande.toString('base64') })).status, 413);
-    assert.equal((await pedir('/api/fotos/0123456789abcdef0123')).status, 404);
+    assert.equal((await pedir('/api/fotos/0123456789abcdef0123', undefined, PIN)).status, 404);
   });
   it('estados con MUNI_PIN: 401 sin PIN, 403 PIN malo, 409 salto no permitido, 400 sin motivo', async () => {
     assert.equal((await estado(id, { estado: 'en_revision', quien: 'Op' }, '')).status, 401);
@@ -114,7 +116,7 @@ describe('/api/incidentes: la historia de la demo', () => {
     assert.equal(inc.estado, 'accion_asignada'); assert.equal(inc.accion, 'bomberos');
     assert.equal(inc.puntaje, 75); assert.equal(inc.respaldo_congelado, true);
     assert.deepEqual(inc.historial.map((h: any) => h.estado), ['en_revision', 'validado', 'accion_asignada']);
-    assert.ok(inc.historial.every((h: any) => h.quien === 'Operador COE' && h.cuando > 0));
+    assert.ok(inc.historial.every((h: any) => h.quien === 'Operador COE' && h.usuario === 'pin' && h.cuando > 0));
   });
   it('/api/estado?ids= devuelve el acuse para el celular de B (y del desconocido, recibido:false)', async () => {
     const { estados } = (await pedir(`/api/estado?ids=${b.id},${a.id},zzzzzzzzzzz`)).j;

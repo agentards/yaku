@@ -3,6 +3,8 @@
 //   node servidor-local/salida/servidor.mjs    (empaquetado con esbuild; lo usa la imagen Docker)
 // Variables: PORT (8080), HOST (0.0.0.0), YAKU_DIST (dist), YAKU_DATOS (servidor-local/datos),
 //            MUNI_PIN (si falta se genera uno temporal y se muestra en la consola), YAKU_REGLAS (JSON parcial).
+//            Login (auth.ts): CLERK_PUBLISHABLE_KEY (o VITE_CLERK_PUBLISHABLE_KEY) y/o CLERK_JWT_KEY (PEM),
+//            CLERK_AUTHORIZED_PARTIES (orígenes, coma), CLERK_ISSUER, YAKU_PERMITIR_PIN=1.
 import { randomInt } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -10,12 +12,17 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Almacen } from './almacen.ts';
 import { crearApi } from './api.ts';
+import { configDesdeEntorno, crearVerificadorClerk, type ConfigClerk } from './auth.ts';
 import { servirEstatico } from './estaticos.ts';
 import { conCambios, REGLAS } from './reglas.ts';
 
 const MAX_LECTURA = 640 * 1024; // foto de 400 KB en base64 + JSON
 
-export interface Opciones { puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean }
+export interface Opciones {
+  puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean;
+  /** Reemplaza la configuración de Clerk del entorno (tests). */
+  clerk?: ConfigClerk & { permitirPin?: boolean };
+}
 
 export function iniciar(o: Opciones = {}) {
   const env = process.env;
@@ -28,7 +35,11 @@ export function iniciar(o: Opciones = {}) {
   let cambios: unknown = o.reglas;
   if (cambios === undefined && env.YAKU_REGLAS) { try { cambios = JSON.parse(env.YAKU_REGLAS); } catch { console.warn('YAKU_REGLAS no es JSON válido: se usan las reglas por defecto'); } }
   const almacen = new Almacen(path.join(datos, 'yaku.db'), conCambios(REGLAS, cambios));
-  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos') });
+  const cfgClerk = o.clerk ?? configDesdeEntorno(env, datos);
+  const clerk = crearVerificadorClerk({ datos, ...cfgClerk });
+  if (clerk.activo) void clerk.precargar();
+  const permitirPin = Boolean(cfgClerk.permitirPin);
+  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), clerk, permitirPin });
 
   const server = http.createServer(async (req, res) => {
     const pathname = (req.url ?? '/').split('?')[0];
@@ -64,7 +75,9 @@ export function iniciar(o: Opciones = {}) {
   if (!o.silencioso) listo.then((p) => {
     console.log(`Yaku servidor local en http://localhost:${p}  (dist: ${dist}, datos: ${datos})`);
     if (!fs.existsSync(path.join(dist, 'index.html'))) console.warn('  Ojo: no hay dist/index.html → corre «npm run build» (la API funciona igual).');
-    console.log(pinTemporal ? `  MUNI_PIN no definido: PIN temporal de esta sesión = ${pin}` : '  MUNI_PIN definido por variable de entorno.');
+    if (clerk.activo) console.log(`  Login con Clerk (${clerk.modo}${clerk.host ? `, ${clerk.host}` : ''}). PIN ${permitirPin ? 'también permitido (YAKU_PERMITIR_PIN=1)' : 'desactivado'}.`);
+    else console.log('  Sin Clerk configurado: acceso con PIN (cabecera X-Muni-Pin).');
+    if (!clerk.activo || permitirPin) console.log(pinTemporal ? `  MUNI_PIN no definido: PIN temporal de esta sesión = ${pin}` : '  MUNI_PIN definido por variable de entorno.');
   });
   const cerrar = () => new Promise<void>((ok) => server.close(() => { almacen.cerrar(); ok(); }));
   return { server, listo, cerrar, almacen };

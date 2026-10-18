@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS fotos (
 CREATE INDEX IF NOT EXISTS fotos_rep ON fotos(report_id);
 `;
 
-export interface FilaEstado { seq: number; incidente_id: string; estado: Estado; accion: string | null; motivo: string; quien: string; cuando: number; respaldo: number | null }
+export interface FilaEstado { seq: number; incidente_id: string; estado: Estado; accion: string | null; motivo: string; quien: string; usuario: string | null; cuando: number; respaldo: number | null }
 export interface FilaIncidente { id: string; familia: string; ancla_lat: number; ancla_lon: number; creado_at: number; recurrencia_de: string | null; unido_a: string | null }
 export interface FilaFoto { id: string; report_id: string; mime: string; bytes: number; received_at: number }
-export interface FilaAjuste { seq: number; incidente_id: string; tipo: string; detalle: string; quien: string; cuando: number }
+export interface FilaAjuste { seq: number; incidente_id: string; tipo: string; detalle: string; quien: string; usuario: string | null; cuando: number }
 
 export interface Todo {
   incidentes: FilaIncidente[]; reportes: (Rep & { incidente_id: string | null })[];
@@ -46,6 +46,11 @@ export class Almacen {
     this.reglas = reglas;
     if (ruta !== ':memory:') this.db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;');
     this.db.exec(ESQUEMA);
+    // Migración: quién (sub de Clerk o 'pin') junto al nombre que manda el cliente.
+    for (const t of ['estados', 'ajustes']) {
+      const cols = this.db.prepare(`PRAGMA table_info(${t})`).all() as unknown as { name: string }[];
+      if (!cols.some((c) => c.name === 'usuario')) this.db.exec(`ALTER TABLE ${t} ADD COLUMN usuario TEXT`);
+    }
     this.asignarPendientes(Date.now());
   }
 
@@ -123,22 +128,22 @@ export class Almacen {
     return (this.db.prepare('SELECT * FROM incidentes WHERE id = ?').get(id) as unknown as FilaIncidente | undefined) ?? null;
   }
 
-  guardarEstado(f: Omit<FilaEstado, 'seq'>) {
-    this.db.prepare('INSERT INTO estados (incidente_id,estado,accion,motivo,quien,cuando,respaldo) VALUES (?,?,?,?,?,?,?)')
-      .run(f.incidente_id, f.estado, f.accion, f.motivo, f.quien, f.cuando, f.respaldo);
+  guardarEstado(f: Omit<FilaEstado, 'seq' | 'usuario'> & { usuario?: string | null }) {
+    this.db.prepare('INSERT INTO estados (incidente_id,estado,accion,motivo,quien,usuario,cuando,respaldo) VALUES (?,?,?,?,?,?,?,?)')
+      .run(f.incidente_id, f.estado, f.accion, f.motivo, f.quien, f.usuario ?? null, f.cuando, f.respaldo);
   }
 
   /** Une `otro` dentro de `id`: sus reportes pasan a `id` (manual) y `otro` queda oculto con unido_a. */
-  unir(id: string, otro: string, quien: string, ahora: number) {
+  unir(id: string, otro: string, quien: string, ahora: number, usuario: string | null = null) {
     this.tx(() => {
       this.db.prepare("UPDATE asignaciones SET incidente_id = ?, motivo = 'manual', at = ? WHERE incidente_id = ?").run(id, ahora, otro);
       this.db.prepare('UPDATE incidentes SET unido_a = ? WHERE id = ?').run(id, otro);
-      this.db.prepare('INSERT INTO ajustes (incidente_id,tipo,detalle,quien,cuando) VALUES (?,?,?,?,?)').run(id, 'unir', otro, quien, ahora);
+      this.db.prepare('INSERT INTO ajustes (incidente_id,tipo,detalle,quien,usuario,cuando) VALUES (?,?,?,?,?,?)').run(id, 'unir', otro, quien, usuario, ahora);
     });
   }
 
   /** Saca `reportIds` de `id` a un incidente nuevo (ancla = el primero por hora). Devuelve el id nuevo. */
-  separar(id: string, reportIds: string[], quien: string, ahora: number): string {
+  separar(id: string, reportIds: string[], quien: string, ahora: number, usuario: string | null = null): string {
     return this.tx(() => {
       const ph = reportIds.map(() => '?').join(',');
       const reps = (this.db.prepare(`SELECT r.* FROM reports r JOIN asignaciones a ON a.report_id = r.id WHERE a.incidente_id = ? AND r.id IN (${ph})`).all(id, ...reportIds) as unknown as Rep[]).sort(porHora(this.reglas));
@@ -149,9 +154,9 @@ export class Almacen {
       this.db.prepare('INSERT INTO incidentes (id,familia,ancla_lat,ancla_lon,creado_at) VALUES (?,?,?,?,?)').run(nuevo, inc.familia, reps[0].lat, reps[0].lon, ahora);
       const up = this.db.prepare("UPDATE asignaciones SET incidente_id = ?, motivo = 'manual', at = ? WHERE report_id = ?");
       for (const r of reps) up.run(nuevo, ahora, r.id);
-      const aj = this.db.prepare('INSERT INTO ajustes (incidente_id,tipo,detalle,quien,cuando) VALUES (?,?,?,?,?)');
-      aj.run(id, 'separar', `${reps.map((r) => r.id).join(',')} → ${nuevo}`, quien, ahora);
-      aj.run(nuevo, 'separado_de', id, quien, ahora);
+      const aj = this.db.prepare('INSERT INTO ajustes (incidente_id,tipo,detalle,quien,usuario,cuando) VALUES (?,?,?,?,?,?)');
+      aj.run(id, 'separar', `${reps.map((r) => r.id).join(',')} → ${nuevo}`, quien, usuario, ahora);
+      aj.run(nuevo, 'separado_de', id, quien, usuario, ahora);
       return nuevo;
     });
   }
@@ -175,5 +180,9 @@ export class Almacen {
   }
   ultimosReportes(limit: number) {
     return this.db.prepare('SELECT * FROM reports ORDER BY received_at DESC LIMIT ?').all(limit);
+  }
+  /** Histórico: recibidos desde `desde` (ms), del más antiguo al más nuevo (índice reports_received). */
+  reportesDesde(desde: number, limit: number) {
+    return this.db.prepare('SELECT * FROM reports WHERE received_at >= ? ORDER BY received_at, id LIMIT ?').all(desde, limit) as unknown as { received_at: number }[];
   }
 }

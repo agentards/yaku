@@ -18,8 +18,9 @@ export interface IncidenteVista {
   puntaje: number; respaldo: number; nivel: Respaldo['nivel']; desglose: Respaldo['desglose']; respaldo_congelado: boolean;
   mediana_m: number | null;
   estado: Estado; accion: string | null; motivo: string;
-  historial: { estado: Estado; accion: string | null; motivo: string; quien: string; cuando: number }[];
-  ajustes: { tipo: string; detalle: string; quien: string; cuando: number }[];
+  /** quien = nombre que manda el cliente; usuario = sub de Clerk, 'pin' o null (antes de la migración). */
+  historial: { estado: Estado; accion: string | null; motivo: string; quien: string; usuario: string | null; cuando: number }[];
+  ajustes: { tipo: string; detalle: string; quien: string; usuario: string | null; cuando: number }[];
   recurrencia_de: string | null; nuevos_tras_descarte: number; riesgo_vida: boolean;
 }
 
@@ -64,8 +65,8 @@ export function armarIncidentes(t: Todo, ahora: number, reglas: Reglas): Inciden
       puntaje, respaldo: puntaje, nivel: validacion ? nivelDe(puntaje, reglas) : r.nivel, desglose: r.desglose,
       respaldo_congelado: !!validacion, mediana_m: r.medianaM,
       estado, accion: estado === 'accion_asignada' || estado === 'atendido' ? accion : null, motivo: actual?.motivo ?? '',
-      historial: hist.map((h) => ({ estado: h.estado, accion: h.accion, motivo: h.motivo, quien: h.quien, cuando: h.cuando })),
-      ajustes: (ajDe.get(inc.id) ?? []).map((a) => ({ tipo: a.tipo, detalle: a.detalle, quien: a.quien, cuando: a.cuando })),
+      historial: hist.map((h) => ({ estado: h.estado, accion: h.accion, motivo: h.motivo, quien: h.quien, usuario: h.usuario ?? null, cuando: h.cuando })),
+      ajustes: (ajDe.get(inc.id) ?? []).map((a) => ({ tipo: a.tipo, detalle: a.detalle, quien: a.quien, usuario: a.usuario ?? null, cuando: a.cuando })),
       recurrencia_de: inc.recurrencia_de, nuevos_tras_descarte: descarte === null ? 0 : miembros.filter((m) => m.received_at > descarte).length,
       riesgo_vida: reglas.riesgoVida.includes(tipo),
     });
