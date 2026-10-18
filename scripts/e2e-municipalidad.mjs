@@ -31,7 +31,7 @@ const incidentes = async () => (await api('/api/incidentes')).body?.incidentes ?
 // Punto del ejemplo: Castilla (Piura). A y B a ~30 m.
 const A = obs('vivienda', -5.18801, -80.61002, 'pobla001', 'casa con el techo caído');
 const B = obs('vivienda', -5.18774, -80.61002, 'poblb002', 'misma casa, pared rajada', 3);
-const ATR = obs('atrapados', -5.08470, -80.16260, 'poblc003', 'familia en el techo', 3);
+const ATR = obs('atrapados', -5.08470, -80.16260, 'poblc003', 'familia en el techo (con foto)', 3); // la foto no llega: «1 foto pendiente de subir»
 const PREVIO = obs('agua', -5.19449, -80.63282, 'pobld004', 'agua en la calle', 1, ahoraS() - 600);
 
 const browser = await chromium.launch({ executablePath: CHROME, headless: process.env.HEADLESS !== '0', args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
@@ -80,11 +80,15 @@ try {
   check('servidor: A duplicado no se repite (relevo) y la foto de B sube', dup.body?.inserted === 1 && dup.body?.duplicates === 1 && subida.status === 200, { sync: dup.body, foto: subida.status });
   await esperar((id) => window.__yakuMuni.estado().incidentes.find((i) => i.id === id)?.personas === 2, incA.id);
   const animado = await page.locator('.muni-t-cont.sube, .muni-i-cont.sube').count();
+  const rodillo = await page.locator('.muni-t-cont .muni-k-personas .muni-rod-sube .muni-rod-c[data-de="1"]').count();
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(EVID, 'municipalidad-rodillo-1-a-2.jpg'), type: 'jpeg', quality: 80, clip: await page.locator('.muni-tarjeta').boundingBox() });
   const s2 = await est();
   const i2 = s2.incidentes.find((i) => i.id === incA.id);
   const toast = await page.locator('.muni-toast-coincide').allInnerTexts();
   check('2 reportes cercanos = 1 incidente con contador 2 (sin duplicar)', s2.incidentes.filter((i) => i.tipo === 'vivienda').length === 1 && i2.personas === 2 && i2.nFotos === 1 && s2.nuevos.length === 1, { personas: i2.personas, fotos: i2.nFotos, puntaje: i2.puntaje });
   check('el contador se anima cuando otro vecino coincide (+ aviso «Otro vecino coincide»)', animado >= 1 && toast.some((t) => /Otro vecino coincide.*2 vecinos/.test(t)) && s2.coincidencias >= 1, { animado, toast });
+  check('rodillo 1 → 2 vecinos en la tarjeta (el 1 sale, entra el 2; innerText solo «2 vecinos»)', rodillo === 1, { rodillo });
   const t2 = (await page.locator('.muni-tarjeta').innerText()).replace(/\s+/g, ' ');
   check('tarjeta: «2 vecinos · 1 foto», detalle y desglose del respaldo', /2 vecinos · 1 foto · primer reporte/.test(t2) && /2 vecinos lo reportan · 1 foto|2 vecinos coinciden/.test(t2) && /Personas 40 · Fotos 15 · Cercanía \d+ · Recencia/.test(t2), { tarjeta: t2.slice(0, 300) });
   await page.waitForFunction(() => { const img = document.querySelector('.muni-tarjeta .muni-foto img'); return img && img.complete && img.naturalWidth > 0; }, null, { timeout: 8000 }).catch(() => {});
@@ -104,6 +108,7 @@ try {
   const orden = await page.locator('.muni-lista li[data-id]').evaluateAll((l) => l.map((x) => x.querySelector('b').textContent));
   const t4 = (await page.locator('.muni-tarjeta').innerText()).replace(/\s+/g, ' ');
   check('prioridad: personas atrapadas arriba, aviso 116 / 105 y vuelo al nuevo', orden[0] === 'Personas atrapadas' && /116/.test(t4) && /105/.test(t4) && (await est()).actual?.startsWith('inc-'), { orden });
+  check('marca «con foto» sin imagen recibida: «1 foto pendiente de subir» y respaldo sin fotos', /1 foto pendiente de subir/.test(t4) && /Fotos 0 · /.test(t4) && /Respaldo 25 · N1/.test(t4), { tarjeta: t4.slice(0, 200) });
 
   // 5) Acciones con PIN sobre el incidente de la casa: Validar (PIN incorrecto → correcto) y asignar Bomberos.
   await page.click(`.muni-lista li[data-id="${incA.id}"] .muni-item`);

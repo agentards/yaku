@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-18T01:04:17.765Z",
+  "fecha": "2026-10-18T01:13:19.943Z",
   "servidor": "servidor-local (SQLite temporal)",
   "checks": [
     {
@@ -24,7 +24,7 @@
     {
       "name": "incidente nuevo: tarjeta con rótulo vecinal, respaldo y «1 vecino · 0 fotos · primer reporte hh:mm»",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 20:03 Respaldo 1 vecino lo reporta Personas 25 · Fotos 0 · Cercanía 0 · Recencia ×1,00 Reportes 1 reporte de 1 vecino Severidad Severidad m"
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 20:12 Respaldo 1 vecino lo reporta Personas 25 · Fotos 0 · Cercanía 0 · Recencia ×1,00 = 25 Reportes 1 reporte de 1 vecino Severidad Severi"
     },
     {
       "name": "la cámara vuela al incidente nuevo y queda en órbita lenta",
@@ -39,8 +39,8 @@
       "ok": true,
       "sync": {
         "accepted": [
-          "1xn3d9mnai5",
-          "1auun8vqela"
+          "02052gbkwlo",
+          "1fepstq103c"
         ],
         "inserted": 1,
         "duplicates": 1,
@@ -65,9 +65,14 @@
       ]
     },
     {
+      "name": "rodillo 1 → 2 vecinos en la tarjeta (el 1 sale, entra el 2; innerText solo «2 vecinos»)",
+      "ok": true,
+      "rodillo": 1
+    },
+    {
       "name": "tarjeta: «2 vecinos · 1 foto», detalle y desglose del respaldo",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar Respaldo 75 · N2 último hace 2 s × Casa dañada o caída 2 vecinos · 1 foto · primer reporte 20:03 Respaldo 2 vecinos lo reportan · 1 foto Personas 40 · Fotos 15 · Cercanía 20 · Recencia ×1,00 Reportes 2 reportes de 2 vecinos Severidad Severidad máx. 3 de 3 la marca quien"
+      "tarjeta": "Reporte vecinal · por validar Respaldo 75 · N2 último hace 3 s × Casa dañada o caída 2 vecinos · 1 foto · primer reporte 20:12 Respaldo 2 vecinos lo reportan · 1 foto Personas 40 · Fotos 15 · Cercanía 20 · Recencia ×1,00 = 75 Reportes 2 reportes de 2 vecinos Severidad Severidad máx. 3 de 3 la marca "
     },
     {
       "name": "galería: la foto se ve desde GET /api/fotos/:id",
@@ -92,6 +97,11 @@
       ]
     },
     {
+      "name": "marca «con foto» sin imagen recibida: «1 foto pendiente de subir» y respaldo sin fotos",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Personas atrapadas Riesgo de vida: si hay señal, que llamen al 116 (bomberos) o al 105 (policía). Yaku no reemplaza esas líneas. 1 veci"
+    },
+    {
       "name": "PIN incorrecto se rechaza (403) y se vuelve a pedir; con el correcto queda «Validado por la municipalidad»",
       "ok": true,
       "errPin": "PIN incorrecto. Intenta de nuevo."
@@ -110,14 +120,14 @@
       "name": "el estado vuelve al celular de B por /api/estado (acuse)",
       "ok": true,
       "acuseB": {
-        "id": "1auun8vqela",
+        "id": "1fepstq103c",
         "recibido": true,
-        "recibido_at": 1792285466380,
-        "incidente": "inc-1xn3d9mnai5",
+        "recibido_at": 1792286008763,
+        "incidente": "inc-02052gbkwlo",
         "estado": "accion_asignada",
         "accion": "bomberos",
         "motivo": "",
-        "cuando": 1792285472193,
+        "cuando": 1792286014584,
         "personas": 2
       }
     },
@@ -152,7 +162,7 @@
     }
   ],
   "fps": {
-    "cuadros": 226,
-    "fps": 75.3
+    "cuadros": 249,
+    "fps": 83
   }
 }
