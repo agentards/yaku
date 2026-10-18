@@ -17,7 +17,7 @@ function mockServer(records: StoredObs[]): { accepted: string[]; newCount: numbe
   return { accepted: records.map((r) => r.id), newCount };
 }
 
-let inflight: Promise<SyncResult> | null = null;
+let cola: Promise<unknown> = Promise.resolve();
 /** Código anónimo de este celular (misma clave que la app): el servidor sabe qué reportes llegaron por la cadena QR. */
 function miDispositivo(): string | undefined {
   try { return localStorage.getItem('yaku-device') ?? undefined; } catch { return undefined; }
@@ -25,9 +25,11 @@ function miDispositivo(): string | undefined {
 export interface SyncResult { attempted: number; accepted: number; inserted?: number; duplicates?: number; error?: string }
 
 export function flushQueue(endpoint: string): Promise<SyncResult> {
-  // Evita envíos concurrentes (online + click al mismo tiempo).
-  inflight ??= doFlush(endpoint).finally(() => { inflight = null; });
-  return inflight;
+  // En fila, nunca en paralelo (online + click al mismo tiempo). Cada envío lee los pendientes al empezar: el reporte
+  // guardado mientras otro envío está en curso sale en el siguiente, no espera al temporizador.
+  const p = cola.then(() => doFlush(endpoint));
+  cola = p.catch(() => undefined);
+  return p;
 }
 
 async function doFlush(endpoint: string): Promise<SyncResult> {

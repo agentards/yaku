@@ -196,7 +196,7 @@ export function arrancar() {
       aviso(r.added ? (navigator.onLine ? T.guardadoEnviando : T.guardado) : T.yaExistia);
       await recargar();
       ir('lista');
-      sincronizar();
+      void enviarYa();
     } finally { btn.disabled = false; }
   };
 
@@ -275,8 +275,17 @@ export function arrancar() {
 
   // ---------- sincronización + estado de vuelta + fotos ----------
   let enCurso: Promise<void> | null = null;
+  let otraVez = false;
+  /** El reporte nuevo (propio o recibido por QR) sale ya: solo POST /api/sync, sin esperar a una sincronización en
+   *  curso (p. ej. una foto subiendo por red lenta). Fotos, estados, cartas y avisos siguen en sincronizar(). */
+  async function enviarYa() {
+    if (navigator.onLine) { try { await flushQueue(DEFAULT_ENDPOINT); await recargar(); } catch { /* reintenta sincronizar() */ } }
+    void sincronizar();
+  }
   function sincronizar(manual = false): Promise<void> {
-    enCurso ??= (async () => {
+    // Si ya hay una en curso, se repite al terminar (antes se perdía y lo nuevo esperaba al temporizador de 20 s).
+    if (enCurso) { otraVez = true; return enCurso; }
+    enCurso = (async () => {
       if (!navigator.onLine) { render(); return; }
       if (manual) { $('pb-sync-txt').textContent = T.actualizando; }
       const r = await flushQueue(DEFAULT_ENDPOINT);
@@ -303,7 +312,7 @@ export function arrancar() {
       } catch { /* sin endpoint de avisos (p. ej. Cloudflare) o sin red */ }
       syncTxt = partes.join(' ') || (manual ? 'Todo al día.' : syncTxt);
       await recargar();
-    })().finally(() => { enCurso = null; });
+    })().finally(() => { enCurso = null; if (otraVez) { otraVez = false; void sincronizar(); } });
     return enCurso;
   }
 
@@ -420,7 +429,7 @@ export function arrancar() {
     l.hidden = false; l.textContent = T.listo(recibidos);
     txt.textContent = T.camaraLista;
     await recargar();
-    sincronizar();
+    void enviarYa();
   }
   $<HTMLInputElement>('pb-leer-in').onchange = async (e) => {
     const inp = e.target as HTMLInputElement;
