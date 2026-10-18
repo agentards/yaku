@@ -191,15 +191,16 @@ try {
   await A.waitForTimeout(150);
   check('Sin red: el chip dice SIN RED', (await A.textContent('#pb-red')) === 'SIN RED' && (await B.textContent('#pb-red')) === 'SIN RED');
 
-  // Accesibilidad básica: letra ≥ 18 px y áreas táctiles ≥ 48 px en lo que se toca
+  // Accesibilidad básica: letra ≥ 18 px y áreas táctiles ≥ 48 px en lo que se toca. La barra inferior es mínima a
+  // propósito (nombre de 14 px bajo un ícono, como en los celulares): ahí solo se exige ≥ 14 px, una línea y ≥ 48 px.
   const a11y = await A.evaluate(() => {
     const els = [...document.querySelectorAll('.pb button, .pb a, .pb label.pb-btn, .pb .pb-g span')].filter((e) => e.offsetParent);
-    const malos = els.map((e) => ({ t: (e.textContent || '').trim().slice(0, 20), f: parseFloat(getComputedStyle(e).fontSize), h: e.getBoundingClientRect().height }))
-      .filter((x) => x.f < 18 || x.h < 48);
+    const malos = els.map((e) => ({ t: (e.textContent || '').trim().slice(0, 20), f: parseFloat(getComputedStyle(e).fontSize), h: e.getBoundingClientRect().height, nav: !!e.closest('.pb-nav'), desborda: !!e.closest('.pb-nav') && e.querySelector('span').scrollWidth > e.querySelector('span').clientWidth }))
+      .filter((x) => (x.nav ? x.f < 14 : x.f < 18) || x.h < 48 || x.desborda);
     const ps = [...document.querySelectorAll('.pb h1, .pb p.pb-ayuda, .pb .pb-tipo span')].filter((e) => e.offsetParent).map((e) => parseFloat(getComputedStyle(e).fontSize));
     return { n: els.length, malos, minTexto: Math.min(...ps), scrollX: document.documentElement.scrollWidth > innerWidth };
   });
-  check('Letra ≥ 18 px y botones ≥ 48 px de alto; sin scroll horizontal', a11y.malos.length === 0 && a11y.minTexto >= 18 && !a11y.scrollX, a11y);
+  check('Letra ≥ 18 px (barra inferior ≥ 14 px, en una línea) y botones ≥ 48 px de alto; sin scroll horizontal', a11y.malos.length === 0 && a11y.minTexto >= 18 && !a11y.scrollX, a11y);
 
   // 2) A: casa dañada; luego personas atrapadas → aviso 116/105 PRIMERO
   await reportar(A, 'vivienda', { nota: 'pared rajada' });
