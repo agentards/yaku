@@ -5,16 +5,36 @@ import type { Pestana, Tienda } from './tienda';
 import { OBS_LABELS } from '../../codec';
 import { montarCapas } from './capas';
 import { eventosLinea } from './linea';
-import { fichasDe, fichasPorEstado, estadoEn, nivelTxt, type Ficha } from './datos';
+import { fichasDe, fichasPorEstado, estadoEn, nivelTxt, type Ficha, type ResumenEscenario } from './datos';
+import { ESCENARIO } from '../escenario';
 import { altitudTxt, coberturaTxt, dms, esc, estadoCentro, FUENTE_CENTRO, num } from './formato';
 import { fechaHora, ventanaSenamhi } from './tiempo';
 import { IC } from './iconos';
 
-const TITULOS: Record<Pestana, string> = { escenario: 'Escenario', campo: 'Campo · centros poblados', relevo: 'Relevo por QR' };
+const TITULOS: Record<Pestana, string> = { escenario: 'Escenario', campo: 'Campo · centros poblados', relevo: 'Relevo por QR', incidentes: 'Incidentes' };
 const ORIGEN: Record<string, string> = { local: 'creada en este equipo', qr: 'recibida por QR', enlace: 'recibida por enlace', imagen: 'recibida por imagen de QR' };
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 export interface AccionesPanel { reproducirRelevo(): void; cerrarCajon(): void }
+
+/** Resumen del escenario oficial (textos y cifras de ../escenario.ts; las cifras del JSON mandan si cargó). */
+export function resumenEscenarioHtml(r: ResumenEscenario | null, pronostico: string) {
+  const c = ESCENARIO.cifras;
+  return `
+      <div class="v3d-kpis">
+        <div class="v3d-kpi"><b>${num(r?.total ?? c.total)}</b><span>centros poblados del escenario CENEPRED</span></div>
+        <div class="v3d-kpi"><b>${num(r?.ubicados ?? c.ubicados)}</b><span>con ubicación IGN (en la escena)</span></div>
+        <div class="v3d-kpi acc"><b>${num(r?.sinCoberturaGarantizada ?? c.sinCobertura)}</b><span>de ${num(r?.conDatoOsiptel ?? c.conDatoOsiptel)} sin cobertura garantizada según OSIPTEL</span></div>
+      </div>
+      <dl class="v3d-dl">
+        <dt>Escenario</dt><dd>${esc(ESCENARIO.codigo)}</dd>
+        <dt>Vigencia</dt><dd>${esc(ESCENARIO.vigenciaFirma)}</dd>
+        <dt>Zona</dt><dd>${esc(ESCENARIO.zona)}</dd>
+        <dt>Pronóstico</dt><dd>${esc(pronostico)}</dd>
+        <dt>Sin punto IGN</dt><dd>${num(r?.sinUbicar ?? c.sinUbicar)} (${c.aproxOsiptel} aproximados con OSIPTEL, ${c.sinPunto} sin ubicar)</dd>
+      </dl>
+      <p class="v3d-nota">${esc(ESCENARIO.nota)}</p>`;
+}
 
 export function montarPanel(aside: HTMLElement, tienda: Tienda, escena: EscenaYaku, acc: AccionesPanel) {
   aside.innerHTML = `
@@ -63,20 +83,7 @@ export function montarPanel(aside: HTMLElement, tienda: Tienda, escena: EscenaYa
   function resumen() {
     const r = tienda.resumen;
     const v = ventanaSenamhi(tienda.ahora());
-    $('[data-resumen]').innerHTML = `
-      <div class="v3d-kpis">
-        <div class="v3d-kpi"><b>${num(r?.total ?? 1255)}</b><span>centros poblados del escenario CENEPRED</span></div>
-        <div class="v3d-kpi"><b>${num(r?.ubicados ?? 930)}</b><span>con ubicación IGN (en la escena)</span></div>
-        <div class="v3d-kpi acc"><b>${num(r?.sinCoberturaGarantizada ?? 445)}</b><span>de ${num(r?.conDatoOsiptel ?? 928)} sin cobertura garantizada según OSIPTEL</span></div>
-      </div>
-      <dl class="v3d-dl">
-        <dt>Escenario</dt><dd>CENEPRED/SIGRID 23077 · Aviso SENAMHI 421</dd>
-        <dt>Vigencia</dt><dd>17–19/10/2026 · firmado 16/10/2026</dd>
-        <dt>Zona</dt><dd>23 distritos andinos de Ayabaca, Huancabamba, Morropón y Sullana</dd>
-        <dt>Pronóstico</dt><dd>${esc(v.etiqueta)}</dd>
-        <dt>Sin punto IGN</dt><dd>${num(r?.sinUbicar ?? 325)} (317 aproximados con OSIPTEL, 8 sin ubicar)</dd>
-      </dl>
-      <p class="v3d-nota">Escenario hipotético basado en un pronóstico: nivel de exposición, no profundidad de agua ni daños observados. Cobertura móvil declarada por operadoras (OSIPTEL, datos abiertos, 2025-IV).</p>`;
+    $('[data-resumen]').innerHTML = resumenEscenarioHtml(r, v.etiqueta);
   }
   let evs: { t: number }[] = [];
   function eventos() {

@@ -1,16 +1,16 @@
 // Modelo de la línea de tiempo (sin DOM): rango, marcas, reloj de reproducción y eventos clave.
 import { OFFICIAL_LAYERS, forecastStatus } from '../../layers';
+import { ESCENARIO } from '../escenario';
 
 const H = 3600_000;
 const senamhi = OFFICIAL_LAYERS.find((l) => l.id === 'senamhi')!;
 /** Emisión del pronóstico SENAMHI usado por la capa (campo FECHA de la fuente). */
 export const SENAMHI_EMISION = Date.parse(senamhi.emision!);
 export const SENAMHI_VIGENCIA_H = senamhi.vigenciaH!;
-/** Escenario CENEPRED/SIGRID 23077 (Aviso 421): 17–19/10/2026, hora de Lima (UTC−5, sin horario de verano). */
-export const ESCENARIO_INICIO = Date.parse('2026-10-17T00:00:00-05:00');
-export const ESCENARIO_FIN = Date.parse('2026-10-20T00:00:00-05:00');
-/** Firmado el 16/10/2026 (la fuente no da hora: se ubica al inicio del día). */
-export const ESCENARIO_FIRMA = Date.parse('2026-10-16T00:00:00-05:00');
+/** Escenario CENEPRED/SIGRID 23077 (Aviso 421): fechas en ../escenario.ts (fuente única). */
+export const ESCENARIO_INICIO = ESCENARIO.inicio;
+export const ESCENARIO_FIN = ESCENARIO.fin;
+export const ESCENARIO_FIRMA = ESCENARIO.firma;
 
 export function ventanaSenamhi(now = Date.now()) {
   const fs = forecastStatus(senamhi.emision!, SENAMHI_VIGENCIA_H, now);

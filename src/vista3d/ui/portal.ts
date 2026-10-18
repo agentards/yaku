@@ -9,6 +9,7 @@ import { fichasDe, nivelTxt } from './datos';
 import { altitudTxt, coberturaTxt, dms, esc, estadoCentro, FUENTE_CENTRO, num, rumbo } from './formato';
 import { clamp, fechaHora } from './tiempo';
 import { IC } from './iconos';
+import { ESCENARIO } from '../escenario';
 
 const Z_MIN = 10, Z_MAX = 15.5, Z_INI = 12.6, PITCH = 62, GRADOS_POR_S = 6;
 const reducido = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -125,7 +126,7 @@ export function montarPortal(escenaEl: HTMLElement, escena: EscenaYaku, tienda: 
     const z = mini?.getZoom() ?? Z_INI;
     poner('tl', `<span class="rec">Portal de campo<span class="mod"> · modelo 3D</span></span><br><span class="nombre">${esc(cp.n)}</span><br>`
       + `<span class="dim">${esc(cp.d)} · ${esc(cp.pr)}</span><br><span class="dim">Pob. ${num(cp.pob)} · Excel CENEPRED</span>`);
-    poner('tr', `${esc(fechaHora(tienda.t))} · Lima<br><span class="dim">Escenario 17–19/10/2026</span><br>`
+    poner('tr', `${esc(fechaHora(tienda.t))} · Lima<br><span class="dim">Escenario ${esc(ESCENARIO.vigencia)}</span><br>`
       + `Este equipo: <span class="${tienda.red ? 'redon' : 'redoff'}">${tienda.red ? 'EN LÍNEA' : 'SIN RED'}</span>`);
     poner('bl', `Alt ${esc(altitudTxt(alt))}${alt !== null ? ' <span class="dim">· DEM ~300 m</span>' : ' <span class="dim">· DEM cargando</span>'}<br>`
       + `${esc(dms(cp.lat, cp.lon))}<br><span class="dim">${cp.lat.toFixed(5)}, ${cp.lon.toFixed(5)}</span>`);

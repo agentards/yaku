@@ -13,6 +13,7 @@ import { montarBandaRed } from './red';
 import { chipFuenteHtml, leyendaHtml, montarFuente } from './fuente';
 import { IC } from './iconos';
 import { num } from './formato';
+import { ESCENARIO } from '../escenario';
 
 export interface OpcionesVista3D {
   crearEscena: (cont: HTMLElement) => EscenaYaku;
@@ -32,8 +33,8 @@ export function montarInterfaz3D(opc: OpcionesVista3D) {
     <header class="v3d-top">
       <span class="v3d-logo">${IC.logo}Yaku 3D <small>relevo de campo</small></span>
       <span class="v3d-sep"></span>
-      <span class="v3d-esc" title="Escenario de riesgo CENEPRED/SIGRID 23077">Piura · Aviso 421 / FEN 2027</span>
-      <span class="v3d-lugar">23 distritos andinos · CENEPRED/SIGRID</span>
+      <span class="v3d-esc" title="${ESCENARIO.chipTitulo}">${ESCENARIO.chip}</span>
+      <span class="v3d-lugar">${ESCENARIO.lugar}</span>
       ${chipFuenteHtml()}
       <nav class="v3d-tabs" role="tablist" aria-label="Modo de la vista 3D">
         <button type="button" role="tab" data-tab="escenario" aria-selected="true" aria-controls="v3d-panel">${IC.capas}Escenario</button>
