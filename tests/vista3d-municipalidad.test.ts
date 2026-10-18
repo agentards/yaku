@@ -2,7 +2,7 @@
 // received_at, siembra inicial (lo que ya existía no se anima), «llegó hace N s» y el proxy local solo lectura.
 import { describe, it, expect } from 'vitest';
 import { DetectorNuevos, leerRespuesta, llegoHace, masNuevoPrimero, type ReporteApi } from '../src/vista3d/municipalidad/deteccion';
-import viteConfig from '../vite.config';
+import viteConfig, { proxyApi } from '../vite.config';
 
 const rep = (id: string, received_at: number, extra: Partial<ReporteApi> = {}): ReporteApi =>
   ({ id, type: 'agua', severity: 2, lat: -5.19, lon: -80.63, note: '', ts: Math.floor(received_at / 1000), received_at, ...extra });
@@ -75,14 +75,21 @@ describe('municipalidad: «llegó hace N s»', () => {
   });
 });
 
-describe('proxy local de /api: solo lectura hacia producción', () => {
+describe('proxy local de /api: servidor local por defecto; producción solo con YAKU_API=produccion y en solo lectura', () => {
   for (const modo of ['server', 'preview'] as const) {
-    it(`${modo}.proxy deja pasar GET/HEAD y corta POST/PUT/DELETE con 404`, () => {
+    it(`${modo}.proxy apunta al servidor local (lectura y escritura locales)`, () => {
       const p = (viteConfig as any)[modo].proxy['/api'];
-      expect(p.target).toBe('https://yaku-relay-proto.pages.dev');
-      expect(p.bypass({ method: 'GET' })).toBeUndefined();
-      expect(p.bypass({ method: 'HEAD' })).toBeUndefined();
-      for (const m of ['POST', 'PUT', 'PATCH', 'DELETE']) expect(p.bypass({ method: m })).toBe(false);
+      expect(p.target).toBe(process.env.YAKU_API === 'produccion' ? 'https://yaku-relay-proto.pages.dev' : process.env.YAKU_API_LOCAL || 'http://localhost:8080');
     });
   }
+  it('YAKU_API_LOCAL cambia el destino local', () => {
+    expect(proxyApi({ YAKU_API_LOCAL: 'http://127.0.0.1:9090' })['/api'].target).toBe('http://127.0.0.1:9090');
+  });
+  it('YAKU_API=produccion deja pasar GET/HEAD y corta POST/PUT/PATCH/DELETE con 404', () => {
+    const p = proxyApi({ YAKU_API: 'produccion' })['/api'] as any;
+    expect(p.target).toBe('https://yaku-relay-proto.pages.dev');
+    expect(p.bypass({ method: 'GET' })).toBeUndefined();
+    expect(p.bypass({ method: 'HEAD' })).toBeUndefined();
+    for (const m of ['POST', 'PUT', 'PATCH', 'DELETE']) expect(p.bypass({ method: m })).toBe(false);
+  });
 });
