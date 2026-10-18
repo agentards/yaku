@@ -1,0 +1,105 @@
+{
+  "fecha": "2026-10-18T01:28:24.761Z",
+  "servidor": "servidor-local real (SQLite temporal)",
+  "datos": "SIMULADO",
+  "pasos": [
+    {
+      "paso": 1,
+      "nombre": "A reporta sin red",
+      "ms": 538
+    },
+    {
+      "paso": 2,
+      "nombre": "Intercambiar A ↔ B",
+      "ms": 4031
+    },
+    {
+      "paso": 3,
+      "nombre": "B reporta lo mismo cerca",
+      "ms": 566
+    },
+    {
+      "paso": 4,
+      "nombre": "B recupera internet",
+      "ms": 284
+    },
+    {
+      "paso": 5,
+      "nombre": "Pantalla municipal muestra el incidente",
+      "ms": 741
+    },
+    {
+      "paso": 6,
+      "nombre": "Validar + Bomberos y acuse por QR",
+      "ms": 7308
+    }
+  ],
+  "checks": [
+    {
+      "name": "1 · A sin red: «Casa dañada» guardada en su celular",
+      "ok": true,
+      "mios": 1,
+      "pendientes": 1
+    },
+    {
+      "name": "2 · Intercambiar sin red: B ahora lleva el reporte de A",
+      "ok": true,
+      "ms": 1394,
+      "lector": "jsQR"
+    },
+    {
+      "name": "3 · B reporta cerca con foto: «2 vecinos lo reportan · 1 foto» en su celular",
+      "ok": true,
+      "resp": [
+        "2 vecinos lo reportan · 1 foto",
+        "2 vecinos lo reportan · 1 foto"
+      ]
+    },
+    {
+      "name": "4 · B con red: se sincroniza solo, 2 reportes en el servidor",
+      "ok": true,
+      "antes": 0,
+      "despues": 2
+    },
+    {
+      "name": "5 · Municipalidad: 1 incidente de casa dañada con «2 vecinos · 1 foto», rótulo vecinal, sin duplicados",
+      "ok": true,
+      "incidentes": 1,
+      "personas": 2,
+      "fotos": 1,
+      "puntaje": 75,
+      "tarjeta": "Reporte vecinal · por validar\nRespaldo 75 · N2\núltimo hace 1 s\n×\nCasa dañada o caída\n\n2 vecinos · 1 foto · primer reporte 20:28\n\nRespaldo\n2 vecinos lo reportan "
+    },
+    {
+      "name": "5 · El mapa 3D vuela al incidente",
+      "ok": true,
+      "fase": "acercamiento"
+    },
+    {
+      "name": "6 · Municipalidad valida + «Bomberos» con PIN; B lo ve tras sincronizar",
+      "ok": true
+    },
+    {
+      "name": "6 · A sigue sin red y recibe el estado por QR: «Bomberos asignados»",
+      "ok": true,
+      "ms": 3305,
+      "chipsA": [
+        "Bomberos asignados",
+        "Bomberos asignados"
+      ]
+    },
+    {
+      "name": "Cierre · A con red: el servidor sigue con 2 reportes (sin duplicados)",
+      "ok": true,
+      "total": 2
+    },
+    {
+      "name": "Cierre · Ninguna petición fuera de localhost",
+      "ok": true,
+      "externas": []
+    }
+  ],
+  "procedenciaMunicipalidad": null,
+  "resumen": "10/10",
+  "totalPasosS": 13.5
+}
