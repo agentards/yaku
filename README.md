@@ -28,7 +28,9 @@ Una sola imagen: la PWA compilada + un servidor Node con SQLite (`node:sqlite`).
 | `YAKU_MODO_ESTRICTO` | `0` (por defecto) | `1` activa las protecciones extra (ver Seguridad) |
 
 4. **Domains**: servicio `yaku`, host `yaku.lat`, **Container Port `8080`**, HTTPS activado con Let's Encrypt. Repetir con `www.yaku.lat` si se quiere.
-5. **Deploy**. En los logs debe aparecer `Yaku servidor local en http://localhost:8080`.
+5. **Deploy**. En los logs debe aparecer `Yaku servidor local en http://localhost:8080` y `Centro de monitoreo: usuario «central» (creado)`: el usuario se crea solo en el SQLite del volumen al arrancar (y se actualiza si cambia `MUNI_CLAVE`).
+
+Antes de desplegar, `npm run qa:despliegue` simula los despliegues de Dokploy (variables resueltas con `docker compose config`, el mismo servidor empaquetado y un volumen temporal): primero, redespliegue, cambio de contraseña, `MUNI_CLAVE` vacía y sin `MUNI_PIN`. Después, `npm run qa:produccion -- https://yaku.lat` revisa producción sin escribir datos; con la contraseña en `YAKU_CLAVE` prueba también la sesión completa.
 
 Requisitos del VPS: unos 2 GB de RAM para compilar la imagen (o swap).
 
