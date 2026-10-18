@@ -30,6 +30,8 @@ export interface Reglas {
   gravedad: string[];
   /** Vida primero en la bandeja. */
   riesgoVida: string[];
+  /** Marca «tiene foto» al final de la nota (= MARCA_FOTO de src/poblador/tipos.ts). Suma 0 hasta recibir la imagen. */
+  marcaFoto: string;
 }
 
 export const REGLAS: Reglas = {
@@ -49,6 +51,7 @@ export const REGLAS: Reglas = {
   niveles: { n2: 45, n3: 80 },
   gravedad: ['atrapados', 'heridos', 'vivienda', 'huaico', 'via_bloq', 'cauce', 'agua', 'ayuda', 'otro'],
   riesgoVida: ['atrapados', 'heridos'],
+  marcaFoto: '(con foto)',
 };
 
 /** Reglas por defecto con cambios parciales (p. ej. desde la variable YAKU_REGLAS en JSON). */

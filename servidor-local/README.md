@@ -6,7 +6,7 @@ Un solo proceso Node (≥ 22.13; probado con 26.1) que sirve la PWA compilada (`
 ```bash
 npm run servidor          # vite build + empaqueta + levanta http://localhost:8080
 npm run servidor:dev      # sin compilar: node servidor-local/servidor.ts (usa el dist/ que haya)
-npm run test:servidor     # 33 tests (agrupación, respaldo, idempotencia, estados, fotos, HTTP real)
+npm run test:servidor     # 46 tests (los 7 de §3 en lógica pura y por SQLite real, respaldo, prioridad, estados, fotos, HTTP)
 ```
 Si no defines `MUNI_PIN`, la consola muestra un **PIN temporal** al arrancar. Datos en `servidor-local/datos/` (gitignored: `yaku.db` y `fotos/`).
 
@@ -23,7 +23,7 @@ Si no defines `MUNI_PIN`, la consola muestra un **PIN temporal** al arrancar. Da
 |---|---|
 | `POST /api/sync` | **Mismo contrato que `server/worker.ts`**: `{records:[...]}` (texto JSON, ≤ 128 KB, ≤ 200) → `{accepted, inserted, duplicates, rejected, persisted}`. Recalcula el id y hace `INSERT OR IGNORE`: idempotente. Asigna cada reporte nuevo a un incidente |
 | `GET /api/reports[?ids=…&limit=]` · `GET /api/stats` | Igual que el Worker (stats agrega `incidentes`) |
-| `GET /api/incidentes` | Incidentes ordenados por prioridad con `personas`, `reportes`, `fotos`, `puntaje` (= respaldo 0–100), `nivel` N1–N3, `desglose`, `estado`, `accion`, `historial` (quién y cuándo), `recurrencia_de`, `nuevos_tras_descarte` |
+| `GET /api/incidentes` | Incidentes ordenados por prioridad con `personas`, `reportes`, `fotos`, `puntaje` (= respaldo 0–100), `nivel` N1–N3, `desglose`, `fotos_pendientes` (marcaron «(con foto)» y la imagen no llegó: suman 0), `estado`, `accion`, `historial` (quién y cuándo), `recurrencia_de`, `nuevos_tras_descarte` |
 | `POST /api/fotos` | `{reportId, data: base64 o dataURL}` o binario `image/*` con `?reporte=`. ≤ 400 KB, solo JPEG/PNG/WebP (bytes mágicos). Id = hash del contenido (idempotente) |
 | `GET /api/fotos/:id` | La imagen |
 | `POST /api/incidentes/:id/estado` | PIN. `{estado, quien, accion?, motivo?}`. Flujo `nuevo → en_revision → validado / descartado(motivo) → accion_asignada(rescate, bomberos, provisiones, maquinaria, edan) → atendido`. 401 sin PIN, 403 PIN malo, 409 salto no permitido |

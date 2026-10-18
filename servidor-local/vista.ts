@@ -11,6 +11,8 @@ export interface IncidenteVista {
   lat: number; lon: number; ancla: { lat: number; lon: number };
   personas: number; reportes: number; n_reportes: number; reportes_ids: string[]; notas: string[];
   fotos: string[]; n_fotos: number; personas_con_foto: number;
+  /** Personas que marcaron «(con foto)» y cuya imagen aún no llegó al servidor: suman 0 al respaldo. */
+  fotos_pendientes: number;
   primer_reporte: number; ultimo_reporte: number; recibido: number;
   /** Respaldo 0–100 (decision-confianza.md §2.1). Congelado al validar. */
   puntaje: number; respaldo: number; nivel: Respaldo['nivel']; desglose: Respaldo['desglose']; respaldo_congelado: boolean;
@@ -37,6 +39,9 @@ export function armarIncidentes(t: Todo, ahora: number, reglas: Reglas): Inciden
     if (inc.unido_a || !miembros?.length) continue;
     const fotos = miembros.flatMap((m) => fotosDeRep.get(m.id) ?? []);
     const conFoto = new Set(miembros.filter((m) => fotosDeRep.has(m.id)).map((m) => m.device_id));
+    // La foto vale cuando llega (§2.1): la marca sola no suma, se muestra como pendiente (1 por dispositivo).
+    const marcaron = new Set(miembros.filter((m) => m.note.trim().endsWith(reglas.marcaFoto)).map((m) => m.device_id));
+    const pendientes = [...marcaron].filter((d) => !conFoto.has(d)).length;
     const r = respaldo({ familia: inc.familia, anclaLat: inc.ancla_lat, anclaLon: inc.ancla_lon, miembros }, conFoto, ahora, reglas);
     const hist = histDe.get(inc.id) ?? [];
     const actual = hist.at(-1);
@@ -53,7 +58,7 @@ export function armarIncidentes(t: Todo, ahora: number, reglas: Reglas): Inciden
       lat: inc.ancla_lat, lon: inc.ancla_lon, ancla: { lat: inc.ancla_lat, lon: inc.ancla_lon },
       personas: r.personas, reportes: miembros.length, n_reportes: miembros.length, reportes_ids: miembros.map((m) => m.id),
       notas: miembros.map((m) => m.note.trim()).filter(Boolean),
-      fotos, n_fotos: fotos.length, personas_con_foto: r.personasConFoto,
+      fotos, n_fotos: fotos.length, personas_con_foto: r.personasConFoto, fotos_pendientes: pendientes,
       primer_reporte: Math.min(...miembros.map((m) => horaMs(m, reglas))), ultimo_reporte: r.ultimo,
       recibido: Math.max(...miembros.map((m) => m.received_at)),
       puntaje, respaldo: puntaje, nivel: validacion ? nivelDe(puntaje, reglas) : r.nivel, desglose: r.desglose,
