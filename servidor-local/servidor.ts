@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
 import { Almacen } from './almacen.ts';
 import { CABECERA_IP, crearApi } from './api.ts';
 import { cargarFirmante } from './avisos.ts';
+import { asegurarUsuario } from './usuarios.ts';
 import { servirEstatico } from './estaticos.ts';
 import { conCambios, REGLAS } from './reglas.ts';
 
@@ -35,6 +36,8 @@ function ipCliente(req: http.IncomingMessage): string {
 
 export interface Opciones {
   puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean; estricto?: boolean;
+  /** Usuario y contraseña de la municipalidad (por defecto MUNI_USUARIO / MUNI_CLAVE o el PIN). */
+  usuario?: string; clave?: string;
 }
 
 export function iniciar(o: Opciones = {}) {
@@ -52,7 +55,12 @@ export function iniciar(o: Opciones = {}) {
   const almacen = new Almacen(path.join(datos, 'yaku.db'), conCambios(REGLAS, cambios));
   // Por defecto (MVP) solo el PIN. YAKU_MODO_ESTRICTO=1 suma bloqueo por intentos (10 fallos en 10 min → 5 min),
   // histórico privado, límites de escritura, cuotas de fotos, sin CORS y cabeceras de seguridad.
-  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto, firmante: cargarFirmante(datos) });
+  // Usuario de la municipalidad: MUNI_USUARIO (central) con la contraseña MUNI_CLAVE, o MUNI_PIN si no hay MUNI_CLAVE.
+  const usuarioMuni = (o.usuario ?? env.MUNI_USUARIO ?? 'central').trim().toLowerCase();
+  const claveMuni = o.clave ?? env.MUNI_CLAVE ?? pin;
+  const cambio = asegurarUsuario(almacen, { usuario: usuarioMuni, nombre: env.MUNI_NOMBRE?.trim() || 'Municipio central', clave: claveMuni }, Date.now());
+  const sesionHoras = Number(env.YAKU_SESION_HORAS ?? 72);
+  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto, firmante: cargarFirmante(datos), sesionHoras: Number.isFinite(sesionHoras) ? sesionHoras : 72 });
 
   const server = http.createServer(async (req, res) => {
     res.setHeader('x-content-type-options', 'nosniff');
@@ -92,6 +100,7 @@ export function iniciar(o: Opciones = {}) {
   if (!o.silencioso) listo.then((p) => {
     console.log(`Yaku servidor local en http://localhost:${p}  (dist: ${dist}, datos: ${datos})`);
     if (!fs.existsSync(path.join(dist, 'index.html'))) console.warn('  Ojo: no hay dist/index.html → corre «npm run build» (la API funciona igual).');
+    console.log(`  Centro de monitoreo: usuario «${usuarioMuni}» (${cambio === 'igual' ? 'contraseña sin cambios' : cambio === 'creado' ? 'creado' : 'contraseña actualizada: se cerraron sus sesiones'}).`);
     console.log(pinTemporal ? `  MUNI_PIN no definido: PIN temporal de esta sesión = ${pin}` : '  MUNI_PIN definido por variable de entorno.');
   });
   const cerrar = () => new Promise<void>((ok) => server.close(() => { almacen.cerrar(); ok(); }));

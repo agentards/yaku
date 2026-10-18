@@ -10,6 +10,10 @@ services:
       - "8080"
     environment:
       MUNI_PIN: ${MUNI_PIN:?Define MUNI_PIN en Dokploy → Environment}
+      MUNI_USUARIO: ${MUNI_USUARIO:-central}
+      MUNI_CLAVE: ${MUNI_CLAVE:-}
+      MUNI_NOMBRE: ${MUNI_NOMBRE:-Municipio central}
+      YAKU_SESION_HORAS: ${YAKU_SESION_HORAS:-72}
       YAKU_MODO_ESTRICTO: ${YAKU_MODO_ESTRICTO:-0}
       PORT: "8080"
       YAKU_DATOS: /datos

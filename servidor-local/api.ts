@@ -8,6 +8,7 @@ import type { Almacen } from './almacen.ts';
 import { idAviso, limpiarTexto, redondear, type AccionAviso, type Firmante } from './avisos.ts';
 import { validarCambio } from './estados.ts';
 import { limpiar, sinTildes, validarCarta } from './cartas.ts';
+import { claveOk, hashToken, nuevoToken, TOKEN } from './usuarios.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
 // CORS abierto como en el Worker (modo MVP); en modo estricto se quita (la API y la PWA comparten origen).
@@ -43,6 +44,8 @@ export interface OpcionesApi {
   /** false (por defecto, MVP): solo el PIN protege lo de la municipalidad. true: además bloqueo por intentos de PIN,
    *  histórico privado, límites de escritura, cuotas de fotos y sin CORS. Cada límite se puede fijar aparte abajo. */
   estricto?: boolean;
+  /** Horas que dura una sesión del Centro de monitoreo (por defecto 72). */
+  sesionHoras?: number;
   /** Firma los avisos de la municipalidad (sin firmante no se crean avisos). */
   firmante?: Firmante;
   /** Bloqueo por PIN incorrecto: tras `max` fallos dentro de `ventanaMs`, esa IP espera `bloqueoMs` (429). max 0 = sin bloqueo. */
@@ -55,8 +58,8 @@ export interface OpcionesApi {
 /** IP del cliente: la pone servidor.ts en esta cabecera (pisa cualquier valor que mande el cliente). */
 export const CABECERA_IP = 'x-yaku-ip';
 const ipDe = (req: Request) => req.headers.get(CABECERA_IP) || 'desconocida';
-/** Quién hizo la petición protegida (hoy siempre el PIN municipal). */
-export interface Acceso { modo: 'pin'; usuario: string; rol: 'operador' }
+/** Quién hizo la petición protegida: un usuario con sesión (token) o el PIN municipal (compatibilidad). */
+export interface Acceso { modo: 'usuario' | 'pin'; usuario: string; rol: 'operador' }
 export const MAX_HISTORICO = 5000;
 
 export function crearApi(op: OpcionesApi) {
@@ -76,22 +79,37 @@ export function crearApi(op: OpcionesApi) {
   const podar = <V>(m: Map<string, V>, vencido: (v: V) => boolean) => { if (m.size > 5000) for (const [k, v] of m) if (vencido(v)) m.delete(k); };
   const esperar = (ms: number, error: string) => json({ error, codigo: 'limite' }, 429, { 'retry-after': String(Math.ceil(ms / 1000)) });
 
-  /** Acceso si el PIN municipal vale; si no, 401 (falta), 403 (incorrecto) o 429 (demasiados intentos desde esa IP). */
-  const autenticar = async (req: Request): Promise<Acceso | Response> => {
-    const ip = ipDe(req), t = ahora();
+  /** Bloqueo por credencial incorrecta (solo en modo estricto): null si la IP puede intentar. */
+  const bloqueada = (ip: string, t: number) => { const f = fallos.get(ip); return f && f.hasta > t ? esperar(f.hasta - t, 'demasiados intentos con PIN o contraseña incorrectos: espera unos minutos') : null; };
+  const fallo = (ip: string, t: number) => {
+    if (LIM.max <= 0) return;
     const f = fallos.get(ip);
-    if (f && f.hasta > t) return esperar(f.hasta - t, 'demasiados intentos con PIN incorrecto: espera unos minutos');
-    const p = req.headers.get('x-muni-pin');
-    if (!p) return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)', codigo: 'sin_credencial' }, 401);
-    if (pinOk(p)) { fallos.delete(ip); return { modo: 'pin', usuario: 'pin', rol: 'operador' }; }
-    if (LIM.max <= 0) return json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
     const g = f && t - f.desde <= LIM.ventanaMs ? f : { n: 0, desde: t, hasta: 0 };
     g.n++;
-    if (g.n >= LIM.max) { g.hasta = t + LIM.bloqueoMs; console.warn(`PIN incorrecto ${g.n} veces desde ${ip}: bloqueada ${Math.round(LIM.bloqueoMs / 60_000)} min`); }
+    if (g.n >= LIM.max) { g.hasta = t + LIM.bloqueoMs; console.warn(`credencial incorrecta ${g.n} veces desde ${ip}: bloqueada ${Math.round(LIM.bloqueoMs / 60_000)} min`); }
     fallos.set(ip, g);
     podar(fallos, (v) => v.hasta <= t && t - v.desde > LIM.ventanaMs);
+  };
+  const tokenDe = (req: Request) => /^Bearer\s+(\S+)$/i.exec(req.headers.get('authorization') ?? '')?.[1] ?? null;
+
+  /** Acceso con sesión (Authorization: Bearer <token>) o con el PIN municipal (X-Muni-Pin). 401 falta o venció,
+   *  403 incorrecto, 429 demasiados intentos desde esa IP (modo estricto). */
+  const autenticar = async (req: Request): Promise<Acceso | Response> => {
+    const ip = ipDe(req), t = ahora();
+    const token = tokenDe(req);
+    if (token) {
+      const s = TOKEN.test(token) ? A.sesion(hashToken(token), t) : null;
+      return s ? { modo: 'usuario', usuario: s.usuario, rol: 'operador' } : json({ error: 'la sesión venció o se cerró: vuelve a entrar', codigo: 'sesion' }, 401);
+    }
+    const b = bloqueada(ip, t);
+    if (b) return b;
+    const p = req.headers.get('x-muni-pin');
+    if (!p) return json({ error: 'falta iniciar sesión (o el PIN municipal)', codigo: 'sin_credencial' }, 401);
+    if (pinOk(p)) { fallos.delete(ip); return { modo: 'pin', usuario: 'pin', rol: 'operador' }; }
+    fallo(ip, t);
     return json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
   };
+  const HORAS = Math.max(1, op.sesionHoras ?? 72);
   /** null si la IP aún puede escribir en lo público; si no, 429. */
   const limitePost = (req: Request): Response | null => {
     if (POSTS_MIN <= 0) return null;
@@ -225,7 +243,7 @@ export function crearApi(op: OpcionesApi) {
   async function responder(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const p = url.pathname;
-    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: estricto ? {} : { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-muni-pin' } });
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: estricto ? {} : { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, DELETE', 'access-control-allow-headers': 'content-type, x-muni-pin, authorization' } });
     try {
       if (req.method === 'POST' && (p === '/api/sync' || p === '/api/fotos' || p === '/api/cartas')) { const lim = limitePost(req); if (lim) return lim; }
       // «Estoy bien»: los celulares suben las cartas que llevan; la familia busca por nombre (nunca hay listado completo).
@@ -248,6 +266,28 @@ export function crearApi(op: OpcionesApi) {
         return json({ count: cartas.length, cartas, nota: 'Lo escribió quien firma; la municipalidad no lo verifica' });
       }
       if (p === '/api/sync' && req.method === 'POST') return await sync(req);
+      // Sesión del Centro de monitoreo: usuario + contraseña → token (dura HORAS); el navegador lo guarda.
+      if (p === '/api/sesion' && req.method === 'POST') {
+        const ip = ipDe(req), t = ahora();
+        const b = bloqueada(ip, t);
+        if (b) return b;
+        const body = await leerJson(req, 2048);
+        if (body instanceof Response) return body;
+        const usuario = String(body?.usuario ?? '').trim().toLowerCase(), clave = String(body?.clave ?? '');
+        const u = usuario && clave ? A.usuario(usuario) : null;
+        if (!u || !claveOk(clave, u.sal, u.hash)) { fallo(ip, t); return json({ error: 'usuario o contraseña incorrectos', codigo: 'credencial' }, 403); }
+        fallos.delete(ip);
+        const token = nuevoToken(), expira = t + HORAS * 3_600_000;
+        A.crearSesion({ token_hash: hashToken(token), usuario: u.usuario, nombre: u.nombre, creada_at: t, expira_at: expira });
+        return json({ token, usuario: u.usuario, nombre: u.nombre, expira });
+      }
+      if (p === '/api/sesion' && (req.method === 'GET' || req.method === 'DELETE')) {
+        const token = tokenDe(req);
+        const s = token && TOKEN.test(token) ? A.sesion(hashToken(token), ahora()) : null;
+        if (!s) return json({ error: 'sin sesión', codigo: 'sesion' }, 401);
+        if (req.method === 'DELETE') { A.cerrarSesion(hashToken(token!)); return json({ ok: true }); }
+        return json({ usuario: s.usuario, nombre: s.nombre, expira: s.expira_at });
+      }
       if (p === '/api/stats' && req.method === 'GET') {
         const { lista } = incidentes();
         return json({ ...A.stats(), verified: false, incidentes: lista.length, cartas: A.totalCartas(), servidor: 'local' });

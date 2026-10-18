@@ -1,6 +1,6 @@
-// Acceso del Centro de monitoreo (src/auth/sesion.ts): nombre + PIN municipal.
+// Acceso del Centro de monitoreo (src/auth/sesion.ts): usuario + contraseña con sesión guardada, y el PIN de respaldo.
 import { describe, it, expect, vi } from 'vitest';
-import { entrarConPin, sesionPin, ROTULO_PIN, type Pedir } from '../src/auth/sesion';
+import { entrarConPin, sesionPin, ROTULO_PIN, entrar, restaurarSesion, sesionGuardada, type Pedir } from '../src/auth/sesion';
 
 
 describe('acceso con PIN', () => {
@@ -45,7 +45,7 @@ describe('acceso con PIN', () => {
     const pedir = vi.fn<Pedir>(async () => ({ status: 200 }));
     expect((await entrarConPin({ nombre: '  ', pin: '1' }, { pedir })).ok).toBe(false);
     expect((await entrarConPin({ nombre: 'Rosa', pin: '' }, { pedir })).ok).toBe(false);
-    expect((await entrarConPin({ nombre: 'Rosa', pin: 'x'.repeat(33) }, { pedir })).ok).toBe(false);
+    expect((await entrarConPin({ nombre: 'Rosa', pin: 'x'.repeat(65) }, { pedir })).ok).toBe(false);
     expect(pedir).not.toHaveBeenCalled();
   });
 
@@ -55,5 +55,37 @@ describe('acceso con PIN', () => {
     await s.salir();
     expect(alSalir).toHaveBeenCalledOnce();
     await expect(s.cabeceras()).rejects.toThrow(/cerrada/);
+  });
+});
+
+describe('usuario + contraseña con sesión guardada en el equipo', () => {
+  const memoria = new Map<string, string>();
+  vi.stubGlobal('localStorage', { getItem: (k: string) => memoria.get(k) ?? null, setItem: (k: string, v: string) => void memoria.set(k, v), removeItem: (k: string) => void memoria.delete(k) });
+  const expira = Date.now() + 3_600_000;
+  const ok: Pedir = async (url, init) => url === '/api/sesion' && init.method === 'POST'
+    ? { status: 200, json: async () => ({ token: 't'.repeat(43), usuario: 'central', nombre: 'Municipio central', expira }) }
+    : { status: 200, json: async () => ({ usuario: 'central', nombre: 'Municipio central', expira }) };
+
+  it('entra con usuario y contraseña, guarda el token y manda Bearer en cada consulta', async () => {
+    const r = await entrar({ usuario: ' Central ', clave: 'secreta', nombre: 'Rosa' }, { pedir: ok });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.sesion).toMatchObject({ modo: 'usuario', nombre: 'Rosa', usuarioId: 'central' });
+    expect(await r.sesion.cabeceras()).toEqual({ authorization: 'Bearer ' + 't'.repeat(43) });
+    expect(sesionGuardada()?.token).toBe('t'.repeat(43));
+  });
+  it('al recargar o cambiar de región restaura la sesión sin pedir la contraseña', async () => {
+    const s = await restaurarSesion({ pedir: ok });
+    expect(s?.modo).toBe('usuario');
+    expect(s?.nombre).toBe('Rosa');
+  });
+  it('si el servidor dice que venció (401), se borra y vuelve a pedir el acceso', async () => {
+    expect(await restaurarSesion({ pedir: async () => ({ status: 401 }) })).toBeNull();
+    expect(sesionGuardada()).toBeNull();
+  });
+  it('contraseña mala → mensaje claro; servidor sin usuarios (404) → entra con el PIN como antes', async () => {
+    expect(await entrar({ usuario: 'central', clave: 'mala' }, { pedir: async () => ({ status: 403 }) })).toEqual({ ok: false, error: 'Usuario o contraseña incorrectos.' });
+    const r = await entrar({ usuario: 'central', clave: '4321', nombre: 'Rosa' }, { pedir: async (url) => ({ status: url === '/api/sesion' ? 404 : 200 }) });
+    expect(r.ok && r.sesion.modo).toBe('pin');
   });
 });

@@ -1,5 +1,5 @@
 // E2E del «Yaku 3D · Centro de monitoreo» (/municipalidad; /?vista=incidentes|municipalidad|portal redirigen) contra el SERVIDOR LOCAL REAL
-// (servidor-local/, SQLite temporal fuera del repo) con acceso por PIN. Criterios de
+// (servidor-local/, SQLite temporal fuera del repo) con acceso por usuario + contraseña (sesión guardada). Criterios de
 // el plan del Centro de monitoreo: login → 2 reportes cercanos de 2 dispositivos = 1 incidente «2 vecinos» →
 // vuelo + tarjeta + sonido → Validar + «Bomberos» persiste tras recargar → el poblador ve «Bomberos asignados» por
 // /api/estado → la línea de tiempo muestra los 2 reportes y el cambio de estado → cero peticiones a CDN externos.
@@ -20,7 +20,7 @@ const CHROME = process.env.CHROME || (process.platform === 'win32' ? 'C:/Program
 const DATOS = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-e2e-mon-'));
 const PIN = 'e2e-' + Math.random().toString(36).slice(2, 8);
 fs.mkdirSync(OUT, { recursive: true }); fs.mkdirSync(EVID, { recursive: true });
-const res = { fecha: new Date().toISOString(), servidor: 'servidor-local (SQLite temporal, modo PIN)', checks: [] };
+const res = { fecha: new Date().toISOString(), servidor: 'servidor-local (SQLite temporal, usuario + sesión)', checks: [] };
 const check = (name, ok, detail = {}) => { res.checks.push({ name, ok, ...detail }); console.log(`${ok ? '✅' : '❌'} ${name}`, JSON.stringify(detail).slice(0, 400)); };
 
 const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: PIN, silencioso: true });
@@ -51,12 +51,12 @@ try {
   page.on('request', (r) => {
     const u = new URL(r.url());
     if (!['localhost', '127.0.0.1'].includes(u.hostname) && !['data:', 'blob:'].includes(u.protocol)) externas.push(r.url());
-    if (u.pathname.startsWith('/api/')) apiPet.push({ m: r.method(), p: u.pathname + (u.search.includes('desde') ? '?desde' : ''), pin: r.headers()['x-muni-pin'] === PIN });
+    if (u.pathname.startsWith('/api/')) apiPet.push({ m: r.method(), p: u.pathname + (u.search.includes('desde') ? '?desde' : ''), pin: /^Bearer [A-Za-z0-9_-]{43}$/.test(r.headers()['authorization'] ?? '') || r.headers()['x-muni-pin'] === PIN });
   });
   const est = () => page.evaluate(() => window.__yakuMonitoreo.estado());
   const esperar = (fn, arg, ms = 10000) => page.waitForFunction(fn, arg, { timeout: ms });
 
-  // 1) Acceso con PIN → Centro de monitoreo con el histórico real.
+  // 1) Acceso con usuario «central» + contraseña → Centro de monitoreo con el histórico real.
   await page.goto(BASE + 'municipalidad');
   const textoAcceso = await page.locator('.ycm-acc').innerText({ timeout: 30000 });
   await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
@@ -65,7 +65,7 @@ try {
   await esperar(() => document.body.dataset.v3d === 'listo', null, 30000);
   const s0 = await est();
   const tPrevio = (await api(`/api/reports?ids=${PREVIO.id}`)).body.reports[0].received_at;
-  check('login con «Acceso del personal municipal» (nombre + PIN) y sesión en la cabecera', /Acceso del personal municipal/.test(textoAcceso) && s0.sesion.modo === 'pin' && /PIN · Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()), { sesion: s0.sesion });
+  check('login con «Acceso del personal municipal» (usuario + contraseña) y sesión en la cabecera', /Acceso del personal municipal/.test(textoAcceso) && s0.sesion.modo === 'usuario' && /Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()), { sesion: s0.sesion });
   const cab = (await page.locator('.v3d-top').innerText()).replace(/\s+/g, ' ');
   check('cabecera: «Yaku 3D · Centro de monitoreo», chip del escenario, «En vivo · consulta cada 3 s», pestañas Incidentes · Campo · Escenario, Vista 2D',
     /Yaku 3D · Centro de monitoreo/.test(cab) && /Aviso 421/.test(cab) && /En vivo · consulta cada 3 s · \d\d:\d\d:\d\d/.test(cab) && /Incidentes/.test(cab) && /Campo/.test(cab) && /Escenario/.test(cab) && /Vista 2D/.test(cab), { cab });
@@ -118,18 +118,18 @@ try {
   await page.click('[data-dlg-confirmar] button[value="ok"]');
   await esperar((id) => window.__yakuMonitoreo.estado().incidentes.find((i) => i.id === id)?.accion === 'bomberos', incA.id);
   const srvInc = (await incidentes()).find((i) => i.id === incA.id);
-  check('servidor: en revisión → validado → bomberos, con quién y cuándo (cabecera X-Muni-Pin)', srvInc.estado === 'accion_asignada' && srvInc.accion === 'bomberos' && srvInc.historial.map((h) => h.estado).join('>') === 'en_revision>validado>accion_asignada' && srvInc.historial.every((h) => h.quien === 'Operador SIMULADO')
-    && apiPet.filter((p) => p.m === 'POST').every((p) => p.pin), { historial: srvInc.historial.map((h) => h.estado) });
+  check('servidor: en revisión → validado → bomberos, con quién y cuándo (token de sesión)', srvInc.estado === 'accion_asignada' && srvInc.accion === 'bomberos' && srvInc.historial.map((h) => h.estado).join('>') === 'en_revision>validado>accion_asignada' && srvInc.historial.every((h) => h.quien === 'Operador SIMULADO')
+    && apiPet.filter((p) => p.m === 'POST' && p.p !== '/api/sesion').every((p) => p.pin), { historial: srvInc.historial.map((h) => h.estado) });
   const acuse = (await api(`/api/estado?ids=${B.id}`)).body?.estados?.[0];
   const textoPoblador = ESTADO_POBLADOR.accion(acuse?.accion);
   check('el poblador ve «Bomberos asignados» en /api/estado', acuse?.estado === 'accion_asignada' && acuse?.accion === 'bomberos' && /Bomberos asignados/.test(textoPoblador), { acuse, textoPoblador });
   await page.waitForTimeout(800);
   await foto(page, '4-bomberos');
 
-  // 5) Persistencia: recargar (vuelve a pedir acceso) mantiene estado y acción (SQLite).
+  // 5) Persistencia: recargar NO vuelve a pedir acceso (token guardado) y mantiene estado y acción (SQLite).
   await page.reload();
-  await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
   await esperar(() => window.__yakuMonitoreo?.estado().sembrado, null, 30000);
+  check('al recargar no vuelve a pedir la contraseña', (await page.locator('.ycm-acc-pin').count()) === 0 && /Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()));
   const s5 = await est();
   const i5 = s5.incidentes.find((i) => i.id === incA.id);
   check('Validar + «Bomberos» persiste tras recargar', i5?.estado === 'accion_asignada' && i5?.accion === 'bomberos' && /Bomberos asignados/.test(await page.locator('[data-lista]').innerText()), { i5 });
@@ -191,8 +191,7 @@ try {
   // 9) Enlaces viejos: /?vista=municipalidad y /?vista=portal redirigen a /municipalidad (portal → pestaña Escenario).
   for (const v of ['municipalidad', 'portal']) {
     const pg = await ctx.newPage();
-    await pg.goto(BASE + '?vista=' + v);
-    await accederConPin(pg, { pin: PIN });
+    await pg.goto(BASE + '?vista=' + v); // misma sesión guardada: no vuelve a pedir acceso
     await pg.waitForFunction(() => window.__yakuMonitoreo?.estado().sembrado, null, { timeout: 30000 });
     const pe = await pg.evaluate(() => window.__yakuMonitoreo.tienda.pestana);
     const ruta = new URL(pg.url()).pathname;

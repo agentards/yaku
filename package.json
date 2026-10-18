@@ -26,7 +26,8 @@
     "servidor:dev": "node servidor-local/servidor.ts",
     "build:servidor": "node servidor-local/empaquetar.mjs",
     "test:servidor": "node --test \"servidor-local/pruebas/*.test.ts\"",
-    "typecheck:servidor": "tsc --noEmit -p servidor-local"
+    "typecheck:servidor": "tsc --noEmit -p servidor-local",
+    "e2e:sesion": "vite build && node scripts/e2e-sesion.mjs"
   },
   "keywords": [],
   "author": "",

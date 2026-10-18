@@ -23,7 +23,8 @@ Una sola imagen: la PWA compilada + un servidor Node con SQLite (`node:sqlite`).
 
 | Variable | Valor | Nota |
 |---|---|---|
-| `MUNI_PIN` | el que acuerden | **Obligatoria y secreta.** Es el PIN que se escribe en `/municipalidad` (el mismo para todos) |
+| `MUNI_CLAVE` | contraseña larga | **Secreta.** Contraseña del usuario `central` (`MUNI_USUARIO`) para entrar a `/municipalidad`. La sesión queda guardada en el equipo 72 h (`YAKU_SESION_HORAS`) |
+| `MUNI_PIN` | otro secreto | **Obligatoria.** Respaldo (versión sin usuarios) y contraseña de `central` si `MUNI_CLAVE` está vacía |
 | `YAKU_MODO_ESTRICTO` | `0` (por defecto) | `1` activa las protecciones extra (ver Seguridad) |
 
 4. **Domains**: servicio `yaku`, host `yaku.lat`, **Container Port `8080`**, HTTPS activado con Let's Encrypt. Repetir con `www.yaku.lat` si se quiere.
@@ -32,7 +33,8 @@ Una sola imagen: la PWA compilada + un servidor Node con SQLite (`node:sqlite`).
 Requisitos del VPS: unos 2 GB de RAM para compilar la imagen (o swap).
 
 ## Seguridad
-- **Por defecto (MVP): solo el PIN.** Incidentes, fotos y cambios de estado exigen `MUNI_PIN` (cabecera `X-Muni-Pin`); no hay bloqueo por intentos ni límites.
+- **Acceso:** usuario + contraseña (scrypt en SQLite) → token de sesión (el navegador guarda el token, el servidor solo su hash). Incidentes, fotos y cambios de estado exigen `Authorization: Bearer <token>` o, como respaldo, `X-Muni-Pin`. «Salir» cierra la sesión; cambiar `MUNI_CLAVE` cierra todas.
+- **Por defecto (MVP)** no hay bloqueo por intentos ni límites.
 - `YAKU_MODO_ESTRICTO=1` (para producción real): 10 PIN incorrectos seguidos desde una IP → 5 min de espera, histórico de reportes solo con PIN, límites de escritura por IP, máximo 3 fotos por reporte y cuota total, sin CORS y cabeceras `X-Frame-Options`, `Referrer-Policy`, HSTS.
 - Nunca subas un `.env` ni valores reales de variables al repo.
 

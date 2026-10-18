@@ -33,6 +33,11 @@ CREATE TABLE IF NOT EXISTS cartas (
   id TEXT PRIMARY KEY, nombre TEXT NOT NULL, para TEXT NOT NULL, mensaje TEXT NOT NULL, zona TEXT NOT NULL, ts INTEGER NOT NULL,
   device_id TEXT NOT NULL, busqueda TEXT NOT NULL, received_at INTEGER NOT NULL, subido_por TEXT);
 CREATE INDEX IF NOT EXISTS cartas_ts ON cartas(ts);
+CREATE TABLE IF NOT EXISTS usuarios (
+  usuario TEXT PRIMARY KEY, nombre TEXT NOT NULL, sal TEXT NOT NULL, hash TEXT NOT NULL, rol TEXT NOT NULL, actualizado_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS sesiones (
+  token_hash TEXT PRIMARY KEY, usuario TEXT NOT NULL, nombre TEXT NOT NULL, creada_at INTEGER NOT NULL, expira_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS sesiones_expira ON sesiones(expira_at);
 `;
 
 export interface FilaEstado { seq: number; incidente_id: string; estado: Estado; accion: string | null; motivo: string; quien: string; usuario: string | null; cuando: number; respaldo: number | null }
@@ -180,6 +185,24 @@ export class Almacen {
     return Number(this.db.prepare('INSERT OR IGNORE INTO avisos (id,incidente_id,accion,tipo,lat,lon,min,texto,firma,creado_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
       .run(a.id, a.incidente, a.accion, a.tipo, a.lat, a.lon, a.min, a.texto, a.firma, creado).changes) > 0;
   }
+  // ---- usuarios y sesiones del Centro de monitoreo ----
+  usuario(usuario: string): { usuario: string; nombre: string; sal: string; hash: string; rol: string } | null {
+    return (this.db.prepare('SELECT usuario, nombre, sal, hash, rol FROM usuarios WHERE usuario = ?').get(usuario) as unknown as ReturnType<Almacen['usuario']>) ?? null;
+  }
+  guardarUsuario(u: { usuario: string; nombre: string; sal: string; hash: string; rol: string }, ahora: number) {
+    this.db.prepare('INSERT INTO usuarios (usuario,nombre,sal,hash,rol,actualizado_at) VALUES (?,?,?,?,?,?) ON CONFLICT(usuario) DO UPDATE SET nombre=excluded.nombre, sal=excluded.sal, hash=excluded.hash, rol=excluded.rol, actualizado_at=excluded.actualizado_at')
+      .run(u.usuario, u.nombre, u.sal, u.hash, u.rol, ahora);
+  }
+  crearSesion(s: { token_hash: string; usuario: string; nombre: string; creada_at: number; expira_at: number }) {
+    this.db.prepare('INSERT INTO sesiones (token_hash,usuario,nombre,creada_at,expira_at) VALUES (?,?,?,?,?)').run(s.token_hash, s.usuario, s.nombre, s.creada_at, s.expira_at);
+    this.db.prepare('DELETE FROM sesiones WHERE expira_at <= ?').run(s.creada_at);
+  }
+  sesion(tokenHash: string, ahora: number): { usuario: string; nombre: string; expira_at: number } | null {
+    return (this.db.prepare('SELECT usuario, nombre, expira_at FROM sesiones WHERE token_hash = ? AND expira_at > ?').get(tokenHash, ahora) as unknown as ReturnType<Almacen['sesion']>) ?? null;
+  }
+  cerrarSesion(tokenHash: string) { this.db.prepare('DELETE FROM sesiones WHERE token_hash = ?').run(tokenHash); }
+  cerrarSesionesDe(usuario: string) { this.db.prepare('DELETE FROM sesiones WHERE usuario = ?').run(usuario); }
+
   /** «Estoy bien»: INSERT OR IGNORE por id (hash del contenido). Devuelve cuántas eran nuevas. */
   insertarCartas(cs: { id: string; nombre: string; para: string; mensaje: string; zona: string; ts: number; deviceId: string; busqueda: string }[], ahora: number, subidoPor: string | null): number {
     return this.tx(() => {
