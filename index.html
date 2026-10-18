@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-PE">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -17,27 +17,15 @@
       l.replace(d + (r ? '?' + r : '') + l.hash);
     })(location);
   </script>
-  <meta name="theme-color" content="#14212b" />
-  <meta name="description" content="Yaku: el vecino reporta aunque caiga la señal, el reporte pasa de celular en celular por QR y llega a la municipalidad como reporte vecinal por validar." />
-  <link rel="canonical" href="https://yaku.lat/" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://yaku.lat/" />
-  <meta property="og:title" content="Yaku · cadena de apoyo vecinal ante El Niño" />
-  <meta property="og:description" content="Cuando cae la señal, el reporte sigue viajando de celular en celular hasta la municipalidad." />
+  <meta name="theme-color" content="#0b141b" />
   <link rel="icon" href="/icon-192.png" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Yaku · cadena de apoyo vecinal ante El Niño</title>
+  <!-- Título, descripción, Open Graph, fuentes precargadas y JSON-LD: src/landing/plantilla.ts (desde contenido.ts). -->
+  <!--yaku:head-->
 </head>
 <body>
-  <!-- Stub mínimo de rutas (ingeniero-producto). landing-lead reemplaza este cuerpo y src/landing/. -->
-  <main id="landing">
-    <h1>Yaku</h1>
-    <p>Cuando cae la señal, el reporte sigue viajando.</p>
-    <nav aria-label="Entradas">
-      <a href="/reportar" data-cta="reportar">Reportar un incidente</a>
-      <a href="/municipalidad" data-cta="ingresar">Ingresar</a>
-    </nav>
-  </main>
+  <!-- Cuerpo de la landing: lo escribe src/landing/plugin.ts a partir de src/landing/contenido.ts. -->
+  <!--yaku:cuerpo-->
   <script type="module" src="/src/landing/main.ts"></script>
 </body>
 </html>

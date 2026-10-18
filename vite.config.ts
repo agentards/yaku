@@ -1,6 +1,7 @@
 import { defineConfig, type Connect, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { ARCHIVO_APP, RUTAS_APP, esRutaApp, redireccionRuta } from './src/rutas';
+import { landingHtml } from './src/landing/plugin';
 const PHASE = Number(process.env.VITE_PHASE ?? 3);
 // Solo en local (dev/preview), a dónde va /api:
 //  - por defecto, al servidor local (servidor-local/, `npm run servidor`, http://localhost:8080 o YAKU_API_LOCAL):
@@ -41,6 +42,7 @@ export default defineConfig({
   preview: { proxy: apiProxy },
   plugins: [
     rutasYaku(),
+    landingHtml(), // index.html = landing escrita desde src/landing/contenido.ts
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false, // lo registramos en main.ts
