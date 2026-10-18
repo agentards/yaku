@@ -1,7 +1,8 @@
 // Formato compacto Yaku Relay v1 — sin dependencias de DOM (testeable en Node).
 import { deflateRaw, inflateRaw } from 'pako';
 
-export const OBS_TYPES = ['agua', 'huaico', 'cauce', 'via_bloq', 'otro'] as const;
+// El índice viaja en el QR: los tipos nuevos van SIEMPRE al final (no reordenar ni borrar).
+export const OBS_TYPES = ['agua', 'huaico', 'cauce', 'via_bloq', 'otro', 'vivienda', 'atrapados', 'heridos', 'ayuda'] as const;
 export type ObsType = (typeof OBS_TYPES)[number];
 export const OBS_LABELS: Record<ObsType, string> = {
   agua: 'Acumulación de agua',
@@ -9,6 +10,10 @@ export const OBS_LABELS: Record<ObsType, string> = {
   cauce: 'Cauce obstruido',
   via_bloq: 'Vía bloqueada',
   otro: 'Otro',
+  vivienda: 'Casa dañada o caída',
+  atrapados: 'Personas atrapadas',
+  heridos: 'Heridos',
+  ayuda: 'Necesitan ayuda (agua, comida, abrigo)',
 };
 
 export interface Observation {
