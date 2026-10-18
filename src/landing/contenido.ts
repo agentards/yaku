@@ -246,5 +246,12 @@ export const PIE = {
   ia: 'Las imágenes y videos marcados fueron generados con IA. Las capturas del producto son reales, con reportes de prueba.',
 };
 
-/** Imágenes nuevas (Grok) en public/landing/img/. Vacío = la sección no se pinta. */
-export const IMAGENES_IA: ImagenIA[] = [];
+/** Imágenes nuevas (Grok) en public/landing/img/. Vacío = la sección no se pinta. Prompts en docs/landing/imagenes.md. */
+export const IMAGENES_IA: ImagenIA[] = [
+  { archivo: '/landing/img/ia-vecinos-lluvia.webp', alt: 'Dos vecinos de espaldas bajo el alero de una casa de adobe, de noche y con lluvia fuerte; uno mira su celular encendido.', ancho: 864, alto: 1080 },
+  { archivo: '/landing/img/ia-manos-qr.webp', alt: 'Dos pares de manos bajo la lluvia sostienen dos celulares frente a frente: uno muestra un código QR y el otro lo enfoca con la cámara.', ancho: 864, alto: 1080 },
+  { archivo: '/landing/img/ia-sala-municipal.webp', alt: 'Tres personas de espaldas en una sala municipal de noche miran en una pantalla el mapa de un valle con puntos de reportes.', ancho: 864, alto: 1080 },
+  { archivo: '/landing/img/ia-caserio-noche.webp', alt: 'Caserío de casas de adobe con techos de calamina junto a un camino de barro, de noche, con postes sin luz y un solo foco encendido.', ancho: 864, alto: 1080 },
+  { archivo: '/landing/img/ia-rio-crecido.webp', alt: 'Río crecido de agua marrón bajo la lluvia, junto a un caserío de adobe y calamina con algarrobos inclinados por el viento.', ancho: 864, alto: 1080 },
+  { archivo: '/landing/img/ia-calle-anegada.webp', alt: 'Calle de tierra inundada entre casas de adobe, de noche; una persona con poncho de lluvia camina a lo lejos con el celular encendido.', ancho: 864, alto: 1080 },
+];
