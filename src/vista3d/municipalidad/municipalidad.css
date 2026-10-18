@@ -6,7 +6,7 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni {
   --bg: #f3eee4; --panel: #faf7f1; --card: #fffdf9; --line: #e2d8c6; --line-2: #cbbfa8;
   --ink: #2b2620; --ink-2: #4b4339; --muted: #6a6052; --acc: #c4501b; --acc-ink: #a3400f; --acc-bg: #f9e5d6;
-  --cit: #8a4b00; --cit-line: #c77700; --ok: #2f6b3a; --ok-bg: #e2efe2; --mono: ui-monospace, Menlo, Consolas, monospace;
+  --cit: #8a4b00; --cit-line: #c77700; --vida: #6b3a00; --sis: #3d6b8a; --ok: #2f6b3a; --ok-bg: #e2efe2; --mono: ui-monospace, Menlo, Consolas, monospace;
   position: fixed; inset: 0; z-index: 60; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--bg); color: var(--ink); font: clamp(14px, 0.9vw, 20px)/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -23,11 +23,11 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-top h1 { margin: 0; font-size: 1.5em; font-weight: 800; letter-spacing: -.01em; flex: 1; min-width: 0; }
 .muni-en-vivo { display: inline-flex; align-items: center; gap: .5em; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
 .muni-en-vivo i { width: .7em; height: .7em; border-radius: 50%; background: var(--line-2); }
-.muni-en-vivo[data-estado="ok"] i { background: #2f8f3f; box-shadow: 0 0 0 0 rgba(47, 143, 63, .6); animation: muni-latido 2s infinite; }
+.muni-en-vivo[data-estado="ok"] i { background: var(--sis); box-shadow: 0 0 0 0 rgba(61, 107, 138, .6); animation: muni-latido 2s infinite; }
 .muni-en-vivo[data-estado="error"] i, .muni-en-vivo[data-estado="sin-red"] i { background: var(--acc); }
 .muni-en-vivo[data-estado="error"], .muni-en-vivo[data-estado="sin-red"] { color: var(--acc-ink); }
 .muni-sonido { min-height: 2.4em; padding: 0 1em; border-radius: 1.2em; border: 1px solid var(--line-2); background: var(--card); font-weight: 700; }
-.muni-sonido[aria-pressed="true"] { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.muni-sonido[aria-pressed="true"] { background: #e3ebf1; border-color: var(--sis); color: var(--sis); }
 
 /* ---------- cuerpo: mapa | columna ---------- */
 .muni-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 24vw, 520px); min-height: 0; }
@@ -44,7 +44,7 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-t-tipo { margin: .25em 0 .1em; font-size: 2.7em; line-height: 1.05; letter-spacing: -.02em; }
 .muni-t-sev { margin: 0 0 .6em; font-size: 1.35em; font-weight: 800; }
 .muni-t-sev small { font-weight: 500; color: var(--muted); font-size: .7em; }
-.muni-t-sev.muni-sev3 { color: #a63d1f; } .muni-t-sev.muni-sev2 { color: #8a5a00; }
+.muni-t-sev.muni-sev3 { color: var(--vida); } .muni-t-sev.muni-sev2 { color: #8a5a00; }
 .muni-t-datos { display: grid; grid-template-columns: repeat(3, auto); gap: .4em 1.6em; margin: 0; font-size: 1.05em; }
 .muni-t-datos dt { color: var(--muted); font-size: .85em; }
 .muni-t-datos dd { margin: 0; font-weight: 700; }
@@ -87,7 +87,7 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-pulso i + i { animation-delay: .9s; }
 
 @keyframes muni-onda { from { transform: scale(1); opacity: .9; } to { transform: scale(5); opacity: 0; } }
-@keyframes muni-latido { 70% { box-shadow: 0 0 0 .5em rgba(47, 143, 63, 0); } 100% { box-shadow: 0 0 0 0 rgba(47, 143, 63, 0); } }
+@keyframes muni-latido { 70% { box-shadow: 0 0 0 .5em rgba(61, 107, 138, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 107, 138, 0); } }
 @keyframes muni-entra { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .muni-pulso i { animation: none; transform: scale(2.4); opacity: .5; }
@@ -101,3 +101,89 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
   .muni-t-datos { grid-template-columns: 1fr 1fr; }
   .muni-top h1 { font-size: 1.1em; }
 }
+
+/* ---------- incidentes (WP3): confianza, estados, contador, galería, acciones con PIN ---------- */
+.muni-top .muni-operador { min-height: 2.4em; padding: 0 1em; border-radius: 1.2em; border: 1px solid var(--line-2); background: var(--card); font-weight: 700; white-space: nowrap; }
+.muni-top .muni-operador.activo { border-color: var(--sis); color: var(--sis); background: #e3ebf1; }
+.muni-contador { grid-template-columns: 1fr 1fr auto; }
+.muni-conf { display: inline-block; padding: .1em .5em; border-radius: 4px; background: var(--cit); color: #fff; font-weight: 800; font-size: .8em; white-space: nowrap; }
+.muni-est { display: inline-block; padding: .08em .45em; border-radius: 4px; border: 1.5px solid var(--line-2); font-weight: 700; font-size: .78em; white-space: nowrap; color: var(--ink-2); background: var(--card); }
+.muni-est-validado, .muni-est-accion_asignada { border-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
+.muni-est-atendido { border-color: var(--ok); background: var(--ok); color: #fff; }
+.muni-est-descartado { border-color: var(--muted); color: var(--muted); text-decoration: line-through; }
+.muni-est-en_revision { border-color: var(--sis); color: var(--sis); background: #e3ebf1; }
+.muni-est-nuevo { border-color: var(--cit-line); color: var(--cit); background: #fbf1e1; }
+.muni-conf-N2 { background: #a65a00; } .muni-conf-N3 { background: #a65a00; box-shadow: 0 0 0 2px var(--cit-line); }
+.muni-conf small { font-weight: 600; color: #fff; opacity: .9; font-size: .85em; }
+.muni-desglose { display: block; font-weight: 500; color: var(--muted); font-size: .85em; }
+.muni-t-aviso { margin: .5em 0 0; color: var(--cit); font-weight: 700; }
+
+.muni-tarjeta.vida { border-color: var(--vida); }
+.muni-t-cab { flex-wrap: wrap; gap: .5em .7em; }
+.muni-t-otros { margin: 0 0 .3em; color: var(--ink-2); }
+.muni-t-vida { margin: .3em 0 .5em; padding: .5em .7em; border-radius: 8px; background: #fbe9cf; border: 1.5px solid var(--vida); color: var(--vida); font-weight: 700; }
+.muni-t-cont { margin: .2em 0 .6em; font-size: 1.55em; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.muni-t-cont b { display: inline-block; color: var(--cit); font-weight: 800; }
+.muni-t-cont.sube b, .muni-i-cont.sube { animation: muni-sube 1.6s ease-out; }
+.muni-t-datos { grid-template-columns: repeat(2, auto); }
+.muni-t-datos dd.muni-sev3 { color: var(--vida); } .muni-t-datos dd.muni-sev2 { color: #8a5a00; }
+.muni-t-notas { margin: .6em 0 0; padding-left: 1.1em; color: var(--ink-2); }
+.muni-t-motivo, .muni-t-hist, .muni-t-sinacc, .muni-t-sinfoto { margin: .5em 0 0; color: var(--muted); }
+.muni-t-hist { color: var(--ink-2); font-weight: 600; }
+.muni-t-pie { font-size: .9em; }
+
+.muni-galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5em, 1fr)); gap: .45em; margin-top: .7em; }
+.muni-foto { position: relative; aspect-ratio: 4 / 3; padding: 0; border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: #e9e2d4; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.muni-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.muni-foto.rota img { display: none; }
+.muni-foto.rota::after { content: 'Foto aún no disponible'; font-size: .72em; color: var(--muted); padding: .3em; text-align: center; }
+.muni-foto-falta { flex-direction: column; font-size: .8em; text-align: center; padding: .3em; border-style: dashed; color: var(--ink-2); }
+.muni-foto-falta small { font-weight: 500; color: var(--muted); font-size: .85em; }
+
+.muni-t-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: .45em; margin-top: .9em; padding-top: .7em; border-top: 1px solid var(--line); }
+.muni-acc-tit { font-weight: 800; color: var(--ink-2); }
+.muni-acc, .muni-dlg button { min-height: 2.5em; padding: 0 1em; border-radius: 8px; border: 1.5px solid var(--ink-2); background: var(--card); font-weight: 800; }
+.muni-acc-tipo { border-color: var(--cit-line); color: var(--cit); }
+.muni .muni-primario { background: var(--ink); border-color: var(--ink); color: #fff; }
+.muni .muni-peligro { border-color: var(--vida); color: var(--vida); }
+.muni-dlg-botones .muni-peligro { background: var(--vida); color: #fff; }
+
+/* columna */
+.muni-lista li.vida { box-shadow: inset 4px 0 0 var(--vida); }
+.muni-lista li.cerrado { opacity: .62; }
+.muni-lista li.muni-sep { display: block; padding: .8em .5em .2em; border: 0; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: .78em; }
+.muni-i-cont { font-weight: 700; color: var(--cit); border-radius: 4px; }
+.muni-i-meta { display: flex; flex-wrap: wrap; gap: .3em; }
+
+/* avisos flotantes */
+.muni-avisos { position: absolute; right: 1.2em; top: 1.2em; display: flex; flex-direction: column; gap: .5em; z-index: 3; max-width: min(26em, 40%); }
+.muni-toast { padding: .7em 1em; border-radius: 10px; background: var(--card); border: 2px solid var(--sis); box-shadow: 0 8px 24px rgba(43, 38, 32, .22); font-weight: 700; text-align: left; animation: muni-entra .35s ease-out; }
+.muni-toast-coincide { border-color: var(--cit-line); }
+.muni-toast-error { border-color: var(--vida); color: var(--vida); }
+
+/* diálogos */
+.muni-dlg { border: 0; border-radius: 14px; padding: 1.4em 1.6em; width: min(30em, 92vw); background: var(--card); color: var(--ink); box-shadow: 0 20px 60px rgba(0, 0, 0, .35); font: inherit; }
+.muni-dlg::backdrop { background: rgba(43, 38, 32, .45); }
+.muni-dlg h2 { margin: 0 0 .4em; }
+.muni-dlg p { color: var(--ink-2); margin: 0 0 .8em; }
+.muni-dlg label { display: flex; flex-direction: column; gap: .25em; margin-bottom: .8em; font-weight: 700; }
+.muni-dlg input, .muni-dlg select { font: inherit; padding: .5em .6em; border-radius: 8px; border: 1.5px solid var(--line-2); background: #fff; }
+.muni-dlg-error { color: var(--vida) !important; font-weight: 700; min-height: 1em; }
+.muni-dlg-botones { display: flex; justify-content: flex-end; gap: .6em; }
+
+/* galería a pantalla completa */
+.muni-galeria-full { position: fixed; inset: 0; z-index: 70; display: grid; grid-template-columns: 4em 1fr 4em; align-items: center; background: rgba(20, 17, 13, .92); color: #fff; }
+.muni-galeria-full[hidden] { display: none; }
+.muni-galeria-full figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .6em; min-width: 0; }
+.muni-galeria-full img { max-width: 100%; max-height: 82vh; border-radius: 8px; }
+.muni-galeria-full button { border: 0; background: none; color: #fff; font-size: 3em; }
+.muni-gf-cerrar { position: absolute; top: .2em; right: .4em; }
+
+.muni-pulso.vida b { background: var(--vida); }
+.muni-pulso.vida i { border-color: var(--vida); }
+@keyframes muni-sube { 0% { transform: scale(1); background: transparent; } 20% { transform: scale(1.18); background: #fbe9cf; color: var(--cit-line); } 100% { transform: scale(1); background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .muni-t-cont.sube b, .muni-i-cont.sube, .muni-toast { animation: none !important; } .muni-i-cont.sube { background: var(--acc-bg); } }
+/* Validado/acción/atendido cambian el sello y el color (verde solo para estados municipales), nunca el respaldo. */
+.muni-tarjeta[data-estado="validado"], .muni-tarjeta[data-estado="accion_asignada"], .muni-tarjeta[data-estado="atendido"] { border-color: var(--ok); }
+.muni-tarjeta.vida { border-width: 3px; }
+.muni-lista li.actual { background: #fbf1e1; border-color: var(--cit-line); }
