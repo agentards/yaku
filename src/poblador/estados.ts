@@ -73,7 +73,7 @@ export function masReciente(a: EstadoReporte | undefined, b: EstadoReporte): Est
   return ESTADOS.indexOf(b.estado) >= ESTADOS.indexOf(a.estado) ? b : a;
 }
 
-const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' });
 
 export type NivelEstado = 'local' | 'enviado' | 'revision' | 'validado' | 'accion' | 'atendido' | 'descartado';
 /**

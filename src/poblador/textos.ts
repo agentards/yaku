@@ -47,6 +47,10 @@ export const ESTADO_DETALLE = {
   local: 'Guardado en tu celular · se envía solo cuando haya internet',
 };
 
+/** §2.1: la marca «tiene foto» sin imagen recibida se ve así y suma 0 al respaldo hasta que la foto llega. */
+export const FOTOS_PENDIENTES = (n: number) => (n === 1 ? '1 foto pendiente de subir' : `${n} fotos pendientes de subir`);
+export const FOTOS_PENDIENTES_AYUDA = 'sube cuando el celular que la tomó tenga internet';
+
 export const T = {
   marca: 'Yaku',
   modo: 'Modo vecino',
