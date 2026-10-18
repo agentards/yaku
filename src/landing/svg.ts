@@ -30,13 +30,19 @@ const celular = (id: string, x: number, y: number, etiqueta: string) => `<g clas
   <circle class="nodo-halo" r="40"/>
   <rect class="cel-cuerpo" x="-17" y="-29" width="34" height="58" rx="7"/>
   <rect class="cel-pantalla" x="-12.5" y="-22" width="25" height="40" rx="2.5"/>
+  <rect class="cel-boton" x="-4" y="22.5" width="8" height="1.6" rx=".8"/>
   <g class="cel-qr" transform="translate(-7 -9)"><rect width="5" height="5"/><rect x="9" width="5" height="5"/><rect y="9" width="5" height="5"/><rect x="9" y="9" width="2.5" height="2.5"/><rect x="11.5" y="11.5" width="2.5" height="2.5"/></g>
   <text class="nodo-etq" y="50" text-anchor="middle">${etiqueta}</text>
 </g>`;
 
+const CAMINO = 'M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120';
+
 /**
- * Figura central: tres vecinos y la municipalidad unidos por un camino. main.ts dibuja el camino y mueve el pulso
+ * Figura central: tres vecinos y la municipalidad unidos por un camino. cadena.ts dibuja el camino y mueve el pulso
  * con el scroll; sin JS (o con reduced-motion) se ve el estado final completo: todo encendido.
+ * La vuelta no se pinta encima de la ida (agua + barro se mezclaban en un beige): #camino-vuelta vive en una máscara
+ * y descubre una fila de cuentas de barro sobre el mismo camino. cadena.ts sigue moviendo su stroke-dashoffset.
+ * Los trazos que se dibujan solos (señal, anillo) usan pathLength para animarse con stroke-dashoffset sin medir.
  */
 export const figuraCadena = (titulo: string) => `<svg class="cadena-svg" viewBox="0 0 640 380" role="img" aria-labelledby="cadena-svg-t">
   <title id="cadena-svg-t">${titulo}</title>
@@ -45,26 +51,31 @@ export const figuraCadena = (titulo: string) => `<svg class="cadena-svg" viewBox
     <pattern id="p-lluvia" width="14" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(14)"><path d="M7 0v9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></pattern>
     <radialGradient id="g-lluvia" cx=".42" cy=".5" r=".55"><stop offset=".55" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
     <mask id="m-lluvia" maskContentUnits="userSpaceOnUse"><rect width="420" height="380" fill="url(#g-lluvia)"/></mask>
+    <mask id="m-vuelta" maskUnits="userSpaceOnUse" x="-20" y="-20" width="680" height="420"><path class="camino-vuelta" id="camino-vuelta" d="${CAMINO}"/></mask>
   </defs>
-  <rect class="lluvia" x="0" y="0" width="420" height="380" fill="url(#p-lluvia)" mask="url(#m-lluvia)"/>
-  <g class="sin-senal" transform="translate(150 54)"><path d="M0 22a26 26 0 0 1 36 0M7 29a15 15 0 0 1 22 0" /><path d="M18 36v.01"/><path d="M2 4l32 36"/><text x="18" y="-6" text-anchor="middle">sin señal</text></g>
-  <path class="camino-base" d="M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120"/>
-  <path class="camino-ida" id="camino-ida" d="M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120"/>
-  <path class="camino-vuelta" id="camino-vuelta" d="M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120"/>
+  <rect class="lluvia" id="lluvia" x="0" y="0" width="420" height="380" fill="url(#p-lluvia)" mask="url(#m-lluvia)"/>
+  <g class="sin-senal" id="sin-senal" transform="translate(150 50)">
+    <path d="M18 17 11 44M18 17l7 27M13.6 35h8.8M11 10a10 10 0 0 0 0 14M25 10a10 10 0 0 1 0 14"/><circle cx="18" cy="17" r="2.2"/><path class="sin-senal-tachado" d="M4 5l28 38"/>
+    <text x="18" y="-4" text-anchor="middle">sin señal</text>
+  </g>
+  <path class="camino-base" d="${CAMINO}"/>
+  <path class="camino-ida" id="camino-ida" d="${CAMINO}"/>
+  <path class="camino-vuelta-cuentas" id="camino-vuelta-cuentas" d="${CAMINO}" mask="url(#m-vuelta)"/>
   ${celular('n1', 70, 270, 'Vecina A')}
   ${celular('n2', 205, 150, 'Vecino B')}
   ${celular('n3', 345, 280, 'Vecino C')}
-  <g class="senal" transform="translate(345 222)"><path d="M-16 -6a22 22 0 0 1 32 0M-9 1a12 12 0 0 1 18 0"/><circle cy="7" r="2.2"/></g>
+  <g class="senal" id="senal-c" transform="translate(345 222)"><path pathLength="1" d="M-16 -6a22 22 0 0 1 32 0"/><path pathLength="1" d="M-9 1a12 12 0 0 1 18 0"/><circle cy="7" r="2.2"/></g>
   <g class="nodo nodo-muni" id="n4" transform="translate(560 120)">
     <circle class="nodo-halo" r="52"/>
+    <circle class="muni-anillo" id="muni-anillo" r="48" pathLength="100" transform="rotate(-90)"/>
     <path class="muni-cuerpo" d="M-36 30V-6H36V30ZM-42 -6 0 -32 42 -6Z"/>
     <path class="muni-col" d="M-24 24V2M-8 24V2M8 24V2M24 24V2"/>
-    <text class="nodo-etq" y="56" text-anchor="middle">Municipalidad</text>
+    <text class="nodo-etq" y="66" text-anchor="middle">Municipalidad</text>
   </g>
-  <g class="insignia insignia-grupo" transform="translate(476 210)"><rect x="-6" y="-17" width="172" height="26" rx="13"/><text x="80" y="1" text-anchor="middle">2 vecinos · por validar</text></g>
-  <g class="insignia insignia-resp" transform="translate(16 356)"><rect x="-4" y="-17" width="150" height="26" rx="13"/><text x="71" y="1" text-anchor="middle">Bomberos asignados</text></g>
-  <circle class="pulso pulso-ida" r="15" cx="70" cy="270" fill="url(#g-pulso)"/>
-  <circle class="pulso-nucleo pulso-ida-n" r="4.5" cx="70" cy="270"/>
-  <circle class="pulso pulso-vuelta" r="15" cx="560" cy="120" fill="url(#g-pulso)"/>
-  <circle class="pulso-nucleo pulso-vuelta-n" r="4.5" cx="560" cy="120"/>
+  <g class="insignia insignia-grupo" id="insignia-grupo" transform="translate(544 224)"><rect x="-94" y="-17" width="188" height="26" rx="13"/><text y="1" text-anchor="middle">2 vecinos · por validar</text></g>
+  <g class="insignia insignia-resp" id="insignia-resp" transform="translate(86 356)"><rect x="-76" y="-17" width="152" height="26" rx="13"/><text y="1" text-anchor="middle">Bomberos asignados</text></g>
+  <circle class="pulso pulso-ida" id="pulso-ida" r="15" cx="70" cy="270" fill="url(#g-pulso)"/>
+  <circle class="pulso-nucleo pulso-ida-n" id="pulso-ida-n" r="4.5" cx="70" cy="270"/>
+  <circle class="pulso pulso-vuelta" id="pulso-vuelta" r="15" cx="560" cy="120" fill="url(#g-pulso)"/>
+  <circle class="pulso-nucleo pulso-vuelta-n" id="pulso-vuelta-n" r="4.5" cx="560" cy="120"/>
 </svg>`;

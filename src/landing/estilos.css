@@ -20,6 +20,11 @@
   --gutter: 16px;
   --radio: 14px;
   --sombra: 0 30px 80px -30px rgb(0 0 0 / .7);
+  /* Movimiento (docs/landing/movimiento.md): un solo easing, expo-out, y tres duraciones */
+  --ease-expo: cubic-bezier(.16, 1, .3, 1);
+  --dur-corta: .2s;   /* hover, foco, press */
+  --dur-media: .5s;   /* estados de la cadena: halos, insignias, señal */
+  --dur-larga: .9s;   /* entradas y el anillo de la municipalidad */
   color-scheme: dark;
 }
 @media (min-width: 720px) { :root { --gutter: 32px; } }
@@ -129,17 +134,20 @@ p { margin: 0; text-wrap: pretty; }
 /* Estados de la figura. Sin la clase .mov (sin JS o reduced-motion) todo queda encendido: estado final. */
 .camino-base { fill: none; stroke: var(--linea); stroke-width: 2; stroke-dasharray: 3 7; stroke-linecap: round; }
 .camino-ida { fill: none; stroke: var(--yaku-agua); stroke-width: 3; stroke-linecap: round; }
-.camino-vuelta { fill: none; stroke: var(--yaku-barro); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 9; }
+.camino-vuelta { fill: none; stroke: #fff; stroke-width: 14; stroke-linecap: round; } /* vive en la máscara #m-vuelta */
+.camino-vuelta-cuentas { fill: none; stroke: var(--yaku-barro); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 0 12; }
 .nodo-halo { fill: var(--yaku-agua); opacity: .1; }
-.nodo-muni .nodo-halo { fill: var(--yaku-barro); }
+.muni-anillo { fill: none; stroke: var(--yaku-barro); stroke-width: 1.6; }
 .cel-cuerpo { fill: var(--yaku-pizarra); stroke: var(--yaku-niebla); stroke-width: 1.6; }
-.cel-pantalla { fill: #0e2a33; }
+.cel-pantalla { fill: color-mix(in srgb, var(--yaku-agua) 10%, var(--yaku-noche)); }
+.cel-boton { fill: var(--yaku-bruma); opacity: .5; }
 .cel-qr rect { fill: var(--yaku-agua); }
 .muni-cuerpo { fill: var(--yaku-pizarra); stroke: var(--yaku-niebla); stroke-width: 1.6; stroke-linejoin: round; }
 .muni-col { stroke: var(--yaku-bruma); stroke-width: 1.6; }
 .nodo-etq { font: 500 13px var(--f-mono); fill: var(--yaku-bruma); }
 .lluvia { color: var(--yaku-bruma); opacity: .22; }
 .sin-senal { fill: none; stroke: var(--yaku-bruma); stroke-width: 2; stroke-linecap: round; opacity: 0; }
+.sin-senal circle { fill: var(--yaku-bruma); stroke: none; }
 .sin-senal text { fill: var(--yaku-bruma); stroke: none; font: 500 12px var(--f-mono); }
 .senal { fill: none; stroke: var(--yaku-agua); stroke-width: 2.2; stroke-linecap: round; }
 .senal circle { fill: var(--yaku-agua); stroke: none; }
@@ -152,8 +160,15 @@ p { margin: 0; text-wrap: pretty; }
 
 .mov .cadena-figura .camino-ida, .mov .cadena-figura .camino-vuelta { transition: none; }
 .mov .cadena-figura .pulso, .mov .cadena-figura .pulso-nucleo { opacity: 1; }
-.mov .cadena-figura .senal, .mov .cadena-figura .insignia, .mov .cadena-figura .nodo-halo { opacity: 0; transition: opacity .5s; }
-.mov .cadena-figura[data-paso='1'] .sin-senal, .mov .cadena-figura[data-paso='2'] .sin-senal { opacity: 1; transition: opacity .5s; }
+.mov .cadena-figura .senal, .mov .cadena-figura .insignia, .mov .cadena-figura .nodo-halo { opacity: 0; transition: opacity var(--dur-media) var(--ease-expo); }
+.mov .cadena-figura .sin-senal { transition: opacity var(--dur-media) var(--ease-expo); }
+.mov .cadena-figura[data-paso='1'] .sin-senal, .mov .cadena-figura[data-paso='2'] .sin-senal { opacity: 1; }
+/* Trazos que se dibujan solos al cambiar de paso (pathLength en el SVG; sin .mov quedan completos) */
+.mov .cadena-figura .senal path { stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset var(--dur-media) var(--ease-expo); }
+.mov .cadena-figura .senal path + path { transition-delay: .08s; }
+.mov .cadena-figura:is([data-paso='3'], [data-paso='4'], [data-paso='5']) .senal path { stroke-dashoffset: 0; }
+.mov .cadena-figura .muni-anillo { stroke-dasharray: 100 200; stroke-dashoffset: 100; transition: stroke-dashoffset var(--dur-larga) var(--ease-expo); }
+.mov .cadena-figura[data-paso='5'] .muni-anillo { stroke-dashoffset: 0; }
 .mov .cadena-figura[data-paso='1'] #n1 .nodo-halo,
 .mov .cadena-figura[data-paso='2'] :is(#n1, #n2) .nodo-halo,
 .mov .cadena-figura[data-paso='3'] :is(#n1, #n2, #n3) .nodo-halo,
@@ -162,9 +177,9 @@ p { margin: 0; text-wrap: pretty; }
 .mov .cadena-figura:is([data-paso='4'], [data-paso='5']) .insignia-grupo { opacity: 1; }
 .mov .cadena-figura[data-paso='5'] .insignia-resp { opacity: 1; }
 .mov .cadena-figura:is([data-paso='3'], [data-paso='4'], [data-paso='5']) .lluvia { opacity: .08; transition: opacity .8s; }
-.mov .paso { opacity: .32; transition: opacity .45s ease; }
+.mov .paso { opacity: .32; transition: opacity var(--dur-media) var(--ease-expo); }
 .mov .paso.activo { opacity: 1; }
-.mov .paso::before { background: var(--linea); transition: background-color .45s; }
+.mov .paso::before { background: var(--linea); transition: background-color var(--dur-media) var(--ease-expo), box-shadow var(--dur-media) var(--ease-expo); }
 .mov .paso.activo::before { background: var(--yaku-agua); box-shadow: 0 0 0 6px color-mix(in srgb, var(--yaku-agua) 20%, transparent); }
 
 /* Centro de monitoreo */
@@ -179,7 +194,7 @@ p { margin: 0; text-wrap: pretty; }
 .pantalla-barra button { flex: none; min-height: 40px; padding: 8px 14px; border: 0; border-radius: 8px; background: transparent; color: var(--yaku-bruma); font: 500 14px var(--f-texto); cursor: pointer; }
 .pantalla-barra button[aria-selected='true'] { background: var(--yaku-noche); color: var(--yaku-niebla); box-shadow: inset 0 -2px 0 var(--yaku-agua); }
 .pantalla-panel { margin: 0; }
-.pantalla-panel img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #e9e4da; }
+.pantalla-panel img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--yaku-pizarra); }
 .pantalla-panel figcaption { padding: 14px 16px 0; font-size: 15px; }
 .pantalla-nota { padding: 6px 16px 16px; font: 400 12.5px/1.5 var(--f-mono); color: var(--yaku-bruma); }
 
@@ -189,7 +204,7 @@ p { margin: 0; text-wrap: pretty; }
 .vecino-texto > p { margin-top: 20px; max-width: 46ch; color: var(--yaku-niebla); }
 .celulares { list-style: none; margin: 0; padding: 0 0 8px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 62%); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .celular { scroll-snap-align: start; display: grid; gap: 12px; }
-.celular img { border-radius: 22px; border: 6px solid #1b2c3a; box-shadow: var(--sombra); background: #f4efe6; }
+.celular img { border-radius: 22px; border: 6px solid #1b2c3a; box-shadow: var(--sombra); background: var(--yaku-pizarra); }
 .celular span { font: 500 13px var(--f-mono); color: var(--yaku-bruma); text-align: center; }
 @media (min-width: 900px) {
   .vecino-grid { grid-template-columns: 0.8fr 1.2fr; align-items: center; }
