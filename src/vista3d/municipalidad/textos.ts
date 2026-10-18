@@ -3,8 +3,8 @@
 // Rótulo, detalle por nivel, acciones y pie legal vienen de src/poblador/textos.ts (fuente única que piden la
 // decisión y WP2); aquí solo lo propio del panel: chip por estado, respaldo con número, familias y fórmula.
 import { OBS_LABELS } from '../../codec';
-import { ACCION_TXT, DETALLE, PIE_LEGAL, ROTULO_VECINAL, type Accion, type Nivel } from '../../poblador/textos';
-export { ACCION_TXT, DETALLE, PIE_LEGAL, ROTULO_VECINAL, type Accion, type Nivel };
+import { ACCION_TXT, DETALLE, ESTADO as ESTADO_POBLADOR, ESTADO_DETALLE, FOTOS_PENDIENTES, PIE_LEGAL, ROTULO_VECINAL, type Accion, type Nivel } from '../../poblador/textos';
+export { ACCION_TXT, DETALLE, FOTOS_PENDIENTES, PIE_LEGAL, ROTULO_VECINAL, type Accion, type Nivel };
 
 export const NIVELES = { n2: 45, n3: 80 };
 export const nivelDe = (n: number): Nivel => (n >= NIVELES.n3 ? 'N3' : n >= NIVELES.n2 ? 'N2' : 'N1');
@@ -26,17 +26,26 @@ export const RIESGO_VIDA = ['atrapados', 'heridos'];
 
 export type Estado = 'nuevo' | 'en_revision' | 'validado' | 'descartado' | 'accion_asignada' | 'atendido';
 export const ACCIONES: Record<Accion, string> = { rescate: 'Rescate', bomberos: 'Bomberos', provisiones: 'Provisiones', maquinaria: 'Maquinaria', edan: 'Evaluación EDAN' };
-/** §1: chip de estado. Sin estado municipal, el chip es el rótulo vecinal. Solo validado/acción/atendido van en verde. */
+/** §1: chip de estado (mismo texto que ve el poblador). Sin estado municipal, el chip es el rótulo vecinal. */
 export const ESTADO: Record<Estado, string> = {
   nuevo: ROTULO_VECINAL,
-  en_revision: 'En revisión por la municipalidad',
-  validado: 'Validado por la municipalidad',
-  accion_asignada: 'Acción asignada por la municipalidad',
-  atendido: 'Atendido por la municipalidad',
-  descartado: 'Revisado por la municipalidad',
+  en_revision: ESTADO_POBLADOR.en_revision,
+  validado: ESTADO_POBLADOR.validado,
+  accion_asignada: ESTADO_POBLADOR.accion(undefined),
+  atendido: ESTADO_POBLADOR.atendido,
+  descartado: ESTADO_POBLADOR.descartado,
 };
-export const estadoChip = (e: Estado, a: Accion | null) => (e === 'accion_asignada' && a ? ACCION_TXT[a] : ESTADO[e]);
+export const estadoChip = (e: Estado, a: Accion | null) => (e === 'accion_asignada' ? ESTADO_POBLADOR.accion(a ?? undefined) : ESTADO[e]);
+/** Verde SOLO para estados que pone la municipalidad; el respaldo vecinal es ámbar en N1–N3 y nunca rojo. */
 export const MUNICIPAL_VERDE: Estado[] = ['validado', 'accion_asignada', 'atendido'];
+export const esVerde = (e: Estado) => MUNICIPAL_VERDE.includes(e);
+/** «La municipalidad lo revisó y no lo validó: {motivo}» (mismo texto que la ficha del poblador). */
+export const motivoDescarteTxt = (motivo: string) => ESTADO_DETALLE.descartado(motivo, '');
+
+/** Textos propios del panel (el poblador nunca ve el número 0–100). */
+export const PIE_PANEL = 'El respaldo cuenta vecinos distintos, fotos y cercanía, y baja con el tiempo; ordena el trabajo, no decide: valida la municipalidad.';
+export const ORDEN_TXT = 'Orden: riesgo de vida → severidad → respaldo → más reciente';
+export const VIDA_PANEL = 'Riesgo de vida: si hay señal, que llamen al 116 (bomberos) o al 105 (policía). Yaku no reemplaza esas líneas.';
 
 export const MOTIVOS_DESCARTE = ['Duplicado de otro incidente', 'No se encontró nada en el lugar', 'Fuera de la jurisdicción', 'Información insuficiente'];
 

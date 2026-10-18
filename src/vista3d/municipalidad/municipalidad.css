@@ -187,3 +187,30 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-tarjeta[data-estado="validado"], .muni-tarjeta[data-estado="accion_asignada"], .muni-tarjeta[data-estado="atendido"] { border-color: var(--ok); }
 .muni-tarjeta.vida { border-width: 3px; }
 .muni-lista li.actual { background: #fbf1e1; border-color: var(--cit-line); }
+.muni-i-cont b { font-weight: inherit; }
+.muni-orden { margin: 0 0 .3em; font-size: .78em; font-weight: 700; color: var(--muted); }
+
+/* Contador en rodillo (decision-confianza §2.4: «1 vecino» → «2 vecinos» delante del jurado). El número anterior lo
+   pinta ::before desde data-de, así innerText y el lector de pantalla solo leen el valor nuevo. */
+.muni-rod-w { position: relative; display: inline-block; }
+.muni-rod { display: inline-block; height: 1.2em; line-height: 1.2em; overflow: hidden; vertical-align: bottom; }
+.muni-rod-c { display: inline-flex; flex-direction: column; text-align: center; }
+.muni-rod-c::before { content: attr(data-de); }
+.muni-rod-sube .muni-rod-c { animation: muni-rod-sube 1.5s cubic-bezier(.2, .8, .2, 1) both; }
+.muni-rod-baja .muni-rod-c { flex-direction: column-reverse; animation: muni-rod-baja 1.5s cubic-bezier(.2, .8, .2, 1) both; }
+.muni-rod-w[data-mas]:not([data-mas=""])::after { content: attr(data-mas); position: absolute; left: 70%; top: -.9em; font-size: .6em; font-weight: 900; color: var(--cit-line); animation: muni-rod-mas 1.6s ease-out both; pointer-events: none; }
+@keyframes muni-rod-sube { 0%, 30% { transform: translateY(0); } 70%, 100% { transform: translateY(-1.2em); } }
+@keyframes muni-rod-baja { 0%, 30% { transform: translateY(-1.2em); } 70%, 100% { transform: translateY(0); } }
+@keyframes muni-rod-mas { 0%, 35% { opacity: 0; transform: translateY(.4em); } 55% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-.5em); } }
+
+/* Desglose del respaldo: barra apilada 0–100 en ámbar (vecinal: nunca verde ni rojo); lo perdido por antigüedad, rayado. */
+.muni-dg-txt { display: block; font-variant-numeric: tabular-nums; }
+.muni-dg-txt b { color: var(--ink-2); }
+.muni-dg-barra { display: flex; height: .55em; margin-top: .3em; border-radius: 3px; overflow: hidden; background: var(--line); max-width: 22em; }
+.muni-dg-barra i { display: block; height: 100%; }
+.muni-dg-personas { background: var(--cit); } .muni-dg-fotos { background: var(--cit-line); } .muni-dg-cercania { background: #e3a957; }
+.muni-dg-perdido { background: repeating-linear-gradient(135deg, var(--line-2) 0 3px, transparent 3px 6px); }
+@media (prefers-reduced-motion: reduce) {
+  .muni-rod-c { animation: none !important; } .muni-rod-c::before { display: none; }
+  .muni-rod-w::after { animation: none !important; opacity: 1; }
+}

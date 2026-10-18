@@ -13,7 +13,8 @@ import type { CentroPoblado } from '../ui/contrato';
 import { llegoHace } from './deteccion';
 import { cerrado, contadorTxt, DetectorIncidentes, hhmm, plural, porPrioridad, siguientes, type Incidente } from './incidentes';
 import { cambiarEstado, ErrorApi, fotoUrl, llevarA, traerIncidentes, type Fuente, type Operador } from './api';
-import { ACCION_TXT, ACCIONES, DETALLE, ESTADO, estadoChip, MOTIVOS_DESCARTE, MUNICIPAL_VERDE, PIE_LEGAL, respaldoTxt, RIESGO_VIDA, ROTULO_VECINAL, tipoTxt, vecinos, type Accion, type Estado } from './textos';
+import { ACCION_TXT, ACCIONES, DETALLE, ESTADO, estadoChip, esVerde, MOTIVOS_DESCARTE, motivoDescarteTxt, ORDEN_TXT, PIE_LEGAL, PIE_PANEL, respaldoTxt, RIESGO_VIDA, ROTULO_VECINAL, tipoTxt, VIDA_PANEL, vecinos, type Accion, type Estado } from './textos';
+import { desgloseHtml, pendientesHtml, rodillo } from './piezas';
 import './municipalidad.css';
 
 export const esVistaMunicipalidad = (search: string) => new URLSearchParams(search).get('vista') === 'municipalidad';
@@ -25,8 +26,7 @@ const ANIM_MS = 1800;
 const hora = hhmm;
 const sevTxt = (s: number) => `Severidad máx. ${s} de 3`;
 const estadoTxt = (i: Incidente) => estadoChip(i.estado, i.accion);
-const claseEstado = (i: Incidente) => `muni-est muni-est-${i.estado}${MUNICIPAL_VERDE.includes(i.estado) ? ' municipal' : ''}`;
-const desgloseTxt = (i: Incidente) => (i.desglose ? `Personas ${i.desglose.personas} · Fotos ${i.desglose.fotos} · Cercanía ${i.desglose.cercania} · Recencia ×${i.desglose.recencia.toFixed(2).replace('.', ',')}` : '');
+const claseEstado = (i: Incidente) => `muni-est muni-est-${i.estado}${esVerde(i.estado) ? ' municipal' : ''}`;
 const firma = (i: Incidente) => [i.id, i.personas, i.reportes, i.nFotos, i.fotos.join(','), i.puntaje, i.estado, i.accion, i.motivo, i.historial.length, i.ultimo, i.fotosPendientes, i.nuevosTrasDescarte, i.nivel].join('|');
 
 /** Aviso corto con WebAudio: sin archivos ni red. El navegador exige un clic antes de sonar. */
@@ -85,11 +85,12 @@ export function arrancar() {
           <div><b class="muni-n-personas">0</b><span>vecinos reportan</span></div>
           <div class="muni-sinver"><b class="muni-n-sinver">0</b><span>sin revisar</span></div>
         </div>
+        <p class="muni-orden">${esc(ORDEN_TXT)}</p>
         <p class="muni-previos"></p>
         <ol class="muni-lista" aria-live="polite"></ol>
       </aside>
     </main>
-    <footer class="muni-pie"><b>${esc(ROTULO_VECINAL)}</b> · ${esc(PIE_LEGAL)} El respaldo cuenta vecinos distintos, fotos y cercanía; ordena el trabajo, no decide: valida la municipalidad.</footer>
+    <footer class="muni-pie"><b>${esc(ROTULO_VECINAL)}</b> · ${esc(PIE_LEGAL)} ${esc(PIE_PANEL)}</footer>
     <dialog class="muni-dlg muni-dlg-pin" aria-label="Operador municipal">
       <form method="dialog">
         <h2>Operador municipal</h2>
@@ -140,7 +141,8 @@ export function arrancar() {
   let actualId: string | null = null, pendiente: Incidente | null = null;
   let operador: Operador | null = null;
   const animados = new Set<string>();
-  const subeHasta = new Map<string, number>(); // id → hasta cuándo se anima el contador
+  const desde = new Map<string, { personas: number; fotos: number; hasta: number }>(); // contador que se anima (antes → ahora)
+  let totalMostrado: number | null = null;
   const nuevosIds: string[] = [];
   let coincidencias = 0, consultas = 0, errores = 0, enCurso = false, ultimaOk = 0, firmaLista = '', firmaTarjeta = '';
   let galeria: { fotos: string[]; k: number } | null = null;
@@ -250,7 +252,12 @@ export function arrancar() {
   });
 
   // ---------- tarjeta ----------
-  const sube = (id: string) => (subeHasta.get(id) ?? 0) > Date.now();
+  const sube = (id: string) => (desde.get(id)?.hasta ?? 0) > Date.now();
+  /** «2 vecinos · 1 foto · primer reporte 21:03» con rodillo en los números que acaban de subir. */
+  const contadorHtml = (i: Incidente, k = '') => {
+    const a = sube(i.id) ? desde.get(i.id)! : null;
+    return `<b class="muni-k-personas">${rodillo(i.personas, a?.personas, 'vecino', 'vecinos')}</b> · <b class="muni-k-fotos">${rodillo(i.nFotos, a?.fotos, 'foto', 'fotos')}</b> · primer reporte ${esc(hora(i.primer))}${k}`;
+  };
   function botonesAccion(i: Incidente) {
     if (fuente !== 'incidentes') return '<p class="muni-t-sinacc">Acciones desactivadas: este servidor aún no tiene /api/incidentes (agrupado en esta pantalla, solo lectura).</p>';
     const sig = siguientes(i.estado);
@@ -272,7 +279,7 @@ export function arrancar() {
     const max = 6, extra = Math.max(0, i.fotos.length - max);
     return `<div class="muni-galeria">${i.fotos.slice(0, max).map((f, k) => `<button type="button" class="muni-foto" data-k="${k}" aria-label="Ver foto ${k + 1}"><img loading="lazy" src="${esc(fotoUrl(f))}" alt="Foto ${k + 1} del incidente"></button>`).join('')}
       ${extra ? `<button type="button" class="muni-foto muni-foto-mas" data-k="${max}">+${extra}</button>` : ''}
-      ${faltan ? `<span class="muni-foto muni-foto-falta">${plural(faltan, 'foto pendiente', 'fotos pendientes')} de subir<small>sube cuando el celular que la tomó tenga internet</small></span>` : ''}</div>`;
+      ${pendientesHtml(faltan)}</div>`;
   }
   function pintarTarjeta(forzar = false) {
     const i = actual();
@@ -294,10 +301,10 @@ export function arrancar() {
         <button type="button" class="muni-cerrar" aria-label="Cerrar tarjeta">×</button></div>
       <h2 class="muni-t-tipo">${esc(tipoTxt(i.tipo))}</h2>
       ${otros.length ? `<p class="muni-t-otros">También reportan: ${esc(otros.map(tipoTxt).join(', '))}</p>` : ''}
-      ${vida ? '<p class="muni-t-vida">Riesgo de vida: si hay señal, que llamen al <b>116</b> (bomberos) o al <b>105</b> (policía). Yaku no reemplaza esas líneas.</p>' : ''}
-      <p class="muni-t-cont${sube(i.id) ? ' sube' : ''}"><b class="muni-k-personas">${esc(vecinos(i.personas))}</b> · <b class="muni-k-fotos">${esc(plural(i.nFotos, 'foto', 'fotos'))}</b> · primer reporte ${esc(hora(i.primer))}</p>
+      ${vida ? `<p class="muni-t-vida">${esc(VIDA_PANEL).replace(/\b(116|105)\b/g, '<b>$1</b>')}</p>` : ''}
+      <p class="muni-t-cont${sube(i.id) ? ' sube' : ''}">${contadorHtml(i)}</p>
       <dl class="muni-t-datos">
-        <div><dt>Respaldo</dt><dd>${esc(DETALLE[i.nivel](i.personas, i.nFotos))}${i.desglose ? `<small class="muni-desglose">${esc(desgloseTxt(i))}</small>` : ''}</dd></div>
+        <div><dt>Respaldo</dt><dd>${esc(DETALLE[i.nivel](i.personas, i.nFotos))}${i.desglose ? `<small class="muni-desglose">${desgloseHtml(i.desglose, i.puntaje)}</small>` : ''}</dd></div>
         <div><dt>Reportes</dt><dd>${esc(plural(i.reportes, 'reporte', 'reportes'))} de ${esc(vecinos(i.personas))}</dd></div>
         <div><dt>Severidad</dt><dd class="muni-sev${i.severidad}">${esc(sevTxt(i.severidad))} <small>la marca quien reporta</small></dd></div>
         <div><dt>Último reporte</dt><dd>${esc(hora(i.ultimo))} <small>reloj del celular</small></dd></div>
@@ -305,7 +312,7 @@ export function arrancar() {
       </dl>
       ${galeriaHtml(i)}
       ${i.notas.length ? `<ul class="muni-t-notas">${i.notas.slice(-3).map((n) => `<li>«${esc(n)}»</li>`).join('')}</ul>` : ''}
-      ${i.estado === 'descartado' && i.motivo ? `<p class="muni-t-motivo">La municipalidad lo revisó y no lo validó: ${esc(i.motivo)}</p>` : ''}
+      ${i.estado === 'descartado' && i.motivo ? `<p class="muni-t-motivo">${esc(motivoDescarteTxt(i.motivo))}</p>` : ''}
       ${i.estado === 'descartado' && i.nuevosTrasDescarte ? `<p class="muni-t-aviso">${esc(plural(i.nuevosTrasDescarte, 'reporte nuevo', 'reportes nuevos'))} después de descartar</p>` : ''}
       ${i.recurrenciaDe ? '<p class="muni-t-aviso">Posible recurrencia de un incidente ya atendido</p>' : ''}
       ${botonesAccion(i)}
@@ -321,7 +328,9 @@ export function arrancar() {
   function pintarLista(forzar = false) {
     const abiertos = incidentes.filter((i) => !cerrado(i));
     $<HTMLElement>('.muni-n').textContent = String(abiertos.length);
-    $<HTMLElement>('.muni-n-personas').textContent = String(abiertos.reduce((s, i) => s + i.personas, 0));
+    const total = abiertos.reduce((s, i) => s + i.personas, 0);
+    // Rueda solo con cambios en vivo (no al sembrar los incidentes previos).
+    if (total !== totalMostrado) { $<HTMLElement>('.muni-n-personas').innerHTML = rodillo(total, totalMostrado, '', '').trim(); totalMostrado = det.sembrado ? total : null; }
     $<HTMLElement>('.muni-n-sinver').textContent = String(abiertos.filter((i) => i.estado === 'nuevo').length);
     $<HTMLElement>('.muni-previos').textContent = !det.sembrado ? 'Conectando con el servidor…'
       : fuente === 'agrupado-en-pantalla' ? 'Este servidor aún no tiene /api/incidentes: los reportes se agrupan en esta pantalla (solo lectura).'
@@ -336,7 +345,7 @@ export function arrancar() {
       const sep = cerrado(i) && !separado ? ((separado = true), '<li class="muni-sep">Cerrados</li>') : '';
       return `${sep}<li data-id="${esc(i.id)}" data-estado="${i.estado}" class="${RIESGO_VIDA.includes(i.tipo) ? 'vida' : ''}${actualId === i.id ? ' actual' : ''}${entra && det.sembrado ? ' entra' : ''}${cerrado(i) ? ' cerrado' : ''}">
         <button type="button" class="muni-item" title="Ver en el mapa"><b>${esc(tipoTxt(i.tipo))}</b>
-          <span class="muni-i-cont${sube(i.id) ? ' sube' : ''}">${esc(contadorTxt(i))}</span>
+          <span class="muni-i-cont${sube(i.id) ? ' sube' : ''}">${contadorHtml(i)}</span>
           <span class="muni-i-meta"><span class="${claseEstado(i)}">${esc(estadoTxt(i))}</span> <span class="muni-conf muni-conf-${i.nivel}">${esc(respaldoTxt(i.puntaje, i.nivel))}</span></span>
           <span class="muni-i-hace" data-recibido="${i.recibido ?? i.ultimo}">${esc(llegoHace(i.recibido ?? i.ultimo).replace('llegó', 'último'))}</span></button>
       </li>`;
@@ -391,7 +400,7 @@ export function arrancar() {
       pintarEstado('ok');
       const ahora = Date.now();
       for (const c of coinciden) {
-        subeHasta.set(c.inc.id, ahora + ANIM_MS);
+        desde.set(c.inc.id, { personas: c.personasAntes, fotos: c.fotosAntes, hasta: ahora + ANIM_MS });
         coincidencias++;
         const dp = c.inc.personas - c.personasAntes;
         avisar(dp > 0 ? `Otro vecino coincide: ${tipoTxt(c.inc.tipo)} · ahora ${vecinos(c.inc.personas)}` : `Nueva foto: ${tipoTxt(c.inc.tipo)} · ${plural(c.inc.nFotos, 'foto', 'fotos')}`, 'coincide', c.inc.id);
