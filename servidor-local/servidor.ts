@@ -15,9 +15,8 @@ import { conCambios, REGLAS } from './reglas.ts';
 
 const MAX_LECTURA = 640 * 1024; // foto de 400 KB en base64 + JSON
 
-// Cabeceras de seguridad para todo (la PWA y la API). HSTS solo cuenta cuando se sirve por HTTPS (Traefik).
+// Cabeceras extra del modo estricto (YAKU_MODO_ESTRICTO=1). HSTS solo cuenta cuando se sirve por HTTPS (Traefik).
 const SEGURIDAD: Record<string, string> = {
-  'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
   'x-frame-options': 'DENY',
   'strict-transport-security': 'max-age=31536000',
@@ -34,7 +33,7 @@ function ipCliente(req: http.IncomingMessage): string {
 }
 
 export interface Opciones {
-  puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean;
+  puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean; estricto?: boolean;
 }
 
 export function iniciar(o: Opciones = {}) {
@@ -42,6 +41,7 @@ export function iniciar(o: Opciones = {}) {
   const dist = path.resolve(o.dist ?? env.YAKU_DIST ?? 'dist');
   const datos = path.resolve(o.datos ?? env.YAKU_DATOS ?? 'servidor-local/datos');
   fs.mkdirSync(datos, { recursive: true });
+  const estricto = o.estricto ?? env.YAKU_MODO_ESTRICTO === '1';
   let pin = o.pin ?? env.MUNI_PIN ?? '';
   if (!o.pin && env.NODE_ENV === 'production' && pin.length < 8) console.warn('Aviso: MUNI_PIN tiene menos de 8 caracteres. Funciona, pero conviene uno más largo.');
   const pinTemporal = !pin;
@@ -49,15 +49,13 @@ export function iniciar(o: Opciones = {}) {
   let cambios: unknown = o.reglas;
   if (cambios === undefined && env.YAKU_REGLAS) { try { cambios = JSON.parse(env.YAKU_REGLAS); } catch { console.warn('YAKU_REGLAS no es JSON válido: se usan las reglas por defecto'); } }
   const almacen = new Almacen(path.join(datos, 'yaku.db'), conCambios(REGLAS, cambios));
-  // Bloqueo por PIN incorrecto: YAKU_PIN_INTENTOS fallos (0 = sin bloqueo) en 10 min → YAKU_PIN_BLOQUEO_MIN minutos.
-  const intentos = Number(env.YAKU_PIN_INTENTOS ?? 10), bloqueoMin = Number(env.YAKU_PIN_BLOQUEO_MIN ?? 5);
-  const api = crearApi({
-    almacen, pin, fotosDir: path.join(datos, 'fotos'),
-    intentosPin: { max: Number.isFinite(intentos) && intentos >= 0 ? intentos : 10, ventanaMs: 10 * 60_000, bloqueoMs: (Number.isFinite(bloqueoMin) && bloqueoMin > 0 ? bloqueoMin : 5) * 60_000 },
-  });
+  // Por defecto (MVP) solo el PIN. YAKU_MODO_ESTRICTO=1 suma bloqueo por intentos (10 fallos en 10 min → 5 min),
+  // histórico privado, límites de escritura, cuotas de fotos, sin CORS y cabeceras de seguridad.
+  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto });
 
   const server = http.createServer(async (req, res) => {
-    for (const [k, v] of Object.entries(SEGURIDAD)) res.setHeader(k, v);
+    res.setHeader('x-content-type-options', 'nosniff');
+    if (estricto) for (const [k, v] of Object.entries(SEGURIDAD)) res.setHeader(k, v);
     const pathname = (req.url ?? '/').split('?')[0];
     if (!pathname.startsWith('/api/')) {
       if (pathname === '/salud') { res.writeHead(200, { 'content-type': 'text/plain' }).end('ok'); return; }

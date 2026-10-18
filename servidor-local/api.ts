@@ -8,8 +8,8 @@ import type { Almacen } from './almacen.ts';
 import { validarCambio } from './estados.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
-// Mismo origen que la PWA: sin CORS abierto. nosniff también en las respuestas JSON.
-const JSONH = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
+// CORS abierto como en el Worker (modo MVP); en modo estricto se quita (la API y la PWA comparten origen).
+const JSONH = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
 const json = (o: unknown, status = 200, extra: Record<string, string> = {}) => new Response(JSON.stringify(o), { status, headers: { ...JSONH, ...extra } });
 export const MAX_BODY = 128 * 1024, MAX_RECORDS = 200;
 export const MAX_FOTO = 400 * 1024;
@@ -38,6 +38,9 @@ export function tipoImagen(b: Uint8Array): { mime: string; ext: string } | null 
 
 export interface OpcionesApi {
   almacen: Almacen; pin: string; fotosDir: string; ahora?: () => number;
+  /** false (por defecto, MVP): solo el PIN protege lo de la municipalidad. true: además bloqueo por intentos de PIN,
+   *  histórico privado, límites de escritura, cuotas de fotos y sin CORS. Cada límite se puede fijar aparte abajo. */
+  estricto?: boolean;
   /** Bloqueo por PIN incorrecto: tras `max` fallos dentro de `ventanaMs`, esa IP espera `bloqueoMs` (429). max 0 = sin bloqueo. */
   intentosPin?: { max: number; ventanaMs: number; bloqueoMs: number };
   /** Escrituras públicas (POST /api/sync y /api/fotos) por IP y minuto. */
@@ -61,9 +64,10 @@ export function crearApi(op: OpcionesApi) {
   const pinOk = (p: string) => timingSafeEqual(createHash('sha256').update(p).digest(), pinHash);
 
   // ---- límites por IP (en memoria: se reinician con el proceso) ----
-  const LIM = { max: 10, ventanaMs: 10 * 60_000, bloqueoMs: 5 * 60_000, ...op.intentosPin };
+  const estricto = Boolean(op.estricto);
+  const LIM = { max: estricto ? 10 : 0, ventanaMs: 10 * 60_000, bloqueoMs: 5 * 60_000, ...op.intentosPin };
   const fallos = new Map<string, { n: number; desde: number; hasta: number }>();
-  const POSTS_MIN = op.postsPorMinuto ?? 120;
+  const POSTS_MIN = op.postsPorMinuto ?? (estricto ? 120 : 0); // 0 = sin límite
   const posts = new Map<string, { n: number; desde: number }>();
   const podar = <V>(m: Map<string, V>, vencido: (v: V) => boolean) => { if (m.size > 5000) for (const [k, v] of m) if (vencido(v)) m.delete(k); };
   const esperar = (ms: number, error: string) => json({ error, codigo: 'limite' }, 429, { 'retry-after': String(Math.ceil(ms / 1000)) });
@@ -86,6 +90,7 @@ export function crearApi(op: OpcionesApi) {
   };
   /** null si la IP aún puede escribir en lo público; si no, 429. */
   const limitePost = (req: Request): Response | null => {
+    if (POSTS_MIN <= 0) return null;
     const ip = ipDe(req), t = ahora();
     const c = posts.get(ip);
     const v = c && t - c.desde < 60_000 ? c : { n: 0, desde: t };
@@ -134,9 +139,10 @@ export function crearApi(op: OpcionesApi) {
     if (!tipo) return json({ error: 'solo JPEG, PNG o WebP' }, 415);
     // id = hash del contenido: subir la misma foto dos veces no la duplica.
     const id = createHash('sha256').update(bytes).digest('hex').slice(0, 20);
+    const porReporte = op.fotosPorReporte ?? (estricto ? 3 : 0), maxBytes = op.fotosMaxBytes ?? (estricto ? 2 * 1024 ** 3 : 0); // 0 = sin cuota
     if (!A.foto(id)) {
-      if (A.fotosDeReporte(reportId) >= (op.fotosPorReporte ?? 3)) return json({ error: 'ese reporte ya tiene el máximo de fotos' }, 409);
-      if (A.totalFotos().bytes + bytes.length > (op.fotosMaxBytes ?? 2 * 1024 ** 3)) return json({ error: 'el servidor alcanzó su cuota de fotos' }, 507);
+      if (porReporte > 0 && A.fotosDeReporte(reportId) >= porReporte) return json({ error: 'ese reporte ya tiene el máximo de fotos' }, 409);
+      if (maxBytes > 0 && A.totalFotos().bytes + bytes.length > maxBytes) return json({ error: 'el servidor alcanzó su cuota de fotos' }, 507);
     }
     const archivo = path.join(op.fotosDir, `${id}.${tipo.ext}`);
     if (!fs.existsSync(archivo)) fs.writeFileSync(archivo, bytes);
@@ -197,9 +203,15 @@ export function crearApi(op: OpcionesApi) {
   }
 
   return async function api(req: Request): Promise<Response> {
+    const r = await responder(req);
+    if (estricto) r.headers.delete('access-control-allow-origin');
+    return r;
+  };
+
+  async function responder(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const p = url.pathname;
-    if (req.method === 'OPTIONS') return new Response(null, { status: 204 }); // mismo origen: no hay CORS que negociar
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: estricto ? {} : { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-muni-pin' } });
     try {
       if (req.method === 'POST' && (p === '/api/sync' || p === '/api/fotos')) { const lim = limitePost(req); if (lim) return lim; }
       if (p === '/api/sync' && req.method === 'POST') return await sync(req);
@@ -214,9 +226,8 @@ export function crearApi(op: OpcionesApi) {
           const rows = A.reportesPorId(list);
           return json({ count: rows.length, reports: rows });
         }
-        // El histórico tiene ubicación exacta y nota de cada vecino: solo para la municipalidad (PIN).
-        const acc = await autenticar(req);
-        if (acc instanceof Response) return acc;
+        // El histórico tiene ubicación exacta y nota de cada vecino: en modo estricto, solo con PIN.
+        if (estricto) { const acc = await autenticar(req); if (acc instanceof Response) return acc; }
         const desde = url.searchParams.get('desde');
         if (desde !== null) {
           // Histórico para la línea de tiempo: received_at ≥ desde (ms), del más antiguo al más nuevo.
@@ -258,5 +269,5 @@ export function crearApi(op: OpcionesApi) {
       console.error('error en', req.method, p, e);
       return json({ error: 'error interno del servidor' }, 500);
     }
-  };
+  }
 }

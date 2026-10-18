@@ -1,4 +1,4 @@
-// Seguridad de la API local: bloqueo por intentos de PIN, histórico solo con PIN, límites de escritura pública,
+// Modo estricto de la API local (YAKU_MODO_ESTRICTO=1): bloqueo por intentos de PIN, histórico solo con PIN, límites de escritura pública,
 // cuotas de fotos y sin CORS abierto. SQLite real en una carpeta temporal (se borra al final).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -21,7 +21,7 @@ const nuevaApi = (extra: Partial<OpcionesApi> = {}) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-seg-'));
   dirs.push(dir);
   A = new Almacen(path.join(dir, 'yaku.db'), REGLAS);
-  api = crearApi({ almacen: A, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj, intentosPin: { max: 5, ventanaMs: 15 * 60_000, bloqueoMs: 15 * 60_000 }, ...extra });
+  api = crearApi({ almacen: A, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj, estricto: true, intentosPin: { max: 5, ventanaMs: 15 * 60_000, bloqueoMs: 15 * 60_000 }, ...extra });
 };
 const pedir = (ruta: string, { body, h = {}, ip = '203.0.113.7' }: { body?: unknown; h?: Record<string, string>; ip?: string } = {}) =>
   api(new Request('http://x' + ruta, body === undefined
@@ -31,7 +31,20 @@ const pedir = (ruta: string, { body, h = {}, ip = '203.0.113.7' }: { body?: unkn
 beforeEach(() => { reloj = T0 * 1000; nuevaApi(); });
 after(() => { A.cerrar(); for (const d of dirs) fs.rmSync(d, { recursive: true, force: true }); });
 
-describe('PIN municipal', () => {
+describe('modo MVP (por defecto): solo el PIN', () => {
+  it('sin bloqueo por intentos, histórico público, CORS abierto y sin cuotas de fotos', async () => {
+    nuevaApi({ estricto: false, intentosPin: undefined });
+    for (let i = 0; i < 30; i++) assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'malo' } })).status, 403);
+    assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'pin-largo-123' } })).status, 200);
+    assert.equal((await pedir('/api/reports?desde=0')).status, 200);
+    assert.equal((await pedir('/api/stats')).headers.get('access-control-allow-origin'), '*');
+    const o = obs({});
+    for (let i = 1; i <= 5; i++) assert.equal((await pedir('/api/fotos', { body: { reportId: o.id, data: JPEG(10 + i).toString('base64') } })).status, 200);
+    assert.equal((await pedir('/api/incidentes')).status, 401); // el PIN sigue siendo obligatorio
+  });
+});
+
+describe('PIN municipal (estricto)', () => {
   it('5 intentos fallidos desde una IP la bloquean 15 min (429), sin afectar a otra IP', async () => {
     for (let i = 0; i < 5; i++) assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'malo' + i } })).status, 403);
     const r = await pedir('/api/incidentes', { h: { 'x-muni-pin': 'pin-largo-123' } });
@@ -46,11 +59,11 @@ describe('PIN municipal', () => {
     for (let i = 0; i < 20; i++) assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'malo' } })).status, 403);
     assert.equal((await pedir('/api/incidentes', { h: { 'x-muni-pin': 'pin-largo-123' } })).status, 200);
   });
-  it('por defecto tolera 9 fallos seguidos y bloquea 5 min al 10.º', async () => {
+  it('modo estricto por defecto: tolera 9 fallos seguidos y bloquea 5 min al 10.º', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-seg-'));
     dirs.push(dir);
     const B = new Almacen(path.join(dir, 'yaku.db'), REGLAS);
-    const api2 = crearApi({ almacen: B, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj });
+    const api2 = crearApi({ almacen: B, pin: 'pin-largo-123', fotosDir: path.join(dir, 'fotos'), ahora: () => reloj, estricto: true });
     const p2 = (pin: string) => api2(new Request('http://x/api/incidentes', { headers: { [CABECERA_IP]: '203.0.113.50', 'x-muni-pin': pin } })).then((r) => r.status);
     for (let i = 0; i < 9; i++) assert.equal(await p2('malo'), 403);
     assert.equal(await p2('pin-largo-123'), 200); // el operador conectado (consulta cada 3 s) reinicia el contador
