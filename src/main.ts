@@ -78,9 +78,11 @@ if (ruta.vista === 'tecnica') arrancarMapa2D();
 else diferirMapa2D(() => { arrancarMapa2D(); getMap()!.once('load', () => void renderList()); });
 // Centro de monitoreo: primero el acceso con PIN municipal (src/auth/), luego la interfaz unificada (src/vista3d/monitoreo/).
 // portal | municipalidad | incidentes son alias de la misma pantalla; «incidentes» y «municipalidad» abren la pestaña Incidentes.
+// app.html oculta la app técnica 2D mientras tanto (clase arranque-monitoreo); se quita al montar para que «Vista 2D» la muestre.
 if (ruta.vista === 'monitoreo') import('./auth/sesion').then((a) => a.exigirSesion(document.body)).then(async (sesion) => {
   (await import('./vista3d/entrada-portal')).arrancarMonitoreo(sesion, { pestana: ruta.pestana === 'portal' ? 'escenario' : 'incidentes' });
-});
+}).finally(() => document.documentElement.classList.remove('arranque-monitoreo'));
+else document.documentElement.classList.remove('arranque-monitoreo');
 // Portal de relevo de campo anterior (fichas de IndexedDB de este equipo y demo SIMULADO): público, como la vista 2D.
 if (new URLSearchParams(location.search).get('vista') === 'portal-relevo') import('./vista3d/entrada-portal').then((m) => m.arrancar());
 const legend = $('legend');

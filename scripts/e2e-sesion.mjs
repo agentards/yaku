@@ -20,6 +20,18 @@ const browser = await chromium.launch({ executablePath: CHROME, headless: proces
 const errores = [];
 try {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'es-PE', timezoneId: 'America/Lima', serviceWorkers: 'block' });
+  // Parpadeo: ¿se llega a ver la app técnica 2D («Yaku Relay · prototipo») mientras carga el Centro de monitoreo?
+  await ctx.addInitScript(() => {
+    window.__shell2d = 0;
+    const mirar = () => {
+      const top = document.querySelector('body > header.top');
+      if (top && getComputedStyle(top).display !== 'none' && top.getBoundingClientRect().height > 0) window.__shell2d++;
+      if (document.body?.dataset.v3d !== 'listo') requestAnimationFrame(mirar);
+    };
+    new MutationObserver(() => mirar()).observe(document, { childList: true, subtree: true });
+    requestAnimationFrame(mirar);
+  });
+  const sinParpadeo = async () => (await page.evaluate(() => window.__shell2d)) === 0;
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errores.push(String(e.message).slice(0, 200)));
   const pideAcceso = () => page.waitForSelector('.ycm-acc-pin', { timeout: 8000 }).then(() => true).catch(() => false);
@@ -43,6 +55,8 @@ try {
   await page.click('[data-region="lima"]');
   await page.waitForURL(/region=lima/, { timeout: 15000 });
   check('al cambiar a Lima no vuelve a pedir la contraseña', (await monitor()) && !(await page.locator('.ycm-acc-pin').count()));
+  await page.waitForFunction(() => document.body.dataset.v3d === 'listo', null, { timeout: 30000 }).catch(() => {});
+  check('al cambiar de región no se ve la app técnica 2D mientras carga (sin parpadeo)', await sinParpadeo(), { vecesVisible: await page.evaluate(() => window.__shell2d) });
   await page.click('[data-region="piura"]');
   await page.waitForURL(/region=piura/, { timeout: 15000 });
   check('al volver a Piura tampoco', (await monitor()) && !(await page.locator('.ycm-acc-pin').count()));

@@ -3,6 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- Sin parpadeo: /municipalidad (y ?vista=portal|municipalidad|incidentes) y /reportar no muestran la app técnica 2D
+       mientras cargan su pantalla (antes se veía «Yaku Relay · prototipo» al entrar o al cambiar Piura ↔ Lima).
+       Misma decisión que decidirRuta (src/rutas.ts) para las rutas explícitas; src/main.ts quita la clase al montar. -->
+  <script>
+    (function () {
+      var p = location.pathname.replace(/\/+$/, '') || '/', v = new URLSearchParams(location.search).get('vista');
+      var mon = v === 'portal' || v === 'municipalidad' || v === 'incidentes' || (!v && p === '/municipalidad');
+      var pob = v === 'poblador' || (!v && (p === '/reportar' || p === '/estoy-bien'));
+      if (mon || pob) document.documentElement.classList.add(mon ? 'arranque-monitoreo' : 'vista-poblador');
+    })();
+  </script>
+  <style>
+    html.arranque-monitoreo body > .top, html.arranque-monitoreo #app,
+    html.vista-poblador body > .top, html.vista-poblador #app { display: none !important; }
+    html.arranque-monitoreo body, html.vista-poblador body { background: #f3eee4; }
+    html.arranque-monitoreo body::before { content: 'Yaku 3D · Centro de monitoreo'; position: fixed; inset: 0; display: grid; place-items: center;
+      font: 600 15px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #6a6052; }
+  </style>
   <meta name="theme-color" content="#14212b" />
   <link rel="icon" href="/icon-192.png" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
