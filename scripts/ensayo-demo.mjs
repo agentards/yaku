@@ -1,11 +1,11 @@
-// Ensayo automatizado de la demo de 3 min (docs/demo-3min.md): los 6 pasos, todo en localhost.
+// Ensayo automatizado de la demo de 3 min: los 6 pasos, todo en localhost.
 // servidor-local/ REAL (SQLite en carpeta temporal, PIN de prueba), 2 celulares Android 412×915 (A y B) con cámara
 // simulada que ve el QR que dibuja el otro (canvas.captureStream → scanner.ts), y el Centro de monitoreo
 // 1920×1080 operado con clics (acceso con PIN; Validar + «Bomberos» con confirmación). Datos de prueba SIMULADOS. Mide cada paso.
 //   node scripts/ensayo-demo.mjs            (compila a una carpeta temporal: no pisa dist/; HEADLESS=0 para verlo)
 //   → results/ensayo-demo.json
 // Limitación: las páginas se cargan con red y luego se cortan (setOffline); el arranque en frío sin red del
-// service worker se prueba en scripts/e2e.mjs y a mano en el celular (checklist de docs/demo-3min.md).
+// service worker se prueba en scripts/e2e.mjs y a mano en el celular.
 import { chromium } from 'playwright';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';

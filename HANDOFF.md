@@ -23,8 +23,7 @@ Primero la ficha firmada junto con las pruebas de rechazo (firma inválida, dupl
 - Nunca escribir «vía segura» ni «transitable».
 - Escribir «sin cobertura garantizada según OSIPTEL», no «sin señal».
 - Escribir «centros poblados del escenario CENEPRED», no «expuestos» ni «afectados».
-- No borrar registros de personas de fuera del equipo, porque son la evidencia de tracción. Solo se borran los que tienen la etiqueta «prueba e2e».
-- No contarle al jurado lo que todavía no está en producción (la firma, el acuse).
+- No borrar registros de personas de fuera del equipo. Solo se borran los que tienen la etiqueta «prueba e2e».
 
 ## Cifras verificadas (no inventar otras)
 - 1.255 centros poblados en total: 930 ubicados por IGN, 317 con punto aproximado de OSIPTEL y 8 sin ubicar.
@@ -38,7 +37,7 @@ Primero la ficha firmada junto con las pruebas de rechazo (firma inválida, dupl
 - Validación con un evaluador o un COE real.
 - Soporte de Ed25519 en los teléfonos del demo (si no hay, usar ECDSA P-256).
 
-Más documentación: `docs/ARQUITECTURA.md`, `docs/DATOS.md`, `docs/DECISIONES.md`, `docs/PRUEBAS.md`, `docs/SEGURIDAD.md`, `docs/DEMO.md`. Guion del pitch con plan B: `docs/GUION-PITCH.md`. PRD y plan por horas: `docs/PRD.md`.
+Más documentación: `docs/ARQUITECTURA.md`, `docs/DATOS.md`, `docs/DECISIONES.md`, `docs/PRUEBAS.md`, `docs/SEGURIDAD.md`. PRD técnico: `docs/PRD.md`.
 
 ## Cómo correr y publicar
 - **Rama y trabajo a medias:** se trabaja en `main`. Los bloques 1-3 se están construyendo ahora en la máquina de Builder y llegarán en commits posteriores: (1) filtro OSIPTEL 445 de 928 + 317 centros aproximados con borde discontinuo + lista «Sin ubicar» (8); (2) estados «Sin ficha de evaluación» / «Con registro recibido, no verificado» y contador 930 + 317 + 8 = 1.255; (3) ficha `er1` firmada en el teléfono, rechazo de fichas alteradas en el servidor y QR de acuse. **Haz `git pull` antes de trabajar y no toques `src/` hasta que lleguen; coordinen quién toca `src/` para evitar conflictos.**
@@ -58,7 +57,6 @@ Más documentación: `docs/ARQUITECTURA.md`, `docs/DATOS.md`, `docs/DECISIONES.m
 - **Despliegue (Cloudflare Pages, cuenta de Brayan):** proyecto `yaku-relay-proto`. Producción https://yaku-relay-proto.pages.dev/ · preview https://rediseno-mapa.yaku-relay-proto.pages.dev/. Modo avanzado `_worker.js` (fuente `server/worker.ts`) con D1 `yaku-relay-proto-db` (binding `DB`) y KV `yaku-relay-basemap` (binding `BASEMAP`: el mapa base z11 va subido en trozos de 1 MiB con `scripts/upload-basemap.mjs` porque Pages no aceptaba el archivo).
 - **Endpoints:** `POST /api/sync` (idempotente: recalcula el id desde el contenido e inserta con `INSERT OR IGNORE`), `GET /api/reports`, `GET /api/stats`.
 - **Publicar** requiere que Brayan te dé acceso a la cuenta de Cloudflare; ese acceso no está en el repo y no se suben claves.
-- **D1 de producción** puede tener registros reales de jurados (tracción): no borrarlos.
 
 ## Lenguaje obligatorio (recordatorio)
 - Reportes ciudadanos: siempre **NO VERIFICADO**. Nunca «revisado» ni «sin riesgo».

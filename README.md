@@ -44,7 +44,6 @@ Más comandos (medición QR, preparación de datos, build del Worker): [docs/REA
 | [Decisiones y trade-offs](docs/DECISIONES.md) | Ver por qué cada tecnología y qué sacrificamos |
 | [Pruebas](docs/PRUEBAS.md) | Correr los tests y E2E, y hacer la prueba manual con 2 teléfonos |
 | [Seguridad y límites](docs/SEGURIDAD.md) | Ver qué garantiza la app, qué no y qué no se debe afirmar |
-| [Guion de demo](docs/DEMO.md) | Preparar el recorrido de 3 minutos con plan B |
 
 ## Flujo en una imagen
 ```mermaid

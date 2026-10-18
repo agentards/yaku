@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-18T00:27:47.886Z",
+  "fecha": "2026-10-18T03:25:42.702Z",
   "viewport": "desktop",
   "checks": [
     {
@@ -28,7 +28,7 @@
       "red": "EN LÍNEA",
       "graficos": 3,
       "okFicha": true,
-      "ms": 8011
+      "ms": 11542
     },
     {
       "name": "(p2) capas: la casilla apaga la capa y el deslizador escala su opacidad de diseño",
@@ -56,15 +56,15 @@
       "otro": "CUYAS CENTRO"
     },
     {
-      "name": "(p6) relevo SIMULADO: arcos dibujados y aviso etiquetado SIMULADO / NO VERIFICADO",
+      "name": "(p6) relevo SIMULADO: arcos dibujados y aviso etiquetado SIMULADO / por validar",
       "ok": true,
-      "pixelesArco": 8179,
-      "toast": "SIMULADO · ficha pasó por QR de Tel. A a Tel. B (NO VERIFICADO)"
+      "pixelesArco": 8069,
+      "toast": "SIMULADO · ficha pasó por QR de Tel. A a Tel. B (por validar)"
     },
     {
-      "name": "(p7) flujo real: ficha recibida por QR en IndexedDB → arco y aviso NO VERIFICADO",
+      "name": "(p7) flujo real: ficha recibida por QR en IndexedDB → arco y aviso por validar",
       "ok": true,
-      "toast": "1 ficha(s) recibida(s) por relevo · NO VERIFICADO",
+      "toast": "1 ficha(s) recibida(s) por relevo · por validar",
       "fichas": 1
     },
     {
@@ -86,16 +86,16 @@
   ],
   "medidas": {
     "fpsPortal": {
-      "paginaFps": 130.4,
-      "escenaRenders": 130.4,
-      "miniRenders": 30,
-      "peorCuadroMs": 21
+      "paginaFps": 95,
+      "escenaRenders": 95,
+      "miniRenders": 28,
+      "peorCuadroMs": 35
     },
     "fpsRelevo": {
-      "paginaFps": 129.7,
-      "escenaRenders": 4,
+      "paginaFps": 121,
+      "escenaRenders": 3.7,
       "miniRenders": 0,
-      "peorCuadroMs": 70
+      "peorCuadroMs": 84
     },
     "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)"
   }

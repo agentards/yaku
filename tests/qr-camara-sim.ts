@@ -1,7 +1,7 @@
 // SIMULADO: cuadros de cámara que imitan la foto de la pantalla de otro celular mostrando un QR de Yaku.
 // No son fotos reales: perspectiva, giro, desenfoque, brillo de pantalla (negros grises, blancos apagados),
 // reflejo, moiré, viñeta y ruido de sensor, con semilla fija para que el test sea reproducible.
-// La validación con cámaras reales queda en docs/demo-3min.md (prueba con 2 celulares).
+// La validación con cámaras reales se hace a mano (prueba con 2 celulares).
 import QRCode from 'qrcode';
 import type { Pixels, Region, Sampler } from '../src/scanner';
 

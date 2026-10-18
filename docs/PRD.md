@@ -1,7 +1,5 @@
-# PRD técnico y plan por horas: Yaku Relay, relevo de Evaluación Rápida (EDAN) y mapa del silencio
+# PRD técnico: Yaku Relay, relevo de Evaluación Rápida (EDAN) y mapa del silencio
 
-Escrito por Andes Strategist Bot el 17-oct-2026 a las 13:50 (hora de Lima). Brayan aprobó el caso de uso en el grupo («procedan con las propuestas»).
-Va dirigido a Andes Builder Bot y a los agentes de código (Codex o cloud agents).
 Leyenda de estados: **[VERIFICADO]** tiene fuente en disco o URL; **[NO VERIFICADO]** es una hipótesis o falta probarlo; **[DECISIÓN]** es una elección de diseño, no un hecho.
 
 ---
@@ -141,7 +139,7 @@ CREATE INDEX er_ccpp ON er_records(ccpp);
 
 ## 5. Firma: el detalle técnico que suma complejidad sin cambiar el flujo
 - **Clave:** se genera la primera vez que se abre la app y se guarda en IndexedDB como `CryptoKey` no exportable.
-- **Algoritmo preferido:** Ed25519 vía WebCrypto. **[NO VERIFICADO en los teléfonos del jurado]** Hay que comprobar el soporte en Chrome Android y Safari iOS.
+- **Algoritmo preferido:** Ed25519 vía WebCrypto. **[NO VERIFICADO en teléfonos reales]** Hay que comprobar el soporte en Chrome Android y Safari iOS.
 - **Respaldo:** ECDSA P-256 (firma de 64 bytes en formato raw). Así hay que **probarlo**, no suponerlo: el test de compatibilidad en el arranque decide qué algoritmo se usa, y el registro lleva `alg`.
 - **Serialización canónica:** el array posicional del códec actual, sin `sig`. Hay un test que garantiza que codificar y decodificar no cambia los bytes firmados.
 - **Lo que demuestra:**
@@ -182,64 +180,3 @@ Cloudflare Pages (_worker.js) + D1
 | A9 | El contador separa 930 IGN, 317 aproximados OSIPTEL en el mapa y 8 en «Sin ubicar» (3 sin coordenadas y 5 fuera de su distrito; total 1.255), leídos de `piura_ccpp_estado_base.json` | unit sobre los datos |
 | A10 | No hay ninguna petición a hosts externos en modo offline | E2E (ya existe) |
 | A11 | CI en GitHub Actions corre typecheck, test y build en cada PR; el README tiene arquitectura, trade-offs, licencias y qué no se probó | revisión |
-
----
-
-## 8. Guion de demo (3:00) que esto habilita
-- **0:00–0:30, problema:**
-  - la Evaluación Rápida debe salir en 2 a 4 horas;
-  - casi la mitad de los centros poblados del escenario CENEPRED no tiene cobertura garantizada según OSIPTEL;
-  - EDAN Digital ya captura offline, pero el registro espera a que **su** teléfono encuentre señal.
-- **0:30–1:20, en vivo:** el teléfono A está en modo avión. Abre la URL pública ya cacheada, toca un centro poblado de Huarmaca y llena la evaluación rápida en unos 20 segundos.
-- **1:20–2:00, relevo:**
-  - A muestra el QR y B (el portador) lo escanea;
-  - B muestra el acuse y A lo escanea: «en relevo con el portador 7f3a»;
-  - punto clave: el portador no puede leer el contenido de forma útil ni modificarlo.
-- **2:00–2:30, consolidación:** B sale del modo avión y el mapa del silencio de `/coe` (en la laptop) pasa de gris a ámbar, con el rótulo «no verificado» y la firma válida.
-- **2:30–3:00, cierre:**
-  - los trade-offs (la firma no prueba identidad, sin integración SINPAD);
-  - repo y CI;
-  - «Cuando la conexión se pierde, la información no debería desaparecer».
-- **Plan B:** un video grabado del relevo con dos teléfonos más un QR impreso de respaldo. Judge Bot afina los tiempos.
-
----
-
-## 9. Plan por horas (H0 = inicio oficial; 30 h)
-
-**Cierre duro (rúbrica oficial, vía Judge Bot): domingo 18-oct a las 09:00 (hora de Lima).** Para esa hora deben estar la URL pública, el demo en vivo y el repo; si falta uno, no hay puntaje. Las slides y el video no reemplazan el demo. Si hay empate, gana el de mayor complejidad técnica, así que la firma y las pruebas de rechazo pesan más que F6. Los registros de jurados y usuarios externos **no se borran**, porque son la evidencia de tracción.
-
-Supuesto: Brayan más agentes de código trabajando en paralelo, con una PR por bloque. Nada se mergea a `main` sin el OK de Brayan.
-
-| Horas | Bloque | Dueño | Entregable o salida |
-|---|---|---|---|
-| H0–H1 | Congelar el alcance de este PRD; crear issues A1–A11 en `hallzyx/yaku`; CI mínimo | Builder + Strategist | Issues y CI en verde |
-| H1–H4 | Esquema `er1`, códec, serialización canónica y tests de ida y vuelta | Agente 1 | PR «codec-er1» |
-| H1–H4 | Capa CENEPRED + PMTiles z11 en el precache, encuadre andino, lista «Sin ubicar» (A1, A9) | Agente 2 (Builder ya avanza) | PR «capas-cenepred» |
-| H4–H7 | Firma WebCrypto con detección Ed25519/P-256 y almacenamiento de clave (A4) | Agente 1 | PR «firma» |
-| H4–H8 | UI del formulario de Evaluación Rápida: elegir centro poblado, GPS, campos y validación (A2, A3) | Agente 2 | PR «form-er» |
-| H8–H11 | D1: migración y `/api/er/sync`, `/status`, `/records` con verificación de firma (A4, A8) | Agente 3 | PR «worker-er» |
-| H11–H14 | Paquete `rp1` con QR animado, acuse `ack1` y estados locales (A5, A6) | Agente 1 | PR «relevo-ack» |
-| H14–H17 | Vista `/coe` con el mapa del silencio y los contadores (A7) | Agente 2 | PR «coe» |
-| H17–H18 | **Punto de control con Brayan:** prueba real con 2 teléfonos (cámara, 1 y 20 registros); deploy del preview | Brayan + Builder | Resultados en `results/` |
-| H18–H20 | Arreglos de la prueba física; Judge prueba como jurado desde su equipo | Builder + Judge | Lista de fallos cerrada |
-| H20–H21 | Filtro de cobertura OSIPTEL (F6) **solo si A1–A10 están en verde** | Agente 3 | PR «osiptel» |
-| H21–H23 | README final: arquitectura, trade-offs, licencias, métricas reales, qué no se probó | Builder + Strategist | PR «docs» |
-| H23–H24 | Merge a `main` con OK de Brayan, deploy de producción, E2E remoto y D1 limpia | Builder | URL pública estable |
-| H24–H27 | Ensayos del pitch (mínimo 3), video del plan B y QR impreso | Brayan + Judge | Guion cronometrado |
-| H27–H29 | Tracción: que personas externas prueben el demo y quede el registro (opcional, +0,25) | Brayan | Evidencia |
-| H29–H30 | Buffer. **Congelar el código**, no tocar producción | Todos | n/a |
-
-**Recortes si vamos tarde, en este orden:**
-1. F6, el filtro de cobertura OSIPTEL.
-2. F4, el acuse de recibo: queda solo el contador del lado del portador.
-3. La vista `/coe` separada: el mapa del silencio se muestra en la misma PWA.
-
-**Nunca se recorta:** el offline real, el relevo QR con firma y la URL pública.
-
----
-
-## 10. Pendientes de verificación
-- Si EDAN Digital transfiere registros entre teléfonos. Si lo hace, hay que replantear el pitch. La forma de comprobarlo es la tienda de apps, el manual de INDECI o preguntar a un evaluador.
-- La confirmación de un evaluador EDAN real o de un COE. Es lo que sube el criterio de impacto de 3 a 4 (puntaje simulado por Judge).
-- El soporte de Ed25519 en WebCrypto en los teléfonos de la demo.
-- La medición real de bytes y fragmentos con firma.

@@ -31,5 +31,5 @@ El Worker solo tiene `/api/sync`, `/api/stats` y `/api/reports`. Lo nuevo vive e
 Para tenerlo completo en Cloudflare hay que portar `servidor-local/api.ts` al Worker (ya está escrito como `Request → Response`): tablas de asignaciones, estados e historial en D1, fotos en R2 y `MUNI_PIN` como secreto. La alternativa es la imagen Docker (`Dockerfile` + `docker-compose.yml`, ver `servidor-local/README.md`), que ya trae todo.
 
 ## Ojo
-- D1 de producción puede tener registros reales de jurados: no borrarlos.
+- D1 de producción puede tener registros de personas reales: no borrarlos.
 - En `feat/poblador-municipio` sigue en curso la landing de `yaku.lat` y las rutas `/reportar`, `/municipalidad`, `/app`; se pasará a `main` cuando esté en verde.

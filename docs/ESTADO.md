@@ -6,7 +6,7 @@ Corte: 17-oct-2026, ~14:15 (hora de Lima). Este documento se actualiza con cada 
 | Función | Evidencia |
 |---|---|
 | PWA offline: segunda apertura sin red en Chrome (celular y escritorio) | E2E Playwright en producción: recarga sin red ~0,5 s, pestaña nueva ~0,8 s, 0 peticiones a la red (`results/e2e-prod-*.json`) |
-| Mapa base propio de Piura (PMTiles z11, 2,6 MB) servido por la app, sin tile.openstreetmap.org | Revisión externa por red (Judge Bot) y E2E |
+| Mapa base propio de Piura (PMTiles z11, 2,6 MB) servido por la app, sin tile.openstreetmap.org | Revisión externa por red y E2E |
 | Tiempo de guardado del mapa base (viewport celular) | 0,9 s sin límite · 3,7 s en 4G · 18,5 s en Fast 3G, simulados con Playwright (`results/basemap-measure-*.json`) |
 | Capa «Escenario de riesgo CENEPRED», Aviso 421, con 930 centros poblados ubicados con el IGN | En producción desde las 13:55 (hora de Lima) |
 | Registro offline con GPS, etiquetado «NO VERIFICADO» | E2E |

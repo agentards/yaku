@@ -34,7 +34,6 @@ El video, sus fotogramas y el análisis completo están en `C:\Users\Lenovo\hack
 - Un reporte ciudadano nunca es alerta oficial; siempre «NO VERIFICADO». Nunca «vía segura» ni «transitable».
 - Decir «sin cobertura garantizada según OSIPTEL», no «sin señal»; «centros poblados del escenario CENEPRED», no «expuestos»/«afectados».
 - Cifras permitidas: 1.255 centros poblados (930 IGN + 317 aproximados OSIPTEL + 8 sin ubicar); 445 de 928 sin cobertura garantizada. No inventar otras.
-- No contar al jurado lo que no esté en producción. Lo simulado se etiqueta SIMULADO.
 - La vista 3D es **aditiva**: el modo 2D actual y todos los tests/E2E existentes deben seguir verdes. Entrada por `?vista=3d` y por el conmutador 2D|3D; 2D sigue siendo el predeterminado hasta que QA apruebe.
 - Presupuesto offline: el paquete adicional del 3D (DEM + sprites) ≤ 6 MB y debe entrar en el precache existente de la PWA; cero CDN ni teselas externas.
 - Cuidado con `src/`: el repo tiene a otras personas/agentes construyendo ahí (HANDOFF). Trabaja en archivos nuevos (`src/vista3d/*`) y toca los archivos existentes lo mínimo (un `import` y un conmutador). Haz `git pull --rebase origin main` antes de cada sesión.
@@ -46,5 +45,5 @@ El video, sus fotogramas y el análisis completo están en `C:\Users\Lenovo\hack
 4. Relevo animado (arcos) disparado por el flujo real de fichas (y un modo demo etiquetado SIMULADO).
 5. Funciona sin red (modo avión) en un celular real y en escritorio; ≥ 30 fps en celular de gama media (medir y anotar); degradación a 2D si WebGL falla.
 6. Tests: unitarios de la cámara/línea de tiempo, E2E Playwright de 3D offline, y los existentes en verde (`npm test`, `npm run typecheck`, `npm run e2e`).
-7. Documentación: sección en `docs/ARQUITECTURA.md` y `docs/DEMO.md` actualizada con el nuevo recorrido de 3 minutos.
+7. Documentación: sección en `docs/ARQUITECTURA.md`.
 8. PR `feat/3d-portal → main` con capturas y un video de 15 s por entregable. Sin claves, sin datos personales.
