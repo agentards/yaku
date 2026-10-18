@@ -1,7 +1,7 @@
 // Ensayo automatizado de la demo de 3 min (docs/demo-3min.md): los 6 pasos, todo en localhost.
 // servidor-local/ REAL (SQLite en carpeta temporal, PIN de prueba), 2 celulares Android 412×915 (A y B) con cámara
-// simulada que ve el QR que dibuja el otro (canvas.captureStream → scanner.ts), y la pantalla de la municipalidad
-// 1920×1080 operada con clics (Validar + «Bomberos» con PIN). Datos de prueba SIMULADOS. Mide cada paso.
+// simulada que ve el QR que dibuja el otro (canvas.captureStream → scanner.ts), y el Centro de monitoreo
+// 1920×1080 operado con clics (acceso con PIN; Validar + «Bomberos» con confirmación). Datos de prueba SIMULADOS. Mide cada paso.
 //   node scripts/ensayo-demo.mjs            (compila a una carpeta temporal: no pisa dist/; HEADLESS=0 para verlo)
 //   → results/ensayo-demo.json
 // Limitación: las páginas se cargan con red y luego se cortan (setOffline); el arranque en frío sin red del
@@ -13,6 +13,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PNG } from 'pngjs';
 import { iniciar } from '../servidor-local/servidor.ts';
+import { accederConPin } from './acceso-pin.mjs';
 
 const PORT = Number(process.env.PORT_ENSAYO ?? 8099), BASE = `http://127.0.0.1:${PORT}/`, PIN = 'ensayo-' + Math.random().toString(36).slice(2, 8);
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-ensayo-'));
@@ -55,7 +56,7 @@ function camaraSimulada() {
   if (navigator.mediaDevices) navigator.mediaDevices.getUserMedia = async () => c.captureStream(15);
 }
 
-const srv = iniciar({ puerto: PORT, host: '127.0.0.1', dist: DIST, datos: path.join(TMP, 'datos'), pin: PIN, silencioso: true });
+const srv = iniciar({ puerto: PORT, host: '127.0.0.1', dist: DIST, datos: path.join(TMP, 'datos'), pin: PIN, silencioso: true, clerk: {} });
 await srv.listo;
 console.log('servidor ok', PORT);
 const stats = async () => (await (await fetch(BASE + 'api/stats')).json());
@@ -111,11 +112,12 @@ try {
   const M = await cM.newPage();
   vigilar(M);
   await M.goto(BASE + '?vista=incidentes');
-  await M.waitForFunction(() => window.__yakuMuni?.estado().sembrado, null, { timeout: 30000 });
+  await accederConPin(M, { pin: PIN }); // Centro de monitoreo: acceso con PIN (sin Clerk)
+  await M.waitForFunction(() => window.__yakuMonitoreo?.estado().sembrado, null, { timeout: 30000 });
   // Procedencia: ¿la pantalla municipal dice fuente y fecha de las capas? (se informa; no detiene el ensayo)
   res.procedenciaMunicipalidad = await M.evaluate(() => (document.body.innerText.match(/Fuente[^\n]{0,80}/) ?? [null])[0]);
   console.log('municipalidad abierta · procedencia:', res.procedenciaMunicipalidad);
-  const muni = () => M.evaluate(() => window.__yakuMuni.estado());
+  const muni = () => M.evaluate(() => window.__yakuMonitoreo.estado());
   const { ctx: cA, p: A } = await celular(GPS_A);
   const { ctx: cB, p: B } = await celular(GPS_B);
   await cA.setOffline(true); await cB.setOffline(true);
@@ -151,27 +153,26 @@ try {
   paso(4, 'B recupera internet');
 
   // 5) Pantalla de la municipalidad: 1 incidente «2 vecinos · 1 foto», sin duplicados, y vuela al punto.
-  await M.waitForFunction(() => window.__yakuMuni.estado().incidentes.some((i) => i.tipo === 'vivienda' && i.personas === 2 && i.nFotos === 1), null, { timeout: 20000 });
+  await M.waitForFunction(() => window.__yakuMonitoreo.estado().incidentes.some((i) => i.tipo === 'vivienda' && i.personas === 2 && i.nFotos === 1), null, { timeout: 20000 });
   const m5 = await muni();
   const inc = m5.incidentes.find((i) => i.tipo === 'vivienda');
-  await M.waitForSelector('.muni-tarjeta', { timeout: 10000 });
-  const tarjeta = await M.locator('.muni-tarjeta').innerText();
+  await M.waitForSelector('[data-tarjeta]:not([hidden])', { timeout: 10000 });
+  const tarjeta = await M.locator('[data-tarjeta]').innerText();
   check('5 · Municipalidad: 1 incidente de casa dañada con «2 vecinos · 1 foto», rótulo vecinal, sin duplicados',
     m5.incidentes.filter((i) => i.tipo === 'vivienda').length === 1 && /2 vecinos · 1 foto/.test(tarjeta) && /Reporte vecinal/.test(tarjeta),
     { incidentes: m5.incidentes.length, personas: inc.personas, fotos: inc.nFotos, puntaje: inc.puntaje, tarjeta: tarjeta.slice(0, 160) });
-  const fase = await M.waitForFunction(() => ['regional', 'acercamiento', 'orbita'].includes(window.__yakuMuni.estado().fase), null, { timeout: 15000 }).then(() => true).catch(() => false);
+  const fase = await M.waitForFunction(() => ['regional', 'acercamiento', 'orbita'].includes(window.__yakuMonitoreo.estado().fase), null, { timeout: 15000 }).then(() => true).catch(() => false);
   check('5 · El mapa 3D vuela al incidente', fase && m5.actual === inc.id, { fase: (await muni()).fase });
   paso(5, 'Pantalla municipal muestra el incidente');
 
   // 6) El operador valida y asigna «Bomberos» con PIN; B lo ve al sincronizar y se lo pasa a A por QR.
-  await M.click(`.muni-lista li[data-id="${inc.id}"] .muni-item`);
-  await M.click('.muni-tarjeta .muni-acc[data-destino="validado"]');
-  await M.fill('.muni-dlg-pin input[name="quien"]', 'Operador SIMULADO');
-  await M.fill('.muni-dlg-pin input[name="pin"]', PIN);
-  await M.click('.muni-dlg-pin button[value="ok"]');
-  await M.waitForFunction((id) => window.__yakuMuni.estado().incidentes.find((i) => i.id === id)?.estado === 'validado', inc.id, { timeout: 10000 });
-  await M.click('.muni-tarjeta .muni-acc[data-accion="bomberos"]');
-  await M.waitForFunction((id) => window.__yakuMuni.estado().incidentes.find((i) => i.id === id)?.accion === 'bomberos', inc.id, { timeout: 10000 });
+  await M.click(`[data-lista] li[data-id="${inc.id}"] .mon-item`);
+  await M.click('[data-tarjeta] .mon-acc[data-destino="validado"]');
+  await M.click('[data-dlg-confirmar] button[value="ok"]'); // confirmación (queda a nombre del operador)
+  await M.waitForFunction((id) => window.__yakuMonitoreo.estado().incidentes.find((i) => i.id === id)?.estado === 'validado', inc.id, { timeout: 10000 });
+  await M.click('[data-tarjeta] .mon-acc[data-accion="bomberos"]');
+  await M.click('[data-dlg-confirmar] button[value="ok"]');
+  await M.waitForFunction((id) => window.__yakuMonitoreo.estado().incidentes.find((i) => i.id === id)?.accion === 'bomberos', inc.id, { timeout: 10000 });
   await B.click('#pb-actualizar');
   await B.waitForFunction(() => [...document.querySelectorAll('.pb-rep[data-tipo="vivienda"] .pb-chip-muni')].filter((c) => c.textContent === 'Bomberos asignados').length === 2, null, { timeout: 15000 });
   check('6 · Municipalidad valida + «Bomberos» con PIN; B lo ve tras sincronizar', true);
