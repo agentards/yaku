@@ -467,7 +467,7 @@ function plantilla(): string {
       <h2>${esc(T.queLlevo)} (<span id="pb-n-llevo">0</span>)</h2>
       <ul class="pb-reps" id="pb-llevo"></ul>
       <p class="pb-pie">${esc(PIE_LEGAL)}</p>
-      <a class="pb-tecnica" href="?vista=2d">${esc(T.vistaTecnica)}</a>
+      <a class="pb-tecnica" href="/app">${esc(T.vistaTecnica)}</a>
     </section>
   </main>
   <div class="pb-toast" id="pb-toast" role="status" aria-live="polite" hidden></div>

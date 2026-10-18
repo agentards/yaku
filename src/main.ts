@@ -21,7 +21,7 @@ const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.ch
 
 registerSW({ immediate: true });
 history.scrollRestoration = 'manual';
-const ruta = decidirRuta(location.search, entornoActual()); // ver src/rutas.ts
+const ruta = decidirRuta(location.pathname, location.search, entornoActual()); // /reportar, /municipalidad, /app o ?vista= (src/rutas.ts)
 if (ruta.vista === 'poblador') { prepararVistaPoblador(); import('./poblador/app').then((m) => m.arrancar()); } // modo poblador (celular por defecto)
 
 function deviceId(): string {

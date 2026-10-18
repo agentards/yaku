@@ -2,6 +2,7 @@
 // Se empaqueta con esbuild en scripts/build-worker.mjs.
 import FILES from 'virtual:files';
 import { OBS_TYPES, makeObservation, type NewObservation } from '../src/codec';
+import { ARCHIVO_APP, esRutaApp, redireccionRuta } from '../src/rutas';
 
 interface D1Stmt { bind(...v: unknown[]): D1Stmt; run(): Promise<{ meta: { changes: number } }>; all<T>(): Promise<{ results: T[] }>; first<T>(): Promise<T | null> }
 interface KVLike { get(key: string, opts: { type: 'arrayBuffer'; cacheTtl?: number }): Promise<ArrayBuffer | null> }
@@ -112,10 +113,15 @@ export default {
     let pathname = url.pathname;
     try { pathname = decodeURIComponent(url.pathname); } catch { /* ruta mal codificada: se usa tal cual */ }
     // p. ej. glyphs «/basemap/fonts/Noto%20Sans%20Regular/0-255.pbf» → clave con espacios
-    let f = (FILES as any)[pathname] || (url.pathname === '/' ? (FILES as any)['/index.html'] : null);
-    if (!f && req.method === 'GET' && !url.pathname.includes('.')) f = (FILES as any)['/index.html'];
+    // Rutas (src/rutas.ts): / = landing; /reportar, /municipalidad, /app = app.html; /?vista=… viejo → 302.
+    const destino = redireccionRuta(url.pathname, url.search);
+    if (destino) return new Response(null, { status: 302, headers: { location: destino, 'cache-control': 'no-cache' } });
+    let estado = 200;
+    let f = (FILES as any)[pathname] || (url.pathname === '/' ? (FILES as any)['/index.html'] : esRutaApp(url.pathname) ? (FILES as any)[ARCHIVO_APP] : null);
+    if (!f && req.method === 'GET' && !url.pathname.includes('.')) { f = (FILES as any)['/index.html']; estado = 404; }
     if (!f) return new Response('no encontrado', { status: 404 });
     return new Response(f.b ? b64(f.d) : f.d, {
+      status: estado,
       headers: {
         'content-type': f.t,
         'cache-control': url.pathname.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache',

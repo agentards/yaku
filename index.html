@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- Enlaces viejos (/?vista=…, /#p=…) → ruta nueva antes de pintar nada. El servidor ya redirige /?vista=;
+       esto cubre el hash y la copia de la PWA sin red. Misma tabla que redireccionRuta() en src/rutas.ts. No quitar. -->
+  <script>
+    (function (l) {
+      var q = new URLSearchParams(l.search), v = q.get('vista'), d = '/app';
+      if (v === null) { if (/^#p=/.test(l.hash)) l.replace('/app' + l.search + l.hash); return; }
+      if (v === 'poblador') { d = '/reportar'; q.delete('vista'); }
+      else if (v === 'municipalidad' || v === 'incidentes') { d = '/municipalidad'; q.delete('vista'); }
+      else if (v === 'portal') d = '/municipalidad';
+      else if (v === '2d' || v === '') q.delete('vista');
+      var r = q.toString();
+      l.replace(d + (r ? '?' + r : '') + l.hash);
+    })(location);
+  </script>
+  <meta name="theme-color" content="#14212b" />
+  <meta name="description" content="Yaku: el vecino reporta aunque caiga la señal, el reporte pasa de celular en celular por QR y llega a la municipalidad como reporte vecinal por validar." />
+  <link rel="canonical" href="https://yaku.lat/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yaku.lat/" />
+  <meta property="og:title" content="Yaku · cadena de apoyo vecinal ante El Niño" />
+  <meta property="og:description" content="Cuando cae la señal, el reporte sigue viajando de celular en celular hasta la municipalidad." />
+  <link rel="icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <title>Yaku · cadena de apoyo vecinal ante El Niño</title>
+</head>
+<body>
+  <!-- Stub mínimo de rutas (ingeniero-producto). landing-lead reemplaza este cuerpo y src/landing/. -->
+  <main id="landing">
+    <h1>Yaku</h1>
+    <p>Cuando cae la señal, el reporte sigue viajando.</p>
+    <nav aria-label="Entradas">
+      <a href="/reportar" data-cta="reportar">Reportar un incidente</a>
+      <a href="/municipalidad" data-cta="ingresar">Ingresar</a>
+    </nav>
+  </main>
+  <script type="module" src="/src/landing/main.ts"></script>
+</body>
+</html>
