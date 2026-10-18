@@ -2,7 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { contadores, estadoEn, eventosHistorico, fichaDeReporte, incidenteEn, incidentesCerca, indexar, pasoMarcas, rangoHistorico, seriesPorEstado, seriesReportes, H } from '../src/vista3d/monitoreo/historico';
-import { accionesHtml, detalleHtml, filaHtml, tarjetaHtml } from '../src/vista3d/monitoreo/piezas';
+import { accionesHtml, detalleHtml, filaHtml, galeriaHtml, pieMonitoreoHtml, tarjetaHtml, tono } from '../src/vista3d/monitoreo/piezas';
+import { PIE_LEGAL } from '../src/vista3d/municipalidad/textos';
 import { leerIncidente, type Incidente } from '../src/vista3d/municipalidad/incidentes';
 import type { ReporteApi } from '../src/vista3d/municipalidad/deteccion';
 import { ESCENARIO } from '../src/vista3d/escenario';
@@ -81,13 +82,41 @@ describe('incidente en el tiempo', () => {
 
 describe('piezas de la tarjeta', () => {
   const ctx = { puede: true, motivoNo: '', antes: null, ahora: T0 + 30 * 60000 };
-  it('tarjeta: rótulo vecinal, contador, respaldo, pie legal; sin SIMULADO', () => {
+  it('tarjeta: rótulo vecinal, contador y respaldo, sin relleno ni pie legal repetido; sin SIMULADO', () => {
     const t = tarjetaHtml(inc({ estado: 'nuevo', historial: [], accion: null }), ctx);
     expect(t).toContain('Reporte vecinal · por validar');
     expect(t).toMatch(/2 vecinos<\/b> · <b class="mon-k-fotos">0 fotos<\/b> · primer reporte \d\d:\d\d/);
     expect(t).toContain('Respaldo 52 · N2');
-    expect(t).toContain('no una alerta oficial');
+    // Decisión de Jorge (18/10): el aviso legal va una sola vez, en el pie de la página; la tarjeta no lo repite,
+    // ni «2 vecinos lo reportan» (repite el contador), ni la barra del respaldo, ni «Sin fotos todavía».
+    expect(t).not.toContain('no una alerta oficial');
+    expect(t).not.toContain('lo reportan');
+    expect(t).not.toContain('mon-barra');
+    expect(t).not.toContain('Sin fotos todavía');
     expect(t).not.toMatch(/SIMULADO|vía segura|transitable/i);
+    expect(t).not.toMatch(/\balerta\b(?! oficial)/i); // un reporte vecinal nunca se llama «alerta»
+  });
+  it('el pie del monitoreo muestra el aviso legal una sola vez, con el rótulo vecinal', () => {
+    const pie = pieMonitoreoHtml();
+    expect(pie.split('no una alerta oficial')).toHaveLength(2);
+    expect(pie).toContain(PIE_LEGAL);
+    expect(pie).toContain('Reporte vecinal · por validar');
+    expect(detalleHtml(inc(), ctx)).not.toContain('no una alerta oficial');
+  });
+  it('fotos: miniatura de la primera (descargada con la sesión: data-foto sin src) y nada si no hay fotos', () => {
+    const conFoto = inc({ fotos: [{ id: 'f0123456789abcdef012' }, { id: 'f0123456789abcdef013' }], n_fotos: 2 });
+    const fila = filaHtml(conFoto, ctx, false);
+    expect(fila).toContain('data-foto="f0123456789abcdef012"');
+    expect(fila).not.toMatch(/<img[^>]*\ssrc=/);
+    expect(galeriaHtml(inc({ fotos: [], n_fotos: 0 }))).toBe('');
+    expect(galeriaHtml(conFoto)).toContain('data-k="1"');
+  });
+  it('tono (punto de estado): vida manda mientras está abierto; cerrados en gris', () => {
+    expect(tono({ estado: 'nuevo', tipo: 'vivienda' })).toBe('nuevo');
+    expect(tono({ estado: 'nuevo', tipo: 'atrapados' })).toBe('vida');
+    expect(tono({ estado: 'atendido', tipo: 'atrapados' })).toBe('cerrado');
+    expect(tono({ estado: 'accion_asignada', tipo: 'vivienda' })).toBe('municipal');
+    expect(filaHtml(inc({ tipo: 'heridos', estado: 'nuevo', historial: [], accion: null }), ctx, false)).toContain('Riesgo de vida');
   });
   it('acciones según estado y rol', () => {
     const n = accionesHtml(inc({ estado: 'nuevo', historial: [], accion: null }), ctx);

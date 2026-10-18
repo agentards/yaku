@@ -34,7 +34,7 @@ export function arrancarMonitoreo(sesion: Sesion, o: { pestana?: PestanaMonitore
   let api: ReturnType<typeof montarMonitoreo> = null;
   api = montarMonitoreo(sesion, {
     pestana: o.pestana,
-    crearEscena: (cont) => crearEscena(cont),
+    crearEscena: (cont, o) => crearEscena(cont, o),
     alSalir: botonVolver('Volver al Centro de monitoreo', () => api?.volver()),
   });
   // «Ver desde la cuenca» es del río Piura (DEM de Piura): en Lima no se monta.

@@ -6,7 +6,8 @@
 import * as maplibregl from 'maplibre-gl';
 import '../ui/tema.css';
 import './monitoreo.css';
-import type { EscenaYaku3D } from '../escena';
+import type { EscenaYaku3D, OpcionesEscena } from '../escena';
+import { alCambiarModo, aplicarModo, montarSelectorModo, type Modo } from '../ui/modo';
 import type { PuntoReporte } from '../ui/contrato';
 import { Tienda, type Pestana } from '../ui/tienda';
 import { cargarCentros, cargarResumen } from '../ui/datos';
@@ -17,15 +18,16 @@ import { esc, num } from '../ui/formato';
 import { ESCENARIO, MONITOREO } from '../escenario';
 import { llegoHace, type ReporteApi } from '../municipalidad/deteccion';
 import { cerrado, DetectorIncidentes, hhmm, plural, porPrioridad, type Incidente } from '../municipalidad/incidentes';
-import { cambiarEstado, esErrorAcceso, fotoUrl, llevarA, traerIncidentes, traerReportes, type Fuente } from '../municipalidad/api';
-import { ACCION_TXT, ACCIONES, ESTADO, MOTIVOS_DESCARTE, PIE_LEGAL, PIE_PANEL, ROTULO_VECINAL, tipoTxt, vecinos, type Accion, type Estado } from '../municipalidad/textos';
+import { cambiarEstado, esErrorAcceso, llevarA, traerIncidentes, traerReportes, type Fuente } from '../municipalidad/api';
+import { ACCION_TXT, ACCIONES, ESTADO, MOTIVOS_DESCARTE, ROTULO_VECINAL, tipoTxt, vecinos, type Accion, type Estado } from '../municipalidad/textos';
 import type { Sesion } from '../../auth/sesion';
 import { REGION, REGIONES, urlRegion, type RegionId } from '../../region';
 import { contadores, fichaDeReporte, grupoDe, incidenteEn, indexar, rangoHistorico, type IncHist } from './historico';
-import { tarjetaHtml, vida, type Ctx } from './piezas';
+import { pieMonitoreoHtml, tarjetaHtml, tono, vida, type Ctx } from './piezas';
 import { montarLineaMonitoreo } from './linea';
 import { montarPanelMonitoreo } from './panel';
 import { Sonido, TONOS_COINCIDE } from './sonido';
+import { hidratarFotos, urlFoto } from './fotos';
 
 export const INTERVALO_MS = 3000;
 const ANIM_MS = 1800;
@@ -33,7 +35,7 @@ export type PestanaMonitoreo = 'incidentes' | 'campo' | 'escenario';
 
 export interface OpcionesMonitoreo {
   pestana?: PestanaMonitoreo;
-  crearEscena: (cont: HTMLElement) => EscenaYaku3D;
+  crearEscena: (cont: HTMLElement, o?: OpcionesEscena) => EscenaYaku3D;
   /** Volver a la vista 2D sin recargar (la vista 2D sigue viva debajo). */
   alSalir?: () => void;
 }
@@ -43,9 +45,12 @@ function webglDisponible() {
 }
 
 const VERBO: Record<Estado, string> = { nuevo: 'Nuevo', en_revision: 'Pasar a «en revisión»', validado: 'Validar', descartado: 'Descartar', accion_asignada: 'Asignar', atendido: 'Marcar atendido' };
+/** Modo de la interfaz → tema del mapa (ver ../temas.ts). */
+const temaMapa = (m: Modo) => (m === 'oscuro' ? 'noche' : 'claro');
 
 export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
   document.title = MONITOREO.documento;
+  const modo = aplicarModo(); // Claro / Oscuro / Sistema (guardado en este equipo): antes de pintar nada
   const raiz = document.createElement('div');
   raiz.className = 'v3d mon';
   raiz.dataset.graficos = 'no';
@@ -87,19 +92,20 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     <div class="v3d-velo" data-velo></div>
     <aside class="v3d-panel" id="v3d-panel" aria-label="Incidentes, campo y escenario" tabindex="-1"></aside>
     <section class="v3d-linea" aria-label="Línea de tiempo del histórico" data-linea></section>
-    <footer class="mon-pie-legal"><b>${esc(ROTULO_VECINAL)}</b> · ${esc(PIE_LEGAL)} ${esc(PIE_PANEL)}</footer>
-    <dialog class="mon-dlg" data-dlg-confirmar aria-labelledby="mon-conf-t"><form method="dialog">
-      <h2 id="mon-conf-t" data-conf-titulo></h2><p data-conf-texto></p>
-      <label class="mon-conf-msg" data-conf-msg hidden>Mensaje para los vecinos (opcional)
+    <footer class="mon-pie-legal">${pieMonitoreoHtml()}</footer>
+    <dialog class="mon-dlg" data-dlg-confirmar aria-labelledby="mon-conf-t" aria-describedby="mon-conf-d"><form method="dialog">
+      <h2 id="mon-conf-t" data-conf-titulo></h2>
+      <p id="mon-conf-d" data-conf-texto></p>
+      <label class="mon-conf-msg" data-conf-msg hidden><span>Mensaje para los vecinos (opcional)</span>
         <input name="mensaje" maxlength="120" autocomplete="off" placeholder="Ej.: llegan al colegio de Pampa Dulce a las 3 p. m."></label>
-      <div class="mon-dlg-botones"><button value="cancelar" class="v3d-b" formnovalidate>Cancelar</button><button value="ok" class="v3d-b pri" data-conf-ok>Confirmar</button></div>
+      <div class="mon-dlg-botones"><button value="cancelar" class="v3d-b sec" formnovalidate>Cancelar</button><button value="ok" class="v3d-b pri" data-conf-ok>Confirmar</button></div>
     </form></dialog>
     <dialog class="mon-dlg" data-dlg-descartar aria-labelledby="mon-desc-t"><form method="dialog">
       <h2 id="mon-desc-t">Descartar incidente</h2>
       <p>El vecino verá «La municipalidad lo revisó y no lo validó» con este motivo.</p>
       <label>Motivo <select name="motivo">${MOTIVOS_DESCARTE.map((m) => `<option>${esc(m)}</option>`).join('')}<option value="otro">Otro (escribir)</option></select></label>
       <label>Detalle <input name="detalle" maxlength="140" placeholder="Opcional"></label>
-      <div class="mon-dlg-botones"><button value="cancelar" class="v3d-b" formnovalidate>Cancelar</button><button value="ok" class="v3d-b peligro">Descartar</button></div>
+      <div class="mon-dlg-botones"><button value="cancelar" class="v3d-b sec" formnovalidate>Cancelar</button><button value="ok" class="v3d-b peligro lleno">Descartar</button></div>
     </form></dialog>
     <div class="mon-galeria-full" data-galeria hidden role="dialog" aria-label="Foto del incidente">
       <button type="button" data-g="cerrar" aria-label="Cerrar foto">×</button>
@@ -111,6 +117,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
   document.body.classList.add('vista-3d');
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => raiz.querySelector<T>(s)!;
   sesion.montarBotonUsuario($('[data-usuario]'));
+  montarSelectorModo($('.v3d-der'), { antes: $('[data-sonido]') });
   const salirA2D = () => { raiz.hidden = true; document.body.classList.remove('vista-3d'); const u = new URL(location.href); u.searchParams.set('vista', '2d'); history.replaceState(null, '', u); opc.alSalir?.(); dispatchEvent(new Event('resize')); };
   $('[data-salir]').onclick = salirA2D;
   // Cambiar de región cambia el mapa base (otro .pmtiles): se carga la página de nuevo con ?region= (queda recordada).
@@ -121,7 +128,9 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     return null;
   }
 
-  const escena = opc.crearEscena($('[data-mapa]'));
+  // El mapa nace con el tema del modo (sin destello claro) y lo sigue en caliente al cambiar de modo.
+  const escena = opc.crearEscena($('[data-mapa]'), { tema: temaMapa(modo) });
+  alCambiarModo((m) => escena.setTema(temaMapa(m)));
   const tienda = new Tienda(Date.now, navigator.onLine, rangoHistorico);
   tienda.t = tienda.rango[1];
   montarFuente($<HTMLButtonElement>('[data-fuente]'), raiz, tienda);
@@ -140,6 +149,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
   let galeria: { fotos: string[]; k: number } | null = null;
   const dlgConf = $<HTMLDialogElement>('[data-dlg-confirmar]'), dlgDesc = $<HTMLDialogElement>('[data-dlg-descartar]');
   const ocupado = () => dlgConf.open || dlgDesc.open;
+  const cab = () => sesion.cabeceras();
 
   // ---------- en vivo / histórico ----------
   const vivo = {
@@ -201,6 +211,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     accionar: (id, d, a) => void accionar(id, d as Estado, a as Accion | undefined),
     abrirGaleria: (fotos, k) => { galeria = { fotos, k }; pintarGaleria(); },
     eventos: () => linea.eventos(), irA: (t) => { vivo.soltarVivo(); tienda.setT(t); }, cerrarCajon,
+    hidratar: (el) => hidratarFotos(el, cab),
   });
   tienda.setPestana(opc.pestana ?? 'incidentes');
 
@@ -259,10 +270,12 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     const f = `${i.id}|${i.estado}|${i.accion}|${i.personas}|${i.nFotos}|${i.fotos.length}|${i.puntaje}|${c.puede}|${c.motivoNo}|${!!c.antes}`;
     if (!forzar && f === firmaTarjeta) return;
     firmaTarjeta = f;
-    tarjeta.dataset.id = i.id; tarjeta.dataset.estado = i.estado;
+    tarjeta.dataset.id = i.id; tarjeta.dataset.estado = i.estado; tarjeta.dataset.tono = tono(i);
     tarjeta.classList.toggle('vida', vida(i));
     tarjeta.innerHTML = tarjetaHtml(i, c);
     tarjeta.querySelectorAll<HTMLImageElement>('.muni-foto img').forEach((img) => (img.onerror = () => img.parentElement!.classList.add('rota')));
+    tarjeta.querySelectorAll<HTMLImageElement>('.mon-t-vis img').forEach((img) => (img.onerror = () => img.remove())); // queda el ícono del tipo
+    hidratarFotos(tarjeta, cab);
   }
   tarjeta.addEventListener('click', (e) => {
     const t = e.target as HTMLElement, id = tarjeta.dataset.id!;
@@ -299,10 +312,11 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
   function pintarGaleria() {
     gf.hidden = !galeria;
     if (!galeria) return;
-    const { fotos, k } = galeria, img = gf.querySelector('img')!;
-    img.src = fotoUrl(fotos[k]);
+    const { fotos, k } = galeria, img = gf.querySelector('img')!, pie = gf.querySelector('figcaption')!;
+    img.removeAttribute('src');
     img.alt = `Foto ${k + 1} de ${fotos.length} enviada por un vecino`;
-    gf.querySelector('figcaption')!.textContent = `Foto ${k + 1} de ${fotos.length} · enviada por un vecino · por validar`;
+    pie.textContent = `Foto ${k + 1} de ${fotos.length} · enviada por un vecino · por validar`;
+    urlFoto(fotos[k], cab).then((u) => { if (galeria?.fotos[galeria.k] === fotos[k]) img.src = u; }, () => { pie.textContent = `Foto ${k + 1} de ${fotos.length} · aún no disponible`; });
     gf.querySelectorAll<HTMLElement>('[data-g=ant],[data-g=sig]').forEach((b) => (b.hidden = fotos.length < 2));
     gf.querySelector<HTMLButtonElement>('[data-g=cerrar]')!.focus();
   }
@@ -397,7 +411,6 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
       : `${vivoTxt.textContent}. Lo que ves es la última lectura${ultimaOk ? ` (${hhmm(ultimaOk, true)})` : ''}.`;
     raiz.dataset.banda = e === 'ok' ? 'no' : 'off';
   }
-  const cab = () => sesion.cabeceras();
   let desdeMs = 0;
   async function consultar(forzar = false) {
     if (enCurso && !forzar) return;

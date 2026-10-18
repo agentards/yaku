@@ -12,7 +12,7 @@ import { IC } from '../ui/iconos';
 import { cerrado, type Incidente } from '../municipalidad/incidentes';
 import { ESTADO, ORDEN_TXT, tipoTxt } from '../municipalidad/textos';
 import { centroDeIncidentes, incidentesCerca, type EventoMon } from './historico';
-import { chipEstado, claseEstado, detalleHtml, filaHtml, type Ctx } from './piezas';
+import { chipEstado, claseEstado, detalleHtml, filaHtml, tono, type Ctx } from './piezas';
 
 const TITULOS: Partial<Record<Pestana, string>> = { incidentes: 'Incidentes', campo: 'Campo · centros poblados', escenario: 'Escenario oficial' };
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -29,6 +29,8 @@ export interface Enlace {
   eventos(): EventoMon[];
   irA(t: number): void;
   cerrarCajon(): void;
+  /** Descarga con la sesión las fotos (<img data-foto>) recién pintadas en `el` (./fotos.ts). */
+  hidratar(el: ParentNode): void;
 }
 
 export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena: EscenaYaku, en: Enlace) {
@@ -90,6 +92,9 @@ export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena:
         const s = cerrado(i) && !sep ? ((sep = true), '<li class="mon-sep">Cerrados</li>') : '';
         return s + filaHtml(i, en.ctx(i), actual === i.id);
       }).join('');
+      // Miniatura que no carga (foto aún subiendo): se quita y queda el ícono del tipo.
+      $('[data-lista]').querySelectorAll<HTMLImageElement>('.mon-i-vis img').forEach((img) => (img.onerror = () => img.remove()));
+      en.hidratar($('[data-lista]'));
       $('[data-vacia]').textContent = xs.length ? '' : en.enVivo() ? 'Esperando reportes de vecinos…' : 'Ningún incidente hasta este punto de la línea de tiempo.';
     }
     const i = xs.find((x) => x.id === actual) ?? null;
@@ -100,9 +105,11 @@ export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena:
     const fd = `${i.id}|${i.estado}|${i.accion}|${i.personas}|${i.fotos.join(',')}|${i.historial.length}|${i.puntaje}|${c.puede}|${c.motivoNo}|${!!c.antes}`;
     if (!forzar && fd === firmaDet) return;
     firmaDet = fd;
-    det.dataset.id = i.id;
+    det.dataset.id = i.id; det.dataset.tono = tono(i);
     det.classList.toggle('vida', i.tipo === 'atrapados' || i.tipo === 'heridos');
     det.innerHTML = detalleHtml(i, c);
+    det.querySelectorAll<HTMLImageElement>('.muni-foto img').forEach((img) => (img.onerror = () => img.parentElement!.classList.add('rota')));
+    en.hidratar(det);
   }
   $('[data-lista]').addEventListener('click', (e) => { const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-id]'); if (li) { en.enfocar(li.dataset.id!); } });
   $('[data-det]').addEventListener('click', (e) => {
