@@ -2,7 +2,9 @@
 # Traefik entra por la red «traefik» al puerto 8080 del contenedor. Variables en .env junto a este archivo
 # (plantilla: yaku.env.ejemplo; nunca al repo).
 #
-#   VPS que ya tiene Traefik (Easypanel, Dokploy, Coolify o uno propio en la red «traefik»):
+#   Dokploy: servicio «Compose» (no «Stack») con este archivo; en Environment: MUNI_PIN, YAKU_HOST=yaku.lat,
+#     TRAEFIK_NETWORK=dokploy-network y TRAEFIK_EXTERNA=true. No agregar el dominio en «Domains» (ya va en los labels).
+#   Otro VPS que ya tiene Traefik (Easypanel, Coolify o uno propio en la red «traefik»):
 #     docker compose up -d --build
 #   VPS limpio, sin proxy: el perfil «traefik» levanta también Traefik (80/443, HTTPS con Let's Encrypt):
 #     TRAEFIK_EXTERNA=false docker compose --profile traefik up -d --build
@@ -26,6 +28,11 @@ services:
       - yaku-datos:/datos
     networks:
       - traefik
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
     labels:
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
@@ -46,6 +53,13 @@ services:
       - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.regex=^https?://www\.(.+)
       - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.replacement=https://$${1}
       - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.permanent=true
+      # http:// → https:// (yaku.lat y www) en la entrada «web» de Traefik.
+      - traefik.http.routers.yaku-http.rule=Host(`${YAKU_HOST:-yaku.lat}`) || Host(`www.${YAKU_HOST:-yaku.lat}`)
+      - traefik.http.routers.yaku-http.entrypoints=${TRAEFIK_ENTRYPOINT_HTTP:-web}
+      - traefik.http.routers.yaku-http.middlewares=yaku-a-https
+      - traefik.http.routers.yaku-http.service=yaku
+      - traefik.http.middlewares.yaku-a-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.yaku-a-https.redirectscheme.permanent=true
 
   # Solo con «--profile traefik» (VPS sin proxy). Es el único servicio que publica puertos: 80 (redirige a HTTPS) y 443.
   traefik:

@@ -12,7 +12,8 @@
 //  - ?vista=2d, ?vista=3d, ?vista=portal-relevo (o cualquier otra) → app técnica 2D (pública).
 // Sin ?vista manda la ruta. En app.html sin ruta conocida (p. ej. /app.html directo) queda lo de antes:
 // celular → poblador, escritorio → Centro de monitoreo, navegador automatizado (navigator.webdriver) → app técnica.
-import type { Entorno } from './poblador/ruta';
+/** Igual a Entorno de ./poblador/ruta (copiado aquí: el servidor compila este archivo con NodeNext). */
+export interface Entorno { celular: boolean; automatizado: boolean }
 
 export type Pestana = 'portal' | 'municipalidad' | 'incidentes';
 export type Ruta = { vista: 'poblador' } | { vista: 'monitoreo'; pestana: Pestana } | { vista: 'tecnica' };

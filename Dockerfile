@@ -1,5 +1,5 @@
 # Una sola imagen: la PWA compilada (dist/) + el servidor local (Node + node:sqlite, sin dependencias en runtime).
-# Sin Cloudflare. Base de datos y fotos en el volumen /datos. Detalles: servidor-local/README.md
+# Base de datos y fotos en el volumen /datos. MUNI_PIN obligatorio (≥ 8 caracteres) en producción.
 FROM node:24-alpine AS compilar
 WORKDIR /src
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 CI=1

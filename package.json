@@ -25,11 +25,12 @@
     "servidor": "vite build && node servidor-local/empaquetar.mjs && node servidor-local/salida/servidor.mjs",
     "servidor:dev": "node servidor-local/servidor.ts",
     "build:servidor": "node servidor-local/empaquetar.mjs",
-    "test:servidor": "node --test \"servidor-local/pruebas/*.test.ts\""
+    "test:servidor": "node --test \"servidor-local/pruebas/*.test.ts\"",
+    "typecheck:servidor": "tsc --noEmit -p servidor-local"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
     "@protomaps/basemaps": "^5.7.2",
@@ -58,6 +59,6 @@
   },
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   }
 }
