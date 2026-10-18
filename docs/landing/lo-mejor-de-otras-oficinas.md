@@ -3,7 +3,7 @@
 Lectura del 17-oct-2026. Fuentes solo leídas, no copiadas, salvo las fuentes tipográficas OFL y la fórmula de contraste WCAG.
 
 ## 1. ZeroSlop: evitar el look «hecho por IA»
-Fuentes: `workspace/zeroslop/.claude/agents/ux-ui-designer.md`, `workspace/zeroslop/diseno/design-system.md` y `diseno/tokens.css`.
+Fuentes: la ficha del diseñador UX/UI de ZeroSlop, `workspace/zeroslop/diseno/design-system.md` y `diseno/tokens.css`.
 - **Tokens compactos.** Entre 4 y 6 colores, cada uno con nombre y con su ratio de contraste anotado. Está prohibido el par crema `#F4F1EA` + terracota `#D97757`.
 - **Una metáfora rectora.** En ZeroSlop el producto es «instrumento, no scoreboard». En Yaku es **la cadena**: un punto de agua que viaja de celular en celular.
 - **Una sola idea audaz.** ZeroSlop gasta toda la audacia en la revelación del score (unos 900 ms, `expo-out`) y deja el resto de la página sobrio.
@@ -55,7 +55,7 @@ Fuentes: `D:/chakaruna-web/web/lib/seo.ts`, `D:/chakaruna-web/seo/plan.md` y `we
 ## 5. Fuentes tipográficas (autoalojadas, sin CDN)
 Son subsets latin (cubren tildes, ñ, ¿ y ¡) tomados del build de ZeroSlop (`zeroslop-app/.next/static/media`). Las tres tienen licencia SIL Open Font License 1.1 (Google Fonts).
 
-| Archivo en `src/landing/fuentes/` | Familia | Uso |
+| Archivo en `public/landing/fuentes/` | Familia | Uso |
 |---|---|---|
 | `space-grotesk-latin-500.woff2` (13 KB) | Space Grotesk 500 | titulares |
 | `inter-latin-var.woff2` (48 KB) | Inter variable | texto |
