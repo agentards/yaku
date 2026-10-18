@@ -82,8 +82,14 @@ try {
     const f = {};
     const t0 = Date.now();
     await page.goto(BASE + 'municipalidad?region=lima');
-    await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
-    const tLogin = Date.now();
+    // Con la sesión guardada en el equipo el 2.º ingreso ya no pide acceso: entonces se mide desde que se abre la página.
+    const pide = await Promise.race([
+      page.waitForSelector('.ycm-acc-pin', { timeout: 30000 }).then(() => true),
+      page.waitForFunction(() => document.body.dataset.v3d === 'listo', null, { timeout: 30000 }).then(() => false),
+    ]);
+    if (pide) await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
+    const tLogin = pide ? Date.now() : t0;
+    f.pidioAcceso = pide;
     await page.waitForFunction(() => document.body.dataset.v3d === 'listo', null, { timeout: 60000 });
     f.msEscenaLista = Date.now() - tLogin;
     await page.waitForFunction(() => window.__yakuMonitoreo?.escena.map.isSourceLoaded('protomaps'), null, { timeout: 60000, polling: 100 }).catch(() => null);
