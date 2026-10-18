@@ -16,7 +16,19 @@ Al volver la red se sincroniza solo (`POST /api/sync`, el mismo de la app técni
 ## Reglas de texto (agentards/producto/decision-confianza.md)
 - Constantes únicas en `textos.ts`: `ROTULO_VECINAL`, `DETALLE`, `ESTADO`, `ESTADO_DETALLE`, `PIE_LEGAL`, `FOTOS_PENDIENTES`. WP3 las importa.
 - Al vecino nunca se le muestra el número 0–100; nunca rojo para un reporte vecinal; verde solo validado / acción / atendido; «coinciden», no «confirman».
-- **Desviación escrita:** la acción dice «Bomberos **asignados**», no «en camino»: Yaku solo sabe que la municipalidad asignó la acción, no si el equipo salió.
+- El rótulo vecinal reemplaza al marcador provisional «Reporte vecinal · confianza N» del plan: el nivel solo cambia el detalle en palabras y la intensidad del ámbar.
+- **Desviaciones escritas** (revisión B2C `producto/descubrimiento/voz-poblador-rotulo.md`; razones en la cabecera de `textos.ts`):
+  - la acción dice «Bomberos **asignados**», no «en camino»: Yaku solo sabe que la municipalidad asignó la acción, no si el equipo salió;
+  - el descarte dice «**Revisado · no validado**», no «Revisado por la municipalidad», que se leía como «ya lo vieron, está bien»;
+  - el pie usa la versión de las reglas de §1, con «si … tienes señal: 116 o 105».
+- Las pruebas fijan las reglas: sin rojo en `poblador.css` (tono 340°–12° con saturación > 35 % falla) y sin respaldo/puntaje en `app.ts`, `estados.ts` ni `textos.ts`.
+
+## Guion de demo (A ↔ B): la foto la toma **B**
+1. **A** (sin red) reporta «Casa dañada o caída», **sin foto**.
+2. **B** (sin red) reporta lo mismo a unos 40 m y **toma la foto**. Los dos celulares muestran «2 vecinos lo reportan · 1 foto» después de Intercambiar.
+3. **B** recupera internet: sube los 2 reportes **y su foto**. La municipalidad ve «2 vecinos · 1 foto» (respaldo 75 · N2, §2.4 caso B) y el contador sube de 1 a 2.
+
+Si la foto la toma A (que no recupera internet), la foto no viaja por QR y el panel muestra «1 foto pendiente de subir» con respaldo 60 en lugar de 75. Lo mismo comprueban `npm run e2e:poblador` y `scripts/ensayo-demo.mjs`.
 - Primera vez: aviso de datos personales (ubicación + código anónimo, sin nombre ni DNI; art. 315-A).
 
 ## Tipos nuevos sin romper QR viejos

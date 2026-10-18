@@ -15,7 +15,7 @@ alternativos entre paréntesis, horas en segundos, milisegundos o ISO 8601.
   "fotos": ["foto-id-1", "foto-id-2"], // ids para GET /api/fotos/:id (foto_ids); "n_fotos" si faltan por subir
   "primer_reporte": 1760753000000,   // reloj del celular (primer_ts); "ultimo_reporte" (ultimo_ts)
   "recibido": 1760753100000,         // última llegada al servidor (received_at); opcional
-  "puntaje": 65,                     // 0–100 (confianza|score); si falta, la pantalla usa el provisional de textos.ts
+  "puntaje": 65,                     // respaldo 0–100 (respaldo|confianza|score); si falta, la pantalla lo calcula con respaldo() de textos.ts (§2.1). Solo el panel lo muestra
   "estado": "nuevo",                 // nuevo | en_revision | validado | descartado | accion_asignada | atendido
   "accion": null,                    // rescate | bomberos | provisiones | maquinaria | edan
   "motivo": "",                      // si descartado

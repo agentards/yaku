@@ -62,7 +62,7 @@ describe('municipalidad: textos de decision-confianza.md §1', () => {
     expect(estadoChip('nuevo', null)).toBe(ROTULO_VECINAL);
     expect(estadoChip('validado', null)).toBe('Validado por la municipalidad');
     expect(estadoChip('accion_asignada', 'bomberos')).toBe('Bomberos asignados');
-    expect(estadoChip('descartado', null)).toBe('Revisado por la municipalidad');
+    expect(estadoChip('descartado', null)).toBe('Revisado · no validado');
     expect(DETALLE.N1(1, 0)).toBe('1 vecino lo reporta');
     expect(DETALLE.N1(1, 1)).toBe('1 vecino · 1 foto');
     expect(DETALLE.N2(2, 1)).toBe('2 vecinos lo reportan · 1 foto');

@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-18T01:13:19.943Z",
+  "fecha": "2026-10-18T01:28:58.185Z",
   "servidor": "servidor-local (SQLite temporal)",
   "checks": [
     {
@@ -24,7 +24,7 @@
     {
       "name": "incidente nuevo: tarjeta con rótulo vecinal, respaldo y «1 vecino · 0 fotos · primer reporte hh:mm»",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 20:12 Respaldo 1 vecino lo reporta Personas 25 · Fotos 0 · Cercanía 0 · Recencia ×1,00 = 25 Reportes 1 reporte de 1 vecino Severidad Severi"
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 3 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 20:28 Respaldo 1 vecino lo reporta Personas 25 · Fotos 0 · Cercanía 0 · Recencia ×1,00 = 25 Reportes 1 reporte de 1 vecino Severidad Severi"
     },
     {
       "name": "la cámara vuela al incidente nuevo y queda en órbita lenta",
@@ -39,8 +39,8 @@
       "ok": true,
       "sync": {
         "accepted": [
-          "02052gbkwlo",
-          "1fepstq103c"
+          "13dbfiovhm4",
+          "21ptbk6l6gj"
         ],
         "inserted": 1,
         "duplicates": 1,
@@ -72,7 +72,7 @@
     {
       "name": "tarjeta: «2 vecinos · 1 foto», detalle y desglose del respaldo",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar Respaldo 75 · N2 último hace 3 s × Casa dañada o caída 2 vecinos · 1 foto · primer reporte 20:12 Respaldo 2 vecinos lo reportan · 1 foto Personas 40 · Fotos 15 · Cercanía 20 · Recencia ×1,00 = 75 Reportes 2 reportes de 2 vecinos Severidad Severidad máx. 3 de 3 la marca "
+      "tarjeta": "Reporte vecinal · por validar Respaldo 75 · N2 último hace 2 s × Casa dañada o caída 2 vecinos · 1 foto · primer reporte 20:28 Respaldo 2 vecinos lo reportan · 1 foto Personas 40 · Fotos 15 · Cercanía 20 · Recencia ×1,00 = 75 Reportes 2 reportes de 2 vecinos Severidad Severidad máx. 3 de 3 la marca "
     },
     {
       "name": "galería: la foto se ve desde GET /api/fotos/:id",
@@ -99,7 +99,7 @@
     {
       "name": "marca «con foto» sin imagen recibida: «1 foto pendiente de subir» y respaldo sin fotos",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 1 s × Personas atrapadas Riesgo de vida: si hay señal, que llamen al 116 (bomberos) o al 105 (policía). Yaku no reemplaza esas líneas. 1 veci"
+      "tarjeta": "Reporte vecinal · por validar Respaldo 25 · N1 último hace 0 s × Personas atrapadas Riesgo de vida: si hay señal, que llamen al 116 (bomberos) o al 105 (policía). Yaku no reemplaza esas líneas. 1 veci"
     },
     {
       "name": "PIN incorrecto se rechaza (403) y se vuelve a pedir; con el correcto queda «Validado por la municipalidad»",
@@ -120,19 +120,19 @@
       "name": "el estado vuelve al celular de B por /api/estado (acuse)",
       "ok": true,
       "acuseB": {
-        "id": "1fepstq103c",
+        "id": "21ptbk6l6gj",
         "recibido": true,
-        "recibido_at": 1792286008763,
-        "incidente": "inc-02052gbkwlo",
+        "recibido_at": 1792286951418,
+        "incidente": "inc-13dbfiovhm4",
         "estado": "accion_asignada",
         "accion": "bomberos",
         "motivo": "",
-        "cuando": 1792286014584,
+        "cuando": 1792286957912,
         "personas": 2
       }
     },
     {
-      "name": "descartar pide motivo, pasa por «en revisión» y queda «Revisado por la municipalidad», al final de la lista",
+      "name": "descartar pide motivo, pasa por «en revisión» y queda «Revisado · no validado», al final de la lista",
       "ok": true,
       "motivo": "No se encontró nada en el lugar: prueba e2e"
     },
@@ -162,7 +162,7 @@
     }
   ],
   "fps": {
-    "cuadros": 249,
-    "fps": 83
+    "cuadros": 191,
+    "fps": 63.7
   }
 }

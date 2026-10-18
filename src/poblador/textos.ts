@@ -3,13 +3,19 @@
 // nombres: ROTULO_VECINAL, DETALLE, ESTADO, PIE_LEGAL. Reglas: un reporte vecinal nunca es una alerta oficial y
 // lo valida la municipalidad (CP art. 315-A); al vecino se le muestra el nivel en palabras, nunca el número
 // 0–100; nunca rojo para un reporte vecinal; «coinciden», no «confirman».
-// Única desviación escrita: la acción dice «asignados», no «en camino» (decisión §1 tabla ACCION): Yaku solo sabe
-// que la municipalidad ASIGNÓ la acción, no si el equipo salió; prometer «en camino» a alguien atrapado y que no
-// llegue es peor que decir menos. Igual que WP3 (src/vista3d/municipalidad/textos.ts).
+// Desviaciones escritas (las tres vienen de producto/descubrimiento/voz-poblador-rotulo.md, revisión B2C de §1):
+// 1. La acción dice «asignados», no «en camino» (§1 tabla ACCION): Yaku solo sabe que la municipalidad ASIGNÓ la
+//    acción, no si el equipo salió; prometer «en camino» a alguien atrapado y que no llegue es peor que decir menos.
+// 2. DESCARTADO dice «Revisado · no validado», no «Revisado por la municipalidad»: B2C lo marcó como corrección
+//    obligatoria antes de la demo, porque «Revisado» a secas suena a «ya lo vieron, está bien» y no se distingue de
+//    ATENDIDO. Cierra la serie por validar → validado / no validado sin acusar a nadie de mentir.
+// 3. PIE_LEGAL usa la versión de las reglas de §1 («…y tienes señal…»), no la constante corta: §1 tenía las dos y
+//    Yaku está hecho para cuando no hay red.
+// N1 usa n (no «1 vecino» fijo): un incidente viejo de 4 personas cae a N1 por antigüedad (§2.4 caso F).
 
 /** Chip que reemplaza «NO VERIFICADO». El mismo en N1, N2 y N3. */
 export const ROTULO_VECINAL = 'Reporte vecinal · por validar';
-export const PIE_LEGAL = 'Es un reporte de vecinos, no una alerta oficial. Para alertas, sigue a SENAMHI e INDECI. Personas atrapadas o heridas: 116 (bomberos) o 105 (policía).';
+export const PIE_LEGAL = 'Es un reporte de vecinos, no una alerta oficial. Para alertas, sigue a SENAMHI e INDECI. Si hay personas atrapadas o heridas y tienes señal: 116 (bomberos) o 105 (policía).';
 
 export type Nivel = 'N1' | 'N2' | 'N3';
 const fotosTxt = (f: number) => `${f} foto${f === 1 ? '' : 's'}`;
@@ -33,7 +39,7 @@ export const ESTADO = {
   validado: 'Validado por la municipalidad',
   accion: (a: Accion | undefined) => (a ? ACCION_TXT[a] : 'Acción asignada por la municipalidad'),
   atendido: 'Atendido por la municipalidad',
-  descartado: 'Revisado por la municipalidad',
+  descartado: 'Revisado · no validado',
 };
 /** Detalle de cada estado (hh:mm de Lima). */
 export const ESTADO_DETALLE = {

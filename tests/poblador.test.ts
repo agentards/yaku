@@ -1,6 +1,8 @@
 // Modo poblador (src/poblador/): tipos ↔ codec, estado de vuelta (servidor y QR «YE1»), vecinos que coinciden,
 // ruta por defecto en celular, plan de compresión de la foto y textos de decision-confianza.md.
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { OBS_TYPES, makeObservation, encodeForQR, Reassembler } from '../src/codec';
 import { aCodec, deCodec, BOTONES, MARCA_FOTO } from '../src/poblador/tipos';
 import { leerRespuestaEstados, codificarEstadosQR, decodificarEstadosQR, esCodigoEstados, textoEstado, masReciente, MAX_ESTADOS_QR, type EstadoReporte } from '../src/poblador/estados';
@@ -174,6 +176,33 @@ describe('poblador: textos de decision-confianza.md', () => {
     expect(PIE_LEGAL).toContain('116');
     expect(PIE_LEGAL).toContain('105');
     expect(T.avisoTexto).toMatch(/116.*105/);
+  });
+  it('estados: «no validado» distingue el descarte; pie con «si tienes señal» (§1 reglas)', () => {
+    expect(ESTADO.descartado).toBe('Revisado · no validado');
+    expect(ESTADO.descartado).not.toBe(ESTADO.atendido);
+    expect(PIE_LEGAL).toMatch(/no una alerta oficial/);
+    expect(PIE_LEGAL).toMatch(/tienes señal: 116/);
+    expect(DETALLE.N1(4, 2)).toBe('4 vecinos lo reportan · 2 fotos'); // §2.4 caso F: N1 por antigüedad, no «1 vecino»
+  });
+  it('al vecino nunca el número 0–100: la app del poblador no pinta respaldo ni puntaje', () => {
+    const src = ['app.ts', 'estados.ts', 'textos.ts'].map((f) => fs.readFileSync(path.resolve(__dirname, '../src/poblador', f), 'utf8')).join('\n');
+    expect(src).not.toMatch(/vista3d\/municipalidad|respaldoTxt|\.puntaje|\.respaldo\b|\.score\b|`Respaldo/);
+    for (const n of [1, 2, 3, 7]) expect(DETALLE[nivelLocal(n)](n, 1)).not.toMatch(/respaldo|%|\/ ?100|\bN[123]\b/i);
+  });
+  it('nunca rojo en la pantalla del poblador (el rojo es de las alertas oficiales)', () => {
+    const css = fs.readFileSync(path.resolve(__dirname, '../src/poblador/poblador.css'), 'utf8');
+    const rojos: string[] = [];
+    for (const [hex] of css.matchAll(/#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/gi)) {
+      const h = hex.length === 4 ? hex.slice(1).split('').map((c) => c + c).join('') : hex.slice(1);
+      const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min, l = (max + min) / 2;
+      if (d === 0) continue;
+      const s = d / (1 - Math.abs(2 * l - 1));
+      const hue = max === r ? (60 * ((g - b) / d) + 360) % 360 : max === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+      if (s > 0.35 && (hue < 12 || hue > 340)) rojos.push(hex);
+    }
+    expect(css).not.toMatch(/\b(red|crimson|firebrick|tomato)\b\s*[;)}]/i);
+    expect(rojos).toEqual([]);
   });
   it('nunca «vía segura» ni «transitable»', () => {
     const todo = JSON.stringify({ T, ESTADO, PIE_LEGAL, B: BOTONES.map((b) => b.texto) }) + Object.values(DETALLE).map((f) => f(2, 1)).join();

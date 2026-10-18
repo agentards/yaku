@@ -141,7 +141,7 @@ try {
   await page.click('.muni-dlg-descartar button[value="ok"]');
   await esperar((id) => window.__yakuMuni.estado().incidentes.find((i) => i.id === id)?.estado === 'descartado', previo.id);
   const srvPrev = (await incidentes()).find((i) => i.id === previo.id);
-  check('descartar pide motivo, pasa por «en revisión» y queda «Revisado por la municipalidad», al final de la lista', srvPrev.estado === 'descartado' && /prueba e2e/.test(srvPrev.motivo) && (await page.locator('.muni-lista li[data-id]').last().getAttribute('data-id')) === previo.id, { motivo: srvPrev.motivo });
+  check('descartar pide motivo, pasa por «en revisión» y queda «Revisado · no validado», al final de la lista', srvPrev.estado === 'descartado' && /prueba e2e/.test(srvPrev.motivo) && (await page.locator('.muni-lista li[data-id]').last().getAttribute('data-id')) === previo.id, { motivo: srvPrev.motivo });
 
   // 7) Persistencia: recargar la pantalla mantiene estados y acción (vienen de SQLite).
   await page.reload();
