@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS avisos (
   id TEXT PRIMARY KEY, incidente_id TEXT NOT NULL, accion TEXT NOT NULL, tipo TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL,
   min INTEGER NOT NULL, texto TEXT NOT NULL, firma TEXT NOT NULL, creado_at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS avisos_creado ON avisos(creado_at);
+CREATE TABLE IF NOT EXISTS cartas (
+  id TEXT PRIMARY KEY, nombre TEXT NOT NULL, para TEXT NOT NULL, mensaje TEXT NOT NULL, zona TEXT NOT NULL, ts INTEGER NOT NULL,
+  device_id TEXT NOT NULL, busqueda TEXT NOT NULL, received_at INTEGER NOT NULL, subido_por TEXT);
+CREATE INDEX IF NOT EXISTS cartas_ts ON cartas(ts);
 `;
 
 export interface FilaEstado { seq: number; incidente_id: string; estado: Estado; accion: string | null; motivo: string; quien: string; usuario: string | null; cuando: number; respaldo: number | null }
@@ -176,6 +180,22 @@ export class Almacen {
     return Number(this.db.prepare('INSERT OR IGNORE INTO avisos (id,incidente_id,accion,tipo,lat,lon,min,texto,firma,creado_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
       .run(a.id, a.incidente, a.accion, a.tipo, a.lat, a.lon, a.min, a.texto, a.firma, creado).changes) > 0;
   }
+  /** «Estoy bien»: INSERT OR IGNORE por id (hash del contenido). Devuelve cuántas eran nuevas. */
+  insertarCartas(cs: { id: string; nombre: string; para: string; mensaje: string; zona: string; ts: number; deviceId: string; busqueda: string }[], ahora: number, subidoPor: string | null): number {
+    return this.tx(() => {
+      const st = this.db.prepare('INSERT OR IGNORE INTO cartas (id,nombre,para,mensaje,zona,ts,device_id,busqueda,received_at,subido_por) VALUES (?,?,?,?,?,?,?,?,?,?)');
+      let n = 0;
+      for (const c of cs) n += Number(st.run(c.id, c.nombre, c.para, c.mensaje, c.zona, c.ts, c.deviceId, c.busqueda, ahora, subidoPor).changes);
+      return n;
+    });
+  }
+  /** Búsqueda por nombre (sin tildes): nunca lista todas; máximo `limite`, las más recientes primero. */
+  buscarCartas(q: string, limite: number): { id: string; nombre: string; para: string; mensaje: string; zona: string; ts: number; deviceId: string }[] {
+    return this.db.prepare("SELECT id, nombre, para, mensaje, zona, ts, device_id AS deviceId FROM cartas WHERE busqueda LIKE ? ESCAPE '\\' ORDER BY ts DESC LIMIT ?")
+      .all('%' + q.replace(/[\\%_]/g, (m) => '\\' + m) + '%', limite) as unknown as ReturnType<Almacen['buscarCartas']>;
+  }
+  totalCartas(): number { return Number((this.db.prepare('SELECT COUNT(*) AS n FROM cartas').get() as { n: number }).n); }
+
   avisosDesde(desde: number, limite: number): { id: string; incidente: string; accion: string; tipo: string; lat: number; lon: number; min: number; texto: string; firma: string; creado_at: number }[] {
     return this.db.prepare('SELECT id, incidente_id AS incidente, accion, tipo, lat, lon, min, texto, firma, creado_at FROM avisos WHERE creado_at >= ? ORDER BY creado_at DESC LIMIT ?')
       .all(desde, limite) as unknown as ReturnType<Almacen['avisosDesde']>;

@@ -7,6 +7,7 @@ import { OBS_TYPES, makeObservation, type NewObservation } from '../src/codec.ts
 import type { Almacen } from './almacen.ts';
 import { idAviso, limpiarTexto, redondear, type AccionAviso, type Firmante } from './avisos.ts';
 import { validarCambio } from './estados.ts';
+import { limpiar, sinTildes, validarCarta } from './cartas.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
 // CORS abierto como en el Worker (modo MVP); en modo estricto se quita (la API y la PWA comparten origen).
@@ -226,11 +227,30 @@ export function crearApi(op: OpcionesApi) {
     const p = url.pathname;
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: estricto ? {} : { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-muni-pin' } });
     try {
-      if (req.method === 'POST' && (p === '/api/sync' || p === '/api/fotos')) { const lim = limitePost(req); if (lim) return lim; }
+      if (req.method === 'POST' && (p === '/api/sync' || p === '/api/fotos' || p === '/api/cartas')) { const lim = limitePost(req); if (lim) return lim; }
+      // «Estoy bien»: los celulares suben las cartas que llevan; la familia busca por nombre (nunca hay listado completo).
+      if (p === '/api/cartas' && req.method === 'POST') {
+        const body = await leerJson(req, MAX_BODY);
+        if (body instanceof Response) return body;
+        const subidoPor = typeof body?.subidoPor === 'string' && /^[0-9a-z]{1,16}$/.test(body.subidoPor) ? body.subidoPor : null;
+        const validas = [], rechazadas: { id: unknown; why: string }[] = [];
+        for (const x of (Array.isArray(body?.cartas) ? body.cartas.slice(0, 100) : [])) {
+          const v = validarCarta(x, ahora());
+          if (v.ok) validas.push({ ...v.c, busqueda: sinTildes(`${v.c.nombre} ${v.c.para}`) }); else rechazadas.push({ id: x?.id, why: v.why });
+        }
+        const inserted = validas.length ? A.insertarCartas(validas, ahora(), subidoPor) : 0;
+        return json({ accepted: validas.map((c) => c.id), inserted, duplicates: validas.length - inserted, rejected: rechazadas });
+      }
+      if (p === '/api/cartas' && req.method === 'GET') {
+        const q = sinTildes(limpiar(url.searchParams.get('q'), 40));
+        if (q.length < 3) return json({ error: 'escribe al menos 3 letras del nombre' }, 400);
+        const cartas = A.buscarCartas(q, 50);
+        return json({ count: cartas.length, cartas, nota: 'Lo escribió quien firma; la municipalidad no lo verifica' });
+      }
       if (p === '/api/sync' && req.method === 'POST') return await sync(req);
       if (p === '/api/stats' && req.method === 'GET') {
         const { lista } = incidentes();
-        return json({ ...A.stats(), verified: false, incidentes: lista.length, servidor: 'local' });
+        return json({ ...A.stats(), verified: false, incidentes: lista.length, cartas: A.totalCartas(), servidor: 'local' });
       }
       if (p === '/api/reports' && req.method === 'GET') {
         const ids = url.searchParams.get('ids');

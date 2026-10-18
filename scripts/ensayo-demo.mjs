@@ -180,9 +180,18 @@ try {
   const avisoB = await B.waitForFunction(() => window.__yakuPoblador.estado().avisos.some((a) => a.accion === 'bomberos' && a.verificado && a.via === 'red'), null, { timeout: 15000 }).then(() => true).catch(() => false);
   const textoB = await B.evaluate(() => document.querySelector('.pb-aviso[data-accion="bomberos"]')?.textContent?.replace(/\s+/g, ' ').trim() ?? '');
   check('6 · B (con red) recibe el aviso firmado de la municipalidad: «Bomberos en camino» + mensaje', avisoB && /Bomberos en camino/.test(textoB) && /puente/.test(textoB) && /Firmado por la municipalidad/.test(textoB), { textoB });
+  // «Estoy bien»: A, sin red, deja un mensaje para su hijo; viaja en el mismo intercambio.
+  await A.click('.pb-nav button[data-ir="bien"]');
+  await A.fill('#pb-bien-form input[name="nombre"]', 'Rosa Chunga');
+  await A.fill('#pb-bien-form input[name="para"]', 'mi hijo Luis');
+  await A.fill('#pb-bien-form textarea[name="mensaje"]', 'Hola Luis, soy tu mamá. Si lees esto: estoy bien, en el colegio.');
+  await A.check('#pb-bien-form input[name="consent"]');
+  await A.click('#pb-bien-form button[type="submit"]');
+  const cartaA = await A.waitForFunction(() => document.querySelectorAll('#pb-bien-mias .pb-carta').length === 1, null, { timeout: 5000 }).then(() => true).catch(() => false);
+  check('7 · A sin red escribe «Estoy bien» para su familia y queda en su celular', cartaA && !(await A.evaluate(() => navigator.onLine)));
   for (const p of [A, B]) await p.click('.pb-nav button[data-ir="intercambiar"]');
   await A.waitForFunction(() => /Cámara lista/.test(document.getElementById('pb-cam-txt').textContent), null, { timeout: 10000 });
-  const msE = await frenteAFrente(A, B, async () => { const e = await est(A); return e.estadosRecibidos >= 1 && e.avisos.some((a) => a.accion === 'bomberos'); });
+  const msE = await frenteAFrente(A, B, async () => { const e = await est(A); return e.estadosRecibidos >= 1 && e.avisos.some((a) => a.accion === 'bomberos') && (await est(B)).cartasRecibidas >= 1; });
   await A.click('#pb-terminar');
   const chipsA = await A.evaluate(() => [...document.querySelectorAll('.pb-rep[data-tipo="vivienda"] .pb-chip-muni')].map((c) => c.textContent));
   check('6 · A sigue sin red y recibe el estado por QR: «Bomberos asignados»', msE > 0 && !(await A.evaluate(() => navigator.onLine)) && chipsA.length === 2 && chipsA.every((c) => c === 'Bomberos asignados'), { ms: msE, chipsA });
@@ -190,6 +199,20 @@ try {
   const textoA = await A.evaluate(() => document.querySelector('.pb-aviso[data-accion="bomberos"]')?.textContent?.replace(/\s+/g, ' ').trim() ?? '');
   check('6 · A sin red recibe por QR el aviso firmado y lo verifica', avisosA.some((a) => a.accion === 'bomberos' && a.verificado && a.via === 'qr') && /te lo pasó otro vecino/.test(textoA) && !(await A.evaluate(() => navigator.onLine)), { avisosA, textoA });
   paso(6, 'Validar + Bomberos y acuse por QR');
+
+  // 7) B (con red) sube la carta de A; un familiar la encuentra por nombre en /estoy-bien.
+  await B.evaluate(() => window.__yakuPoblador.sincronizar());
+  const enServidor = await (await fetch(BASE + 'api/cartas?q=rosa')).json();
+  check('7 · B (con red) sube por la cadena el «Estoy bien» de A', enServidor.count === 1 && enServidor.cartas[0].nombre === 'Rosa Chunga', { count: enServidor.count });
+  const F = await cM.newPage(); // el familiar, en una computadora con internet
+  await F.goto(BASE + 'estoy-bien');
+  await F.fill('#pb-bien-q', 'rosa chunga');
+  await F.click('#pb-bien-buscar button[type="submit"]');
+  const halla = await F.waitForSelector('#pb-bien-res .pb-carta', { timeout: 10000 }).then(() => true).catch(() => false);
+  const textoF = halla ? (await F.locator('#pb-bien-res .pb-carta').first().innerText()).replace(/\s+/g, ' ') : '';
+  check('7 · Un familiar la encuentra en yaku.lat/estoy-bien: «Rosa Chunga está bien · Para mi hijo Luis»', /Rosa Chunga está bien/.test(textoF) && /Para mi hijo Luis/.test(textoF) && /no lo verifica/.test(textoF), { textoF: textoF.slice(0, 200) });
+  await F.close();
+  paso(7, '«Estoy bien» por QR y búsqueda de la familia');
 
   // Cierre: A recupera internet y no duplica; nada salió de localhost.
   await cA.setOffline(false);

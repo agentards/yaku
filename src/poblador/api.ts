@@ -3,6 +3,23 @@
 import { leerRespuestaEstados, type EstadoReporte } from './estados';
 import { blobABase64 } from './foto';
 import { leerAviso, type Aviso } from './avisos';
+import { leerCarta, type Carta } from './cartas';
+
+/** POST /api/cartas: sube las cartas «Estoy bien» que lleva este celular. Devuelve los ids aceptados (null sin endpoint). */
+export async function subirCartas(cs: Carta[], subidoPor: string): Promise<string[] | null> {
+  if (!cs.length) return [];
+  const r = await fetch('/api/cartas', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ cartas: cs, subidoPor }) });
+  if (!r.ok) return null;
+  const j = await r.json();
+  return Array.isArray(j?.accepted) ? j.accepted.map(String) : [];
+}
+/** GET /api/cartas?q=: busca por nombre en el servidor (mínimo 3 letras). null sin red o sin endpoint. */
+export async function buscarCartasServidor(q: string): Promise<Carta[] | null> {
+  const r = await fetch('/api/cartas?q=' + encodeURIComponent(q), { cache: 'no-store' });
+  if (!r.ok) return null;
+  const j = await r.json();
+  return (Array.isArray(j?.cartas) ? j.cartas : []).map(leerCarta).filter((c: Carta | null): c is Carta => !!c);
+}
 
 const CLAVE_AVISOS = 'yaku-avisos-clave';
 /** Clave pública de la municipalidad guardada la última vez que hubo red (para verificar avisos que llegan por QR). */

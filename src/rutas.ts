@@ -19,7 +19,7 @@ export type Pestana = 'portal' | 'municipalidad' | 'incidentes';
 export type Ruta = { vista: 'poblador' } | { vista: 'monitoreo'; pestana: Pestana } | { vista: 'tecnica' };
 
 /** Rutas que sirven app.html (sin barra final). */
-export const RUTAS_APP = ['/reportar', '/municipalidad', '/app'] as const;
+export const RUTAS_APP = ['/reportar', '/municipalidad', '/app', '/estoy-bien'] as const;
 export const ARCHIVO_APP = '/app.html';
 
 const sinBarra = (p: string) => (p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p);
@@ -53,7 +53,7 @@ export function decidirRuta(pathname: string, search: string, env: Entorno): Rut
   if (v === 'portal' || v === 'municipalidad' || v === 'incidentes') return { vista: 'monitoreo', pestana: v };
   if (v) return { vista: 'tecnica' };
   const p = sinBarra(pathname);
-  if (p === '/reportar') return { vista: 'poblador' };
+  if (p === '/reportar' || p === '/estoy-bien') return { vista: 'poblador' };
   if (p === '/municipalidad') return { vista: 'monitoreo', pestana: 'municipalidad' };
   if (p === '/app') return { vista: 'tecnica' };
   if (env.automatizado) return { vista: 'tecnica' };

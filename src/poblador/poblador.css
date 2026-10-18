@@ -154,7 +154,7 @@ html.vista-poblador body > .top, html.vista-poblador #app { display: none !impor
   padding: 12px 16px; border-radius: var(--r); background: #2b2620; color: #fff; font-weight: 700; text-align: center; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
 
 /* ---------- navegación inferior (pulgar) ---------- */
-.pb-nav { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--panel); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+.pb-nav { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--panel); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
 .pb-nav button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 68px; border: 0; background: none;
   font-size: 18px; font-weight: 700; color: var(--muted); cursor: pointer; }
 .pb-nav .pb-ico { width: 26px; height: 26px; }
@@ -173,3 +173,17 @@ html.vista-poblador body > .top, html.vista-poblador #app { display: none !impor
 .pb-aviso { padding: 14px 16px; border-radius: 14px; background: #e8f3ea; border: 2px solid #2e7d4f; color: #173b25; }
 .pb-aviso b { display: block; font-size: 1.15em; }
 .pb-aviso-det { margin: 4px 0 6px; }
+
+/* «Estoy bien»: mensaje del vecino a su familia (viaja por QR, se busca por nombre) */
+.pb-bien { display: grid; gap: 12px; margin-bottom: 18px; }
+.pb-bien label { display: grid; gap: 6px; font-weight: 700; }
+.pb-bien input, .pb-bien textarea, .pb-bien-buscar input { font: inherit; font-size: 18px; padding: 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: inherit; }
+.pb-bien .pb-check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; }
+.pb-bien .pb-check input { width: 24px; height: 24px; margin-top: 2px; }
+.pb-btn-bien { background: #2e7d4f; color: #fff; border: 0; }
+.pb-bien-buscar { display: flex; gap: 8px; margin-bottom: 8px; }
+.pb-bien-buscar input { flex: 1; min-width: 0; }
+.pb-cartas { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 10px; }
+.pb-carta { padding: 14px 16px; border-radius: 14px; background: #eef7f0; border: 2px solid #8cc7a0; color: #173b25; }
+.pb-carta b { display: block; font-size: 1.15em; }
+.pb-carta p { margin: 6px 0; }

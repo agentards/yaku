@@ -13,17 +13,19 @@ import { T, ROTULO_VECINAL, DETALLE, PIE_LEGAL, nivelLocal } from './textos';
 import { vecinosQueCoinciden } from './confianza';
 import { textoEstado, codificarEstadosQR, decodificarEstadosQR, esCodigoEstados, type EstadoReporte } from './estados';
 import { comprimirFoto, type FotoComprimida } from './foto';
-import { guardarFoto, fotos as leerFotos, marcarFotoSubida, estados as leerEstados, fusionarEstados, avisos as leerAvisos, guardarAvisos, type FotoGuardada } from './almacen';
-import { pedirEstados, subirFoto, pedirAvisos, claveAvisos } from './api';
+import { guardarFoto, fotos as leerFotos, marcarFotoSubida, estados as leerEstados, fusionarEstados, avisos as leerAvisos, guardarAvisos, cartas as leerCartas, guardarCartas, marcarCartasSubidas, type FotoGuardada } from './almacen';
+import { pedirEstados, subirFoto, pedirAvisos, claveAvisos, subirCartas, buscarCartasServidor } from './api';
+import { crearCarta, verificarId, codificarCartasQR, decodificarCartasQR, esCodigoCartas, cartasParaQR, buscarCartas, textoCarta, type Carta, type CartaGuardada } from './cartas';
 import { verificarAviso, codificarAvisoQR, decodificarAvisoQR, esCodigoAviso, avisosParaQR, textoAviso, type Aviso, type AvisoGuardado } from './avisos';
 import './poblador.css';
 
-type Vista = 'reportar' | 'aviso' | 'detalle' | 'intercambiar' | 'lista';
+type Vista = 'reportar' | 'aviso' | 'detalle' | 'intercambiar' | 'lista' | 'bien';
 type Loc = { lat: number; lon: number; acc?: number; src: 'gps' | 'ultima' | 'ninguna'; at: number };
 
 const PIURA = { lat: -5.19449, lon: -80.63282 };
 const CLAVE_ULTIMA = 'yaku-poblador-ultima';
 const CLAVE_CONSENT = 'yaku-poblador-consentimiento';
+const CLAVE_BIEN_NOMBRE = 'yaku-bien-nombre';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const svg = (cuerpo: string, cls = 'pb-ico') => `<svg class="${cls}" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${cuerpo}</svg>`;
@@ -49,6 +51,7 @@ const ICONOS = {
   lista: '<path d="M16 12h26M16 24h26M16 36h26"/><circle cx="7" cy="12" r="2"/><circle cx="7" cy="24" r="2"/><circle cx="7" cy="36" r="2"/>',
   camara: '<path d="M6 16h8l4-6h12l4 6h8v22H6Z"/><circle cx="24" cy="27" r="7"/>',
   gota: '<path d="M24 5s-12 13-12 22a12 12 0 0 0 24 0c0-9-12-22-12-22Z"/>',
+  bien: '<path d="M24 40S7 30 7 18a8.5 8.5 0 0 1 17-3 8.5 8.5 0 0 1 17 3c0 12-17 22-17 22Z"/>',
 };
 
 export function arrancar() {
@@ -84,6 +87,7 @@ export function arrancar() {
     raiz.querySelector<HTMLElement>(`[data-v="${v}"] h1`)?.focus({ preventScroll: true });
     if (v === 'intercambiar') abrirIntercambio();
     if (v === 'lista') render();
+    if (v === 'bien') renderBien();
   }
   raiz.querySelectorAll<HTMLButtonElement>('.pb-nav button').forEach((b) => (b.onclick = () => ir(b.dataset.ir as Vista)));
 
@@ -289,6 +293,11 @@ export function arrancar() {
         if (xs?.length) { const c = await fusionarEstados(xs); if (c) partes.push(`${c === 1 ? '1 respuesta nueva' : `${c} respuestas nuevas`} de la municipalidad.`); }
       } catch { /* sin endpoint o sin red */ }
       try {
+        const pend = (await leerCartas()).filter((c) => !c.synced);
+        const ok = await subirCartas(pend.map(({ id, nombre, para, mensaje, zona, ts, deviceId }) => ({ id, nombre, para, mensaje, zona, ts, deviceId })), deviceId());
+        if (ok?.length) { await marcarCartasSubidas(ok); partes.push(T.cartasSubidas(ok.length)); }
+      } catch { /* sin endpoint de cartas o sin red */ }
+      try {
         const xs = await pedirAvisos();
         if (xs?.length) { const n = (await recibirAvisos(xs, 'red')).length; if (n) partes.push(T.avisosNuevos(n)); }
       } catch { /* sin endpoint de avisos (p. ej. Cloudflare) o sin red */ }
@@ -306,11 +315,11 @@ export function arrancar() {
   let camara: 'user' | 'environment' = 'user'; // celulares frente a frente: la cámara frontal mira al otro
   let reasm = new Reassembler();
   let vistos = new Set<string>();
-  let recibidos = 0, estadosRecibidos = 0, completo = false;
+  let recibidos = 0, estadosRecibidos = 0, cartasRecibidas = 0, completo = false;
   const stats: ScanStats = { frames: 0, engine: 'jsQR' };
 
   async function abrirIntercambio() {
-    reasm = new Reassembler(); vistos = new Set(); recibidos = 0; estadosRecibidos = 0; completo = false;
+    reasm = new Reassembler(); vistos = new Set(); recibidos = 0; estadosRecibidos = 0; cartasRecibidas = 0; completo = false;
     $('pb-listo').hidden = true; $('pb-prog').hidden = true; raiz.dataset.intercambio = '';
     cache = await all();
     estadosMap = await leerEstados();
@@ -319,6 +328,7 @@ export function arrancar() {
     const ye = codificarEstadosQR([...estadosMap.values()]);
     if (ye) frames.push(ye);
     for (const a of avisosParaQR(await leerAvisos())) frames.push(codificarAvisoQR(a)); // la respuesta de la municipalidad sigue la cadena
+    frames.push(...codificarCartasQR(cartasParaQR(await leerCartas()))); // «Estoy bien»: primero las mías, luego las más recientes
     fi = 0;
     $('pb-qr').dataset.frames = String(frames.length);
     await dibujar(recs.length);
@@ -365,6 +375,16 @@ export function arrancar() {
     if (vistos.has(s)) return;
     vistos.add(s);
     const txt = $('pb-cam-txt');
+    if (esCodigoCartas(s)) {
+      try {
+        const cs = decodificarCartasQR(s);
+        const buenas = (await Promise.all(cs.map(async (c) => ((await verificarId(c)) ? c : null)))).filter((c): c is Carta => !!c);
+        const nuevas = await guardarCartas(buenas.map((c) => ({ ...c, via: 'qr' as const, synced: false, recibidoAt: Date.now() })));
+        cartasRecibidas += nuevas.length;
+        if (nuevas.length) $('pb-estados-txt').textContent = T.cartasRecibidas(cartasRecibidas);
+      } catch { vistos.delete(s); txt.textContent = T.codigoDanado; }
+      return;
+    }
     if (esCodigoAviso(s)) {
       try {
         const a = decodificarAvisoQR(s);
@@ -409,6 +429,54 @@ export function arrancar() {
   };
   $('pb-terminar').onclick = () => ir('lista');
 
+  // ---------- «Estoy bien» ----------
+  const fb = () => $<HTMLFormElement>('pb-bien-form');
+  const campoB = (n: string) => fb().elements.namedItem(n) as HTMLInputElement;
+  campoB('nombre').value = ls.get(CLAVE_BIEN_NOMBRE) ?? '';
+  campoB('mensaje').onfocus = () => { if (!campoB('mensaje').value.trim()) campoB('mensaje').value = T.bienPlantilla(campoB('nombre').value.trim()); };
+  fb().onsubmit = async (ev) => {
+    ev.preventDefault();
+    const st = $('pb-bien-estado');
+    if (!campoB('consent').checked) { st.textContent = T.bienFaltaConsent; return; }
+    try {
+      const c = await crearCarta({ nombre: campoB('nombre').value, para: campoB('para').value, mensaje: campoB('mensaje').value, zona: campoB('zona').value, ts: Date.now() / 1000, deviceId: deviceId() });
+      await guardarCartas([{ ...c, via: 'local', synced: false, recibidoAt: Date.now() }]);
+      ls.set(CLAVE_BIEN_NOMBRE, c.nombre);
+      campoB('mensaje').value = ''; campoB('para').value = '';
+      st.textContent = T.bienGuardado; aviso('💚 ' + T.bienGuardado);
+      await renderBien();
+      sincronizar();
+    } catch (e) { st.textContent = (e as Error).message; }
+  };
+  function tarjetaCarta(c: CartaGuardada): string {
+    const t = textoCarta(c);
+    return `<li class="pb-carta" data-id="${esc(c.id)}" data-via="${c.via}"><b>${esc(t.titulo)}</b><p>${esc(c.mensaje)}</p><div class="pb-aviso-det">${esc(t.detalle)}</div><small class="pb-meta">${esc(t.origen)}</small></li>`;
+  }
+  async function renderBien() {
+    const todas = await leerCartas();
+    const mias = todas.filter((c) => c.via === 'local');
+    $('pb-bien-mias').innerHTML = mias.length ? mias.map(tarjetaCarta).join('') : '';
+    $('pb-bien-mias-tit').hidden = !mias.length;
+    const otras = todas.filter((c) => c.via !== 'local').length;
+    $('pb-bien-llevo').textContent = otras ? T.bienLlevo(otras) : '';
+  }
+  $<HTMLFormElement>('pb-bien-buscar').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const q = $<HTMLInputElement>('pb-bien-q').value;
+    const res = $('pb-bien-res');
+    const locales = buscarCartas(await leerCartas(), q);
+    let enRed: CartaGuardada[] = [];
+    if (navigator.onLine) {
+      try {
+        const xs = await buscarCartasServidor(q);
+        if (xs) enRed = (await Promise.all(xs.map(async (c): Promise<CartaGuardada | null> => ((await verificarId(c)) ? { ...c, via: 'red', synced: true, recibidoAt: Date.now() } : null)))).filter((c): c is CartaGuardada => !!c);
+      } catch { /* sin red */ }
+    }
+    const vistas = new Set(locales.map((c) => c.id));
+    const todas = [...locales, ...enRed.filter((c) => !vistas.has(c.id))].sort((a, b) => b.ts - a.ts);
+    res.innerHTML = todas.length ? todas.map(tarjetaCarta).join('') : `<li class="pb-vacio">${esc(q.trim().length < 3 ? T.bienBuscarAyuda : T.bienSinResultados)}</li>`;
+  };
+
   // ---------- avisos breves ----------
   let tAviso: number | undefined;
   function aviso(s: string) {
@@ -426,11 +494,11 @@ export function arrancar() {
     estado: () => ({
       vista, total: cache.length, mios: cache.filter((r) => r.source === 'local').length, llevo: cache.filter((r) => r.source !== 'local').length,
       pendientes: cache.filter((r) => !r.synced).length, frames: frames.length, recibidos, estadosRecibidos, completo, lector: stats.engine,
-      estados: Object.fromEntries(estadosMap), avisos: avisosLista.map((a) => ({ id: a.id, accion: a.accion, verificado: a.verificado, via: a.via })), fotos: [...fotosMap.values()].map((f) => ({ id: f.id, bytes: f.bytes, w: f.w, h: f.h, subida: f.subida })),
+      cartasRecibidas, estados: Object.fromEntries(estadosMap), avisos: avisosLista.map((a) => ({ id: a.id, accion: a.accion, verificado: a.verificado, via: a.via })), fotos: [...fotosMap.values()].map((f) => ({ id: f.id, bytes: f.bytes, w: f.w, h: f.h, subida: f.subida })),
     }),
     sincronizar: () => sincronizar(true),
   };
-  ir('reportar');
+  ir(/^\/estoy-bien\/?$/.test(location.pathname) ? 'bien' : 'reportar');
   recargar().then(() => { raiz.dataset.listo = '1'; sincronizar(); });
 }
 
@@ -499,6 +567,27 @@ function plantilla(): string {
       <button type="button" class="pb-btn pb-btn-pri" id="pb-terminar">${esc(T.terminar)}</button>
     </section>
 
+    <section data-v="bien" hidden>
+      <h1 tabindex="-1">💚 ${esc(T.bienTitulo)}</h1>
+      <p class="pb-ayuda">${esc(T.bienAyuda)}</p>
+      <form class="pb-bien" id="pb-bien-form" novalidate>
+        <label>${esc(T.bienNombre)}<input name="nombre" maxlength="40" autocomplete="name" required></label>
+        <label>${esc(T.bienPara)}<input name="para" maxlength="40" placeholder="${esc(T.bienParaEj)}"></label>
+        <label>${esc(T.bienMensaje)}<textarea name="mensaje" maxlength="200" rows="3" required></textarea></label>
+        <label>${esc(T.bienZona)}<input name="zona" maxlength="40" placeholder="${esc(T.bienZonaEj)}"></label>
+        <label class="pb-check"><input type="checkbox" name="consent"> <span>${esc(T.bienConsent)}</span></label>
+        <button type="submit" class="pb-btn pb-btn-bien">${esc(T.bienGuardar)}</button>
+        <p id="pb-bien-estado" class="pb-ayuda" aria-live="polite"></p>
+      </form>
+      <h2 id="pb-bien-mias-tit" hidden>${esc(T.bienMios)}</h2>
+      <ul class="pb-cartas" id="pb-bien-mias"></ul>
+      <h2>${esc(T.bienBuscar)}</h2>
+      <form class="pb-bien-buscar" id="pb-bien-buscar"><input id="pb-bien-q" maxlength="40" placeholder="Ej.: Rosa Chunga" aria-label="${esc(T.bienBuscar)}"><button type="submit" class="pb-btn pb-btn-sec pb-chico">${esc(T.bienBuscarBtn)}</button></form>
+      <p class="pb-ayuda" id="pb-bien-llevo"></p>
+      <ul class="pb-cartas" id="pb-bien-res"></ul>
+      <p class="pb-pie">${esc(PIE_LEGAL)}</p>
+    </section>
+
     <section data-v="lista" hidden>
       <div class="pb-lista-top"><h1 tabindex="-1">${esc(T.navLista)}</h1><button type="button" class="pb-btn pb-btn-sec pb-chico" id="pb-actualizar">${esc(T.actualizar)}</button></div>
       <p id="pb-sync-txt" class="pb-ayuda" aria-live="polite"></p>
@@ -515,6 +604,7 @@ function plantilla(): string {
   <div class="pb-toast" id="pb-toast" role="status" aria-live="polite" hidden></div>
   <nav class="pb-nav" aria-label="Secciones">
     <button type="button" data-ir="reportar">${svg(ICONOS.reportar)}<span>${esc(T.navReportar)}</span></button>
+    <button type="button" data-ir="bien">${svg(ICONOS.bien)}<span>${esc(T.navBien)}</span></button>
     <button type="button" data-ir="intercambiar">${svg(ICONOS.intercambiar)}<span>${esc(T.navIntercambiar)}</span></button>
     <button type="button" data-ir="lista">${svg(ICONOS.lista)}<span>${esc(T.navLista)}</span><b class="pb-nav-n" id="pb-nav-n"></b></button>
   </nav>`;

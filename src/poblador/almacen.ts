@@ -2,15 +2,17 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import { masReciente, type EstadoReporte } from './estados';
 import type { AvisoGuardado } from './avisos';
+import type { CartaGuardada } from './cartas';
 
 export interface FotoGuardada { id: string; blob: Blob; bytes: number; w: number; h: number; subida: boolean; subidaAt?: number }
 
 let dbp: Promise<IDBPDatabase> | null = null;
 function db() {
-  dbp ??= openDB('yaku-poblador', 2, {
+  dbp ??= openDB('yaku-poblador', 3, {
     upgrade(d, viejo) {
       if (viejo < 1) { d.createObjectStore('fotos', { keyPath: 'id' }); d.createObjectStore('estados', { keyPath: 'id' }); }
       if (viejo < 2) d.createObjectStore('avisos', { keyPath: 'id' });
+      if (viejo < 3) d.createObjectStore('cartas', { keyPath: 'id' });
     },
   });
   return dbp;
@@ -41,6 +43,26 @@ export async function guardarAvisos(xs: AvisoGuardado[]): Promise<AvisoGuardado[
   }
   await tx.done;
   return nuevos;
+}
+
+/** «Estoy bien»: las que escribí, las que me pasaron por QR y las que encontré en internet. */
+export async function cartas(): Promise<CartaGuardada[]> {
+  return ((await (await db()).getAll('cartas')) as CartaGuardada[]).sort((a, b) => b.ts - a.ts);
+}
+/** Guarda las que este celular no tenía. Devuelve las nuevas. */
+export async function guardarCartas(xs: CartaGuardada[]): Promise<CartaGuardada[]> {
+  const d = await db();
+  const tx = d.transaction('cartas', 'readwrite');
+  const nuevas: CartaGuardada[] = [];
+  for (const c of xs) if (!(await tx.store.get(c.id))) { await tx.store.put(c); nuevas.push(c); }
+  await tx.done;
+  return nuevas;
+}
+export async function marcarCartasSubidas(ids: string[]) {
+  const d = await db();
+  const tx = d.transaction('cartas', 'readwrite');
+  for (const id of ids) { const c = (await tx.store.get(id)) as CartaGuardada | undefined; if (c && !c.synced) await tx.store.put({ ...c, synced: true }); }
+  await tx.done;
 }
 
 export async function estados(): Promise<Map<string, EstadoReporte>> {
