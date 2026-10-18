@@ -30,7 +30,8 @@ export default defineConfig({
         // Glyphs (.pbf) y sprites (.json/.png) del mapa base entran al precache (~0,9 MB).
         // El .pmtiles NO: se guarda aparte, completo y con progreso visible (src/basemap.ts).
         globPatterns: ['**/*.{js,mjs,css,html,png,svg,webmanifest,geojson,pbf,json}'],
-        globIgnores: ['**/*.pmtiles', ...(PHASE < 2 ? ['data/cenepred-*'] : [])],
+        // Clerk (src/auth/clerk.ts, ~1,6 MB) solo sirve con internet: fuera del precache, así el poblador no lo descarga.
+        globIgnores: ['**/*.pmtiles', 'assets/clerk-*.js', ...(PHASE < 2 ? ['data/cenepred-*'] : [])],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // maplibre-gl ~1 MB
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//],

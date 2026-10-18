@@ -31,6 +31,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@clerk/clerk-js": "6.37.0",
+    "@clerk/localizations": "4.21.2",
     "@protomaps/basemaps": "^5.7.2",
     "idb": "^8.0.4",
     "jsqr": "^1.4.0",
