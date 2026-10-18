@@ -129,7 +129,7 @@ export function initMap(container: HTMLElement) {
     if (!f) return;
     const p = f.properties as any;
     if (f.layer.id.startsWith('citizen')) {
-      popup(e.lngLat, `<div class="pop pop-citizen"><span class="badge-unverified">NO VERIFICADO</span><b>${esc(OBS_LABELS[p.type as ObsType] ?? p.type)}</b> · severidad ${esc(p.severity)}<br>${esc(p.note)}<br><small>Reporte ciudadano · ${esc(p.state)}</small></div>`);
+      popup(e.lngLat, `<div class="pop pop-citizen"><span class="badge-unverified">POR VALIDAR</span><b>${esc(OBS_LABELS[p.type as ObsType] ?? p.type)}</b> · severidad ${esc(p.severity)}<br>${esc(p.note)}<br><small>Reporte vecinal · ${esc(p.state)}</small></div>`);
     } else if (f.layer.id === 'cenepred-ccpp') {
       popup(e.lngLat, cenepredPopup(p));
     } else if (f.layer.id.startsWith('erosion')) {

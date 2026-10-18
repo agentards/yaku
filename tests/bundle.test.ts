@@ -17,9 +17,9 @@ describe('bundle dist/', () => {
     const banned = [['v', 'ia', ' segura'], ['ruta', ' segura'], ['camino', ' seguro'], ['safe', ' route'], ['transi', 'table'], ['afec', 'tado'], ['con da', 'nos'], ['sin se', 'nal'], ['pronostico de ', 'inundacion'], ['expuesto en ', 'escenario'], ['centros poblados ', 'expuestos']].map((p) => p.join(''));
     for (const b of banned) expect(t.includes(b), `texto prohibido: "${b}"`).toBe(false);
   });
-  it('incluye la etiqueta NO VERIFICADO, estilo discontinuo para reportes ciudadanos y sin plantilla FUENTE OFICIAL', () => {
+  it('incluye la etiqueta POR VALIDAR, estilo discontinuo para reportes ciudadanos y sin plantilla FUENTE OFICIAL', () => {
     const t = text();
-    expect(t).toContain('NO VERIFICADO');
+    expect(t).toContain('POR VALIDAR');
     expect(t).toMatch(/\.citizen\{[^}]*dashed/);
     expect(t).not.toContain('FUENTE OFICIAL');
     expect(t).not.toContain('official-template');

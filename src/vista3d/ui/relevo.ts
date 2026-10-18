@@ -114,7 +114,7 @@ export function montarRelevo(escenaEl: HTMLElement, escena: EscenaYaku, tienda: 
     if (trs.length && performance.now() - ultimoAviso > 4000) {
       ultimoAviso = performance.now();
       const q = trs.find((x) => x.tipo === 'qr');
-      aviso(q ? `SIMULADO · ficha pasó por QR de ${q.etDe} a ${q.etA} (NO VERIFICADO)` : 'SIMULADO · ficha consolidada en el servidor al volver la red');
+      aviso(q ? `SIMULADO · ficha pasó por QR de ${q.etDe} a ${q.etA} (por validar)` : 'SIMULADO · ficha consolidada en el servidor al volver la red');
     }
   });
   tienda.on('demo', () => posCache.clear());
@@ -129,8 +129,8 @@ export function montarRelevo(escenaEl: HTMLElement, escena: EscenaYaku, tienda: 
     }
     for (const f of consolidadas) trs.push({ id: `${f.id}#sync`, de: { pantalla: 'telefono' }, a: { pantalla: 'servidor' }, etDe: 'Este teléfono', etA: 'Servidor', tipo: 'sync', simulado: false });
     lanzar(trs);
-    if (nuevas.length) aviso(`${nuevas.length} ficha(s) ${nuevas.some((f) => f.source !== 'local') ? 'recibida(s) por relevo' : 'registrada(s) en este equipo'} · NO VERIFICADO`);
-    else if (consolidadas.length) aviso(`${consolidadas.length} ficha(s) consolidada(s) en el servidor · siguen NO VERIFICADO`);
+    if (nuevas.length) aviso(`${nuevas.length} ficha(s) ${nuevas.some((f) => f.source !== 'local') ? 'recibida(s) por relevo' : 'registrada(s) en este equipo'} · por validar`);
+    else if (consolidadas.length) aviso(`${consolidadas.length} ficha(s) consolidada(s) en el servidor · siguen por validar`);
   }
 
   return { lanzar, real };

@@ -249,8 +249,8 @@ try {
       legendWithSourceAndDate: [...document.querySelectorAll('.official-layer')].map((l) => /fuente|SENAMHI|INDECI|CENEPRED/i.test(l.textContent) && /20\d\d/.test(l.textContent)),
     };
   });
-  log('estilo: reportes NO VERIFICADO (discontinuo); sin plantilla FUENTE OFICIAL; fuente solo junto a capas reales; sin textos prohibidos',
-    style.badges.length === 3 && style.badges.every((b) => b === 'NO VERIFICADO') && style.citizenBorder.startsWith('dashed') && !style.officialTemplate && !style.fuenteOficialText
+  log('estilo: reportes POR VALIDAR (discontinuo); sin plantilla FUENTE OFICIAL; fuente solo junto a capas reales; sin textos prohibidos',
+    style.badges.length === 3 && style.badges.every((b) => b === 'POR VALIDAR') && style.citizenBorder.startsWith('dashed') && !style.officialTemplate && !style.fuenteOficialText
     && style.sourceBadgesOutsideLegend === 0 && style.sourceBadgesInCitizen === 0 && style.legendWithSourceAndDate.every(Boolean) && style.senamhiLegend === `Pronóstico SENAMHI del 15/10/2026 · vigencia 24 h · ${Date.now() > Date.parse('2026-10-16T00:00:00Z') ? 'VENCIDO, se muestra como ejemplo' : 'VIGENTE'}` && /SIGRID\/CENEPRED, obtenida vía geoservicio de INDECI/.test(style.erosionSource) && (await noForbidden(A)), style);
 
   // ---------- (g) GPS automático + marcador arrastrable ----------

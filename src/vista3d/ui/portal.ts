@@ -132,7 +132,7 @@ export function montarPortal(escenaEl: HTMLElement, escena: EscenaYaku, tienda: 
       + `${esc(dms(cp.lat, cp.lon))}<br><span class="dim">${cp.lat.toFixed(5)}, ${cp.lon.toFixed(5)}</span>`);
     poner('br', `Exposición inundación: <span class="r${cp.r}">${esc(nivelTxt(cp.r))}</span><br>`
       + `OSIPTEL: <span class="${cob.clase}">${esc(cob.corto)}</span><br>`
-      + (fs.length ? `<span class="nv">${fs.length} ficha${fs.length > 1 ? 's' : ''} · NO VERIFICADO</span>${fs.some((f) => f.simulado) ? ' <span class="sf">SIMULADO</span>' : ''}` : `<span class="sf">${esc(est.txt)}</span>`));
+      + (fs.length ? `<span class="nv">${fs.length} ficha${fs.length > 1 ? 's' : ''} · por validar</span>${fs.some((f) => f.simulado) ? ' <span class="sf">SIMULADO</span>' : ''}` : `<span class="sf">${esc(est.txt)}</span>`));
     poner('bc', `z ${num(z, 1)} · pitch ${PITCH}° · relieve ×1,6`);
     poner('titulo', `${esc(cp.n)}<small>${esc(cp.d)}</small>`);
     $('zoom').textContent = `z${num(z, 1)}`;
@@ -156,7 +156,7 @@ export function montarPortal(escenaEl: HTMLElement, escena: EscenaYaku, tienda: 
     hud(); rumboHud();
     orbitar(true);
     const fs = fichasDe(c.cod, tienda.fichas(), tienda.asoc, tienda.t);
-    $('anuncio').textContent = `Portal de campo: ${c.n}, ${c.d}. Exposición a inundaciones ${nivelTxt(c.r)}. ${coberturaTxt(c).largo}. ${fs.length ? `${fs.length} ficha(s) NO VERIFICADO.` : estadoCentro(0).txt + '.'}`;
+    $('anuncio').textContent = `Portal de campo: ${c.n}, ${c.d}. Exposición a inundaciones ${nivelTxt(c.r)}. ${coberturaTxt(c).largo}. ${fs.length ? `${fs.length} ficha(s) por validar.` : estadoCentro(0).txt + '.'}`;
   }
   function cerrar() {
     el.hidden = true; cp = null;

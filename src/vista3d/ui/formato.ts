@@ -30,7 +30,7 @@ export function coberturaTxt(cp: Pick<CentroPoblado, 'cg' | 'g4'>) {
 
 /** Estado del centro poblado según las fichas recibidas hasta el cabezal. */
 export const estadoCentro = (nFichas: number) =>
-  nFichas > 0 ? { txt: 'Con registro recibido, no verificado', clase: 'conficha' } : { txt: 'Sin ficha de evaluación', clase: 'sinficha' };
+  nFichas > 0 ? { txt: 'Con reporte recibido, por validar', clase: 'conficha' } : { txt: 'Sin ficha de evaluación', clase: 'sinficha' };
 
 export const FUENTE_CENTRO = 'CENEPRED/SIGRID 23077 (Aviso 421), firmado 16/10/2026 · ubicación IGN · cobertura OSIPTEL 2025-IV';
 

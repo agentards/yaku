@@ -14,7 +14,7 @@ export const META_CAPAS: Record<CapaId, MetaCapa> = {
   senamhi: { titulo: 'Aviso de activación de quebradas', meta: fs ? fs.etiqueta : 'SENAMHI vía INDECI', op: 90 },
   erosion: { titulo: 'SIGRID · áreas expuestas a erosión', meta: 'SIGRID/CENEPRED vía INDECI · documentos 2019–2024', op: 80 },
   limite: { titulo: 'Límite departamental de Piura', meta: 'INDECI · no expresa riesgo', op: 100 },
-  citizen: { titulo: 'Fichas y reportes ciudadanos', meta: 'De este equipo y recibidos por relevo. No son alertas oficiales.', op: 100, badge: 'NO VERIFICADO' },
+  citizen: { titulo: 'Fichas y reportes ciudadanos', meta: 'De este equipo y recibidos por relevo. No son alertas oficiales.', op: 100, badge: 'POR VALIDAR' },
 };
 const ORDEN: CapaId[] = ['terreno', 'cenepred', 'citizen', 'senamhi', 'erosion', 'limite', 'basemap'];
 

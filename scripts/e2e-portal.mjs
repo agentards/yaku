@@ -119,7 +119,7 @@ try {
   await page.waitForTimeout(7000);
   const hud = await page.evaluate(() => ({ txt: document.querySelector('.v3d-portal').innerText, mini: !!window.__yaku3dUI.portal.mini(), c: window.__yaku3dUI.escena.map.getCenter() }));
   const cerca = Math.abs(hud.c.lng - objetivo.lon) < 0.05 && Math.abs(hud.c.lat - objetivo.lat) < 0.05;
-  const okHud = hud.txt.includes(objetivo.n) && /OSIPTEL/.test(hud.txt) && /SIN COBERTURA GARANTIZADA/i.test(hud.txt) && /m s\.n\.m\./i.test(hud.txt) && /(Sin ficha de evaluación|NO VERIFICADO)/i.test(hud.txt) && /(EN LÍNEA|SIN RED)/.test(hud.txt) && /CENEPRED/.test(hud.txt);
+  const okHud = hud.txt.includes(objetivo.n) && /OSIPTEL/.test(hud.txt) && /SIN COBERTURA GARANTIZADA/i.test(hud.txt) && /m s\.n\.m\./i.test(hud.txt) && /(Sin ficha de evaluación|por validar)/i.test(hud.txt) && /(EN LÍNEA|SIN RED)/.test(hud.txt) && /CENEPRED/.test(hud.txt);
   check('(p4) portal: HUD con nombre, altitud DEM, OSIPTEL, estado de ficha, red, fuente; la escena voló al centro poblado', okHud && hud.mini && cerca, { centro: objetivo.n, cerca, mini: hud.mini });
   await shot(page, '2-portal');
   res.medidas.fpsPortal = await fps(page, 5000);
@@ -142,7 +142,7 @@ try {
   await shot(page, '3-relevo-simulado');
   res.medidas.fpsRelevo = await fps(page, 3000);
   await page.evaluate(() => window.__yaku3dUI.linea.pausar());
-  check('(p6) relevo SIMULADO: arcos dibujados y aviso etiquetado SIMULADO / NO VERIFICADO', arcos > 200 && /SIMULADO/.test(toast), { pixelesArco: arcos, toast });
+  check('(p6) relevo SIMULADO: arcos dibujados y aviso etiquetado SIMULADO / por validar', arcos > 200 && /SIMULADO/.test(toast), { pixelesArco: arcos, toast });
 
   // (7) flujo real: una ficha recibida por relevo en IndexedDB dispara su arco
   await page.evaluate(() => window.__yaku3dUI.tienda.setDemo(false));
@@ -152,7 +152,7 @@ try {
   });
   await page.waitForFunction(() => /recibida/.test(document.querySelector('[data-aviso]')?.textContent ?? ''), null, { timeout: 8000 }).catch(() => {});
   const real = await page.evaluate(() => ({ toast: document.querySelector('[data-aviso]').textContent, fichas: window.__yaku3dUI.tienda.reales.length }));
-  check('(p7) flujo real: ficha recibida por QR en IndexedDB → arco y aviso NO VERIFICADO', /recibida/.test(real.toast) && /NO VERIFICADO/.test(real.toast) && real.fichas >= 1, real);
+  check('(p7) flujo real: ficha recibida por QR en IndexedDB → arco y aviso por validar', /recibida/.test(real.toast) && /por validar/.test(real.toast) && real.fichas >= 1, real);
   await page.evaluate(async () => {
     const db = await new Promise((r) => { const q = indexedDB.open('yaku-relay-proto', 1); q.onsuccess = () => r(q.result); });
     await new Promise((r) => { const tx = db.transaction('obs', 'readwrite'); tx.objectStore('obs').delete('e2e-portal-1'); tx.oncomplete = r; });

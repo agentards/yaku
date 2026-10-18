@@ -30,9 +30,9 @@ describe('HUD del portal de campo', () => {
     const todo = [false, true, null].map((cg) => JSON.stringify(coberturaTxt({ cg, g4: cg }))).join(' ').toLowerCase();
     expect(todo).not.toMatch(/sin se[ñn]al/);
   });
-  it('estado del centro poblado: «Sin ficha de evaluación» o «Con registro recibido, no verificado»', () => {
+  it('estado del centro poblado: «Sin ficha de evaluación» o «Con reporte recibido, por validar»', () => {
     expect(estadoCentro(0).txt).toBe('Sin ficha de evaluación');
-    expect(estadoCentro(2).txt).toBe('Con registro recibido, no verificado');
+    expect(estadoCentro(2).txt).toBe('Con reporte recibido, por validar');
   });
 });
 

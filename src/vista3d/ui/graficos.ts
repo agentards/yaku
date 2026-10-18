@@ -37,7 +37,7 @@ export function montarGraficos(cont: HTMLElement, tienda: Tienda) {
       </div>
     </figure>
     <figure class="v3d-graf" data-g="2">
-      <figcaption>Fichas por estado <span><span class="badge-nv">NO VERIFICADO</span></span></figcaption>
+      <figcaption>Fichas por estado <span><span class="badge-nv">POR VALIDAR</span></span></figcaption>
       <div class="area">
         <span class="eje arriba" data-y1></span><span class="eje abajo">0</span>
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -115,7 +115,7 @@ export function montarGraficos(cont: HTMLElement, tienda: Tienda) {
     Object.assign(q(2, '[data-pc]').style, { left: x, top: `${yPct(vc, 0, y2hi)}%` });
     q(2, '[data-vr]').textContent = num(vr); q(2, '[data-vc]').textContent = num(vc);
     g(1).setAttribute('aria-label', `Centros poblados sin ficha de evaluación: ${v1} de ${tienda.centros.length} ubicados en el cabezal.`);
-    g(2).setAttribute('aria-label', `Fichas NO VERIFICADO en el cabezal: ${vr} en relevo y ${vc} consolidadas.`);
+    g(2).setAttribute('aria-label', `Fichas por validar en el cabezal: ${vr} en relevo y ${vc} consolidadas.`);
     barras();
   }
 

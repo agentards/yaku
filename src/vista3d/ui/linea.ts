@@ -17,8 +17,8 @@ export function eventosLinea(tienda: Tienda, ahora = tienda.ahora()): EventoClav
   for (const f of tienda.fichas()) {
     const tipo = OBS_LABELS[f.type] ?? f.type;
     const sim = f.simulado ? ' · SIMULADO' : '';
-    ev.push({ t: f.ts, titulo: `Ficha registrada · ${tipo}`, detalle: `NO VERIFICADO${sim}`, tipo: 'ficha' });
-    if (f.syncedAt) ev.push({ t: f.syncedAt, titulo: 'Ficha consolidada en el servidor', detalle: `${tipo} · NO VERIFICADO${sim}`, tipo: 'consolidada' });
+    ev.push({ t: f.ts, titulo: `Ficha registrada · ${tipo}`, detalle: `Por validar${sim}`, tipo: 'ficha' });
+    if (f.syncedAt) ev.push({ t: f.syncedAt, titulo: 'Ficha consolidada en el servidor', detalle: `${tipo} · por validar${sim}`, tipo: 'consolidada' });
   }
   ev.push({ t: ahora, titulo: 'Ahora', detalle: 'Hora de este equipo', tipo: 'ahora' });
   return ev.sort((x, y) => x.t - y.t);

@@ -213,7 +213,7 @@ async function renderList() {
     li.innerHTML = `
       <label class="pick"><input type="checkbox" ${selected.has(r.id) ? 'checked' : ''} aria-label="Seleccionar para relevo" /></label>
       <div class="body">
-        <div class="tags"><span class="badge-unverified">NO VERIFICADO</span><span class="sync ${r.synced ? 'ok' : 'pend'}${justDone ? ' just' : ''}">${stateLabel(r)}</span></div>
+        <div class="tags"><span class="badge-unverified">POR VALIDAR</span><span class="sync ${r.synced ? 'ok' : 'pend'}${justDone ? ' just' : ''}">${stateLabel(r)}</span></div>
         <div class="title"><strong></strong> <span class="sev sev${r.severity}">sev ${r.severity}</span></div>
         <div class="note"></div>
         <small class="meta">Reporte ciudadano · ${new Date(r.ts * 1000).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })} · ${SOURCE_LABEL[r.source]}</small>

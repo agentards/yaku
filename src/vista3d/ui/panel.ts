@@ -59,7 +59,7 @@ export function montarPanel(aside: HTMLElement, tienda: Tienda, escena: EscenaYa
       <div data-p="relevo" hidden>
         <section class="v3d-card"><h3>Relevo por QR <small>de teléfono a teléfono</small></h3>
           <div class="cuerpo"><div class="v3d-kpis" data-kpis></div>
-            <p class="v3d-nota">Cada ficha viaja por QR entre teléfonos sin red hasta uno que tenga conexión; ahí se consolida en el servidor. Sigue siendo <b>NO VERIFICADO</b>.</p></div>
+            <p class="v3d-nota">Cada ficha viaja por QR entre teléfonos sin red hasta uno que tenga conexión; ahí se consolida en el servidor. Sigue <b>por validar</b> hasta que la municipalidad lo valide.</p></div>
           <label class="v3d-demo"><input type="checkbox" data-demo /><span><b>Modo demo</b> <span class="badge-sim">SIMULADO</span><br><small>14 fichas de ensayo sobre centros poblados sin cobertura garantizada según OSIPTEL, con saltos entre 4 teléfonos. No se guardan ni se envían.</small></span></label>
           <div class="v3d-acciones" style="padding:0 11px 10px"><button type="button" class="v3d-b pri" data-reproducir>${IC.play}Reproducir relevo</button><button type="button" class="v3d-b" data-ir2d>Pasar o recibir fichas (vista 2D)</button></div>
         </section>
@@ -114,7 +114,7 @@ export function montarPanel(aside: HTMLElement, tienda: Tienda, escena: EscenaYa
       return `<li><button type="button" data-cod="${esc(c.cod)}" aria-current="${tienda.seleccion?.cod === c.cod}">
         <span class="ic">${n ? n : nivelTxt(c.r).split(' ').map((w) => w[0]).join('')}</span>
         <span class="n">${esc(c.n)}<small>${esc(c.d)} · ${esc(c.pr)} · pob. ${num(c.pob)}</small></span>
-        <span class="der"><span class="v3d-niv r${c.r}">${esc(nivelTxt(c.r))}</span><span class="v3d-cob ${cob.clase}">${c.cg === false ? 'sin cob. garantizada' : c.cg === null ? 'sin dato OSIPTEL' : 'con cobertura'}</span>${n ? '<span class="badge-nv">NO VERIFICADO</span>' : ''}</span>
+        <span class="der"><span class="v3d-niv r${c.r}">${esc(nivelTxt(c.r))}</span><span class="v3d-cob ${cob.clase}">${c.cg === false ? 'sin cob. garantizada' : c.cg === null ? 'sin dato OSIPTEL' : 'con cobertura'}</span>${n ? '<span class="badge-nv">POR VALIDAR</span>' : ''}</span>
       </button></li>`;
     }).join('');
     $('[data-mas]').textContent = xs.length > max ? `Mostrando ${max} de ${num(xs.length)}: escriba para filtrar.` : xs.length ? '' : 'Ningún centro poblado coincide.';
@@ -147,7 +147,7 @@ export function montarPanel(aside: HTMLElement, tienda: Tienda, escena: EscenaYa
         <div class="grid">
           <div><span>Altitud (DEM)</span><b>${esc(altitudTxt(escena.altitud(c.lon, c.lat)))}</b></div>
           <div><span>Población</span><b>${num(c.pob)}</b></div>
-          <div><span>Fichas</span><b>${fs.length}</b> ${fs.length ? '<span class="badge-nv">NO VERIFICADO</span>' : ''}</div>
+          <div><span>Fichas</span><b>${fs.length}</b> ${fs.length ? '<span class="badge-nv">POR VALIDAR</span>' : ''}</div>
         </div>
         <dl class="v3d-dl">
           <dt>Distrito</dt><dd>${esc(c.d)} · ${esc(c.pr)}</dd>
@@ -196,7 +196,7 @@ export function montarPanel(aside: HTMLElement, tienda: Tienda, escena: EscenaYa
     const ruta = f.saltos?.length
       ? [f.saltos[0].de, ...f.saltos.filter((s) => s.t <= tienda.t).map((s) => s.a)].join(' → ') + (st === 'consolidado' ? ' → Servidor' : '')
       : `${ORIGEN[f.source] ?? f.source}${st === 'consolidado' ? ' → Servidor' : ''}`;
-    return `<li class="v3d-ficha"><div class="tags"><span class="badge-nv">NO VERIFICADO</span><span class="st ${st === 'consolidado' ? 'ok' : ''}">${st === 'consolidado' ? 'consolidada' : 'en relevo'}</span>${f.simulado ? '<span class="badge-sim">SIMULADO</span>' : ''}</div>
+    return `<li class="v3d-ficha"><div class="tags"><span class="badge-nv">POR VALIDAR</span><span class="st ${st === 'consolidado' ? 'ok' : ''}">${st === 'consolidado' ? 'consolidada' : 'en relevo'}</span>${f.simulado ? '<span class="badge-sim">SIMULADO</span>' : ''}</div>
       <b>${esc(OBS_LABELS[f.type] ?? f.type)}</b> · severidad ${f.severity}${c ? ` · ${esc(c.n)} (${esc(c.d)})` : ''}<br>
       <span class="ruta">${esc(ruta)}</span> · <time>${esc(fechaHora(f.ts))}</time></li>`;
   }
