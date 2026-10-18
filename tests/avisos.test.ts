@@ -65,7 +65,8 @@ describe('avisos firmados', () => {
   });
   it('lo que ve el vecino: qué hace la municipalidad, dónde y que viene firmado', () => {
     const t = textoAviso({ ...base, accion: 'provisiones', firma: 'x', verificado: true, via: 'qr', recibidoAt: 0 }, () => 'Casa dañada o caída');
-    expect(t.titulo).toBe('Provisiones en camino');
+    expect(t.titulo).toBe('Provisiones asignadas');
+    expect(t.titulo).not.toMatch(/en camino/);
     expect(t.detalle).toContain('Casa dañada o caída');
     expect(t.detalle).toContain('Van por el puente');
     expect(t.origen).toMatch(/Firmado por la municipalidad ✓ · te lo pasó otro vecino/);

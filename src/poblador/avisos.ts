@@ -5,6 +5,7 @@
 // nadie puede inventar un aviso «de la municipalidad» dentro de la cadena. Sin DOM: se prueba en Node.
 import { deflateRaw, inflateRaw } from 'pako';
 import { base45Decode, base45Encode, crc32 } from '../codec';
+import { ACCION_TXT } from './textos';
 
 export const ACCIONES_AVISO = ['rescate', 'bomberos', 'provisiones', 'maquinaria', 'edan', 'atendido'] as const;
 export type AccionAviso = (typeof ACCIONES_AVISO)[number];
@@ -77,10 +78,9 @@ export function avisosParaQR(xs: AvisoGuardado[], ahora = Date.now()): AvisoGuar
   return xs.filter((a) => a.verificado && ahora - a.min * 60000 <= VIGENCIA_QR_MS).sort((a, b) => b.min - a.min).slice(0, MAX_AVISOS_QR);
 }
 
-const TITULO: Record<AccionAviso, string> = {
-  rescate: 'Rescate en camino', bomberos: 'Bomberos en camino', provisiones: 'Provisiones en camino',
-  maquinaria: 'Maquinaria en camino', edan: 'Evaluación de daños en camino', atendido: 'Incidente atendido',
-};
+// Mismo texto que el estado del reporte (textos.ts): «asignado», nunca «en camino». Yaku solo sabe que la
+// municipalidad asignó la acción, no si el equipo ya salió.
+const TITULO: Record<AccionAviso, string> = { ...ACCION_TXT, atendido: 'Incidente atendido' };
 const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Lima' });
 
 /** Lo que ve el vecino. `tipoTxt` traduce el tipo del incidente (casa dañada, agua…). */

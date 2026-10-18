@@ -179,7 +179,7 @@ try {
   check('6 · Municipalidad valida + «Bomberos» con PIN; B lo ve tras sincronizar', true);
   const avisoB = await B.waitForFunction(() => window.__yakuPoblador.estado().avisos.some((a) => a.accion === 'bomberos' && a.verificado && a.via === 'red'), null, { timeout: 15000 }).then(() => true).catch(() => false);
   const textoB = await B.evaluate(() => document.querySelector('.pb-aviso[data-accion="bomberos"]')?.textContent?.replace(/\s+/g, ' ').trim() ?? '');
-  check('6 · B (con red) recibe el aviso firmado de la municipalidad: «Bomberos en camino» + mensaje', avisoB && /Bomberos en camino/.test(textoB) && /puente/.test(textoB) && /Firmado por la municipalidad/.test(textoB), { textoB });
+  check('6 · B (con red) recibe el aviso firmado de la municipalidad: «Bomberos asignados» + mensaje', avisoB && /Bomberos asignados/.test(textoB) && /puente/.test(textoB) && /Firmado por la municipalidad/.test(textoB), { textoB });
   // «Estoy bien»: A, sin red, deja un mensaje para su hijo; viaja en el mismo intercambio.
   await A.click('.pb-nav button[data-ir="bien"]');
   await A.fill('#pb-bien-form input[name="nombre"]', 'Rosa Chunga');
