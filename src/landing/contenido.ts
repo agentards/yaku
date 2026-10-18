@@ -25,8 +25,8 @@ export const SEO = {
   titulo: 'Yaku: reportes vecinales sin señal para municipalidades',
   descripcion:
     'El vecino reporta sin señal, el reporte pasa de celular en celular por QR y su municipalidad lo recibe agrupado para validarlo y responder ante El Niño.',
-  ogImagen: 'https://yaku.lat/landing/og.jpg',
-  ogAlt: 'Centro de monitoreo de Yaku con un reporte respaldado por dos vecinos en Piura',
+  ogImagen: 'https://yaku.lat/landing/og-cadena.jpg',
+  ogAlt: 'Esquema de Yaku: tres celulares de vecinos se pasan un reporte hasta la municipalidad y la respuesta vuelve por la misma cadena',
   actualizado: '2026-10-17',
 };
 
