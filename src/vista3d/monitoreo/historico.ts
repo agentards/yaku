@@ -4,7 +4,7 @@
 // Nada simulado: si el servidor no tiene datos, la línea va de ahora−24 h a ahora y queda vacía.
 import type { ReporteApi } from '../municipalidad/deteccion';
 import { cerrado, type Cambio, type Incidente } from '../municipalidad/incidentes';
-import type { Accion, Estado } from '../municipalidad/textos';
+import { estadoChip, tipoTxt, vecinos, ROTULO_VECINAL, type Accion, type Estado } from '../municipalidad/textos';
 import { distKm, type Ficha, type Punto } from '../ui/datos';
 
 export const H = 3600_000;
@@ -118,6 +118,36 @@ export function eventosHistorico(reps: ReporteApi[], hs: IncHist[]): EventoMon[]
   const ev: EventoMon[] = reps.map((r) => ({ t: r.received_at, tipo: 'reporte' as const, obs: r.type, repId: r.id, incId: deRep.get(r.id) }));
   for (const h of hs) for (const c of h.historial) ev.push({ t: c.cuando, tipo: 'estado', estado: c.estado, incId: h.inc.id });
   return ev.sort((x, y) => x.t - y.t);
+}
+
+// ---------- eventos clave (lista junto a la línea de tiempo, al estilo de los «Key Events» de FireTrace) ----------
+export type ClaseClave = 'reporte' | 'coincide' | 'revision' | 'municipal' | 'cerrado';
+export interface EventoClave { t: number; clase: ClaseClave; titulo: string; detalle: string; incId?: string }
+/**
+ * Lo que conviene mirar del histórico: el primer reporte de cada incidente, cada vecino distinto que coincide con uno
+ * ya abierto y cada decisión de la municipalidad (con quién). Lo vecinal siempre «por validar»; nunca «alerta».
+ * Orden cronológico (el primero, el más antiguo).
+ */
+export function eventosClave(reps: ReporteApi[], hs: IncHist[]): EventoClave[] {
+  const deRep = new Map<string, IncHist>();
+  for (const h of hs) for (const id of h.inc.reportIds) deRep.set(id, h);
+  const vistos = new Map<string, Set<string>>();
+  const ev: EventoClave[] = [];
+  for (const r of [...reps].sort((a, b) => a.received_at - b.received_at)) {
+    const h = deRep.get(r.id), dev = r.device_id || r.id;
+    const set = h ? vistos.get(h.inc.id) ?? new Set<string>() : new Set<string>();
+    if (h) vistos.set(h.inc.id, set);
+    const primero = set.size === 0, nuevoVecino = !set.has(dev);
+    set.add(dev);
+    if (primero || !h) ev.push({ t: r.received_at, clase: 'reporte', titulo: `Reporte recibido · ${tipoTxt(r.type)}`, detalle: ROTULO_VECINAL, incId: h?.inc.id });
+    else if (nuevoVecino) ev.push({ t: r.received_at, clase: 'coincide', titulo: `Otro vecino coincide · ${tipoTxt(h.inc.tipo)}`, detalle: `ahora ${vecinos(set.size)} · por validar`, incId: h.inc.id });
+    else ev.push({ t: r.received_at, clase: 'reporte', titulo: `Otro reporte del mismo vecino · ${tipoTxt(r.type)}`, detalle: ROTULO_VECINAL, incId: h.inc.id });
+  }
+  for (const h of hs) for (const c of h.historial) {
+    const clase: ClaseClave = c.estado === 'en_revision' ? 'revision' : c.estado === 'descartado' ? 'cerrado' : c.estado === 'nuevo' ? 'reporte' : 'municipal';
+    ev.push({ t: c.cuando, clase, titulo: estadoChip(c.estado, c.accion), detalle: `${tipoTxt(h.inc.tipo)}${c.quien ? ` · ${c.quien}` : ''}`, incId: h.inc.id });
+  }
+  return ev.filter((e) => Number.isFinite(e.t)).sort((a, b) => a.t - b.t);
 }
 
 /** Paso de las marcas de la línea (en horas) para que entren ~10. */

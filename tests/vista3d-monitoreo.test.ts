@@ -1,7 +1,7 @@
 // Centro de monitoreo: histórico real (rango, estado en el tiempo, series, eventos) y piezas HTML de la tarjeta.
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
-import { contadores, estadoEn, eventosHistorico, fichaDeReporte, incidenteEn, incidentesCerca, indexar, pasoMarcas, rangoHistorico, seriesPorEstado, seriesReportes, H } from '../src/vista3d/monitoreo/historico';
+import { contadores, estadoEn, eventosClave, eventosHistorico, fichaDeReporte, incidenteEn, incidentesCerca, indexar, pasoMarcas, rangoHistorico, seriesPorEstado, seriesReportes, H } from '../src/vista3d/monitoreo/historico';
 import { accionesHtml, detalleHtml, filaHtml, galeriaHtml, pieMonitoreoHtml, tarjetaHtml, tono } from '../src/vista3d/monitoreo/piezas';
 import { PIE_LEGAL } from '../src/vista3d/municipalidad/textos';
 import { leerIncidente, type Incidente } from '../src/vista3d/municipalidad/incidentes';
@@ -69,6 +69,15 @@ describe('incidente en el tiempo', () => {
     const ev = eventosHistorico([R1, R2], [h]);
     expect(ev.filter((e) => e.tipo === 'reporte')).toHaveLength(2);
     expect(ev.filter((e) => e.tipo === 'estado').map((e) => e.estado)).toEqual(['en_revision', 'validado', 'accion_asignada']);
+    // Eventos clave: primer reporte, coincidencia de otro vecino y cada decisión municipal (con quién), en orden.
+    const k = eventosClave([R2, R1], [h]);
+    expect(k.map((e) => e.clase)).toEqual(['reporte', 'coincide', 'revision', 'municipal', 'municipal']);
+    expect(k[0]).toMatchObject({ t: R1.received_at, titulo: 'Reporte recibido · Casa dañada o caída', detalle: 'Reporte vecinal · por validar', incId: h.inc.id });
+    expect(k[1].titulo).toBe('Otro vecino coincide · Casa dañada o caída');
+    expect(k[1].detalle).toBe('ahora 2 vecinos · por validar');
+    expect(k[4].titulo).toBe('Bomberos asignados');
+    expect(k[4].detalle).toContain('Ana');
+    expect(JSON.stringify(k)).not.toMatch(/alerta/i);
     expect(ev[0].incId).toBe('inc-aaaaaaaaaa1');
   });
   it('contadores, paso de marcas y cercanía', () => {

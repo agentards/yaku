@@ -203,7 +203,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
   tienda.on('pestana', (p) => tabs.forEach((b) => { b.setAttribute('aria-selected', String(b.dataset.tab === p)); b.tabIndex = b.dataset.tab === p ? 0 : -1; }));
 
   // ---------- módulos del portal ----------
-  const linea = montarLineaMonitoreo($('[data-linea]'), raiz, tienda, vivo, abrirCajon);
+  const linea = montarLineaMonitoreo($('[data-linea]'), raiz, tienda, vivo, abrirCajon, (id) => enfocar(id));
   montarPortal($('[data-escena]'), escena, tienda);
   const panel = montarPanelMonitoreo($('#v3d-panel'), tienda, escena, {
     lista: vista, actual: () => actualId, ctx, enVivo: () => vivo.enVivo,

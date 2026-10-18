@@ -9,7 +9,10 @@ import { esc, num } from '../ui/formato';
 import { IC } from '../ui/iconos';
 import { ESTADO, tipoTxt } from '../municipalidad/textos';
 import type { ReporteApi } from '../municipalidad/deteccion';
-import { eventosHistorico, GRUPO_TXT, GRUPOS, H, pasoMarcas, seriesPorEstado, seriesReportes, type EventoMon, type Grupo, type IncHist } from './historico';
+import { eventosClave, eventosHistorico, GRUPO_TXT, GRUPOS, H, pasoMarcas, seriesPorEstado, seriesReportes, type EventoClave, type EventoMon, type Grupo, type IncHist } from './historico';
+
+/** Eventos clave a la vista (los más recientes primero). */
+const MAX_CLAVE = 40;
 
 const DURACIONES = [{ id: '15 s', s: 15 }, { id: '30 s', s: 30 }, { id: '60 s', s: 60 }] as const;
 const COLOR_GRUPO: Record<Grupo, string> = { nuevo: '#c77700', revision: '#8a5a00', municipal: '#2f6b3a', cerrado: '#8a7f6c' };
@@ -20,7 +23,8 @@ export const COLOR_TIPO: Record<string, string> = {
 
 export interface ControlVivo { enVivo: boolean; irEnVivo(): void; soltarVivo(): void }
 
-export function montarLineaMonitoreo(cont: HTMLElement, raiz: HTMLElement, tienda: Tienda, vivo: ControlVivo, abrirCajon: () => void) {
+/** alElegir: clic en un evento clave → además de mover el cabezal, enfocar su incidente (vuelo + tarjeta). */
+export function montarLineaMonitoreo(cont: HTMLElement, raiz: HTMLElement, tienda: Tienda, vivo: ControlVivo, abrirCajon: () => void, alElegir?: (incId: string) => void) {
   cont.innerHTML = `
     <div class="v3d-lcab">
       <h2 id="mon-linea-t">Histórico del monitoreo</h2>
@@ -63,6 +67,10 @@ export function montarLineaMonitoreo(cont: HTMLElement, raiz: HTMLElement, tiend
         <div class="barras" data-barras></div>
         <div class="ley"><span><i class="seg-ficha" style="border:0;height:8px"></i>Sin cob. y con reporte</span><span><i class="seg-sincob" style="border:0;height:8px"></i>Sin cob. garantizada</span><span><i class="seg-concob" style="border:0;height:8px"></i>Con cobertura</span><span><i class="seg-sindato" style="border:0;height:8px"></i>Sin dato</span></div>
       </figure>
+      <figure class="v3d-graf mon-clave" data-g="clave" aria-labelledby="mon-clave-t">
+        <figcaption id="mon-clave-t">Eventos clave <span data-nclave></span></figcaption>
+        <ol class="mon-clave-lista" data-clave></ol>
+      </figure>
     </div>`;
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => cont.querySelector<T>(s)!;
   const pista = $('.v3d-pista'), cab = $('.cabezal'), hecho = $('.hecho'), et = $('[data-et]');
@@ -94,8 +102,40 @@ export function montarLineaMonitoreo(cont: HTMLElement, raiz: HTMLElement, tiend
     $('[data-marcas]').innerHTML = marcas(a, b, paso)
       .map((m) => `<span class="marca${m.diaNuevo ? ' dia' : ''}" style="left:${pct(m.t).toFixed(3)}%">${m.diaNuevo || paso >= 24 ? `<b>${esc(m.dia)}</b>` : '<b>&nbsp;</b>'}${esc(m.hora)}</span>`).join('');
     series();
+    clave();
     cabezal();
   }
+  // ---------- eventos clave: clic = llevar el cabezal (y la cámara) a ese momento ----------
+  let claves: EventoClave[] = [];
+  function clave() {
+    const [a, b] = tienda.rango;
+    claves = eventosClave(reps, hs).filter((e) => e.t >= a && e.t <= b).slice(-MAX_CLAVE).reverse();
+    $('[data-nclave]').textContent = claves.length ? `${num(claves.length)} · clic: ir al momento` : '';
+    $('[data-clave]').innerHTML = claves.length ? claves.map((e, k) => `<li data-k="${k}" data-clase="${e.clase}"><button type="button"><time>${esc(hora(e.t))}</time><i aria-hidden="true"></i><span class="tt">${esc(e.titulo)}<small>${esc(e.detalle)}</small></span></button></li>`).join('')
+      : '<li class="mon-clave-vacia">Aún no hay eventos: aparecerán los reportes, las coincidencias y las decisiones.</li>';
+    marcarClave();
+  }
+  /** Pasado / futuro respecto del cabezal y el último evento ya ocurrido resaltado. */
+  let ultimaClave = '';
+  function marcarClave() {
+    const t = tienda.t;
+    const i = claves.findIndex((e) => e.t <= t);
+    const firma = `${claves.length}:${i}:${Math.round(t / 1000)}`;
+    if (firma === ultimaClave) return;
+    ultimaClave = firma;
+    $('[data-clave]').querySelectorAll<HTMLElement>('li[data-k]').forEach((li) => {
+      const k = +li.dataset.k!;
+      li.dataset.pasado = String(claves[k].t <= t);
+      li.toggleAttribute('data-actual', k === i);
+    });
+  }
+  $('[data-clave]').addEventListener('click', (e) => {
+    const li = (e.target as HTMLElement).closest<HTMLElement>('li[data-k]');
+    const ev = li ? claves[+li.dataset.k!] : null;
+    if (!ev) return;
+    mover(ev.t + 1); // +1 ms: el evento ya ocurrió en ese instante
+    if (ev.incId) alElegir?.(ev.incId);
+  });
   function series() {
     const [a, b] = tienda.rango;
     sEst = seriesPorEstado(hs, a, b);
@@ -126,6 +166,7 @@ export function montarLineaMonitoreo(cont: HTMLElement, raiz: HTMLElement, tiend
     g('reportes').querySelector('[data-n="vecinos"]')!.textContent = num(nv);
     g('reportes').setAttribute('aria-label', `En el cabezal: ${nr} reportes recibidos de ${nv} vecinos distintos, por validar.`);
     barras();
+    marcarClave();
     btnVivo.setAttribute('aria-pressed', String(vivo.enVivo));
     raiz.dataset.vivo = vivo.enVivo ? 'si' : 'no';
   }
