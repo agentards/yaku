@@ -1,10 +1,21 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 const PHASE = Number(process.env.VITE_PHASE ?? 3);
+// Solo en local (dev/preview): /api → producción, SOLO LECTURA. Cualquier método que no sea GET/HEAD responde
+// 404 aquí mismo, así una prueba local nunca escribe en la base de producción. En producción /api es del mismo origen.
+const API_PROD = 'https://yaku-relay-proto.pages.dev';
+const apiSoloLectura = {
+  '/api': {
+    target: API_PROD, changeOrigin: true, secure: true,
+    bypass: (req: { method?: string }) => (req.method === 'GET' || req.method === 'HEAD' ? undefined : false),
+  },
+};
 
 export default defineConfig({
   define: { __BUILD__: JSON.stringify(new Date().toISOString()) },
   build: { target: 'es2020' },
+  server: { proxy: apiSoloLectura },
+  preview: { proxy: apiSoloLectura },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
