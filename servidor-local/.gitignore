@@ -1,0 +1,4 @@
+# base SQLite y fotos de pruebas locales (nunca al repo)
+datos/
+# paquete generado por empaquetar.mjs
+salida/

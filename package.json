@@ -17,7 +17,11 @@
     "screens": "node scripts/screens.mjs",
     "build:worker": "node scripts/build-worker.mjs",
     "e2e:portal": "vite build && node scripts/e2e-portal.mjs",
-    "e2e:municipalidad": "vite build && node scripts/e2e-municipalidad.mjs"
+    "e2e:municipalidad": "vite build && node scripts/e2e-municipalidad.mjs",
+    "servidor": "vite build && node servidor-local/empaquetar.mjs && node servidor-local/salida/servidor.mjs",
+    "servidor:dev": "node servidor-local/servidor.ts",
+    "build:servidor": "node servidor-local/empaquetar.mjs",
+    "test:servidor": "node --test \"servidor-local/pruebas/*.test.ts\""
   },
   "keywords": [],
   "author": "",
