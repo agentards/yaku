@@ -1,40 +1,58 @@
-/* Pantalla de acceso del Centro de monitoreo: mismos tokens, tipografía y cabecera que el portal (vista3d/ui/tema.css). */
+/* Pantalla de acceso del Centro de monitoreo: mismos tokens, tipografía y cabecera que el portal (vista3d/ui/tema.css).
+   Modo oscuro con html[data-modo="oscuro"] (vista3d/ui/modo.ts), igual que el Centro de monitoreo. */
 .ycm-acc {
-  --bg: #f3eee4; --panel: #faf7f1; --card: #fffdf9; --line: #e2d8c6; --line-2: #cbbfa8;
-  --ink: #2b2620; --ink-2: #4b4339; --muted: #6a6052; --acc: #c4501b; --ycm-acc-ink: #a3400f; --ycm-acc-bg: #f9e5d6;
-  --cit: #8a4b00; --err: #8f2410; --err-bg: #f6dcd4;
+  --bg: #f5f5f4; --panel: #fafaf9; --card: #ffffff; --line: #e7e5e4; --line-2: #d6d3d1;
+  --ink: #1c1917; --ink-2: #44403c; --muted: #6f6964; --acc: #c4501b; --ycm-acc-ink: #a3400f; --ycm-acc-bg: #f9e5d6; --foco: #c4501b;
+  --cit: #8a4b00; --cit-bg: #fff4e0; --cit-line: #c77700; --err: #8f2410; --err-bg: #f6dcd4; --input: #ffffff;
+  --sunken: #f3f2f0; --hover: #f3f2f0;
+  --sombra: 0 1px 2px #1c19170d;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
   position: fixed; inset: 0; z-index: 1000; display: grid; grid-template-rows: auto minmax(0, 1fr);
   background: var(--bg); color: var(--ink); overflow: auto;
-  font: 13px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; -webkit-text-size-adjust: 100%;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; -webkit-text-size-adjust: 100%; color-scheme: light;
+}
+html[data-modo="oscuro"] .ycm-acc {
+  --bg: #0e0e0e; --panel: #141414; --card: #1a1a1a; --line: #2a2a2a; --line-2: #3a3a3a;
+  --ink: #ededed; --ink-2: #d4d4d4; --muted: #a1a1a1; --acc: #c4501b; --ycm-acc-ink: #f39b6b; --ycm-acc-bg: #2a1d16; --foco: #f39b6b;
+  --cit: #f0a030; --cit-bg: #242019; --cit-line: #b07a2a; --err: #ff9f8a; --err-bg: #2c1915; --input: #111111;
+  --sunken: #232323; --hover: #242424;
+  --sombra: none;
+  color-scheme: dark;
 }
 .ycm-acc *, .ycm-acc *::before, .ycm-acc *::after { box-sizing: border-box; }
-.ycm-acc :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
-.ycm-acc-top { display: flex; align-items: center; min-height: 46px; padding: 6px 16px; padding-top: max(6px, env(safe-area-inset-top));
+.ycm-acc :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.ycm-acc-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 8px 16px; padding-top: max(8px, env(safe-area-inset-top));
   background: var(--panel); border-bottom: 1px solid var(--line); }
-.ycm-acc-logo { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 15px; letter-spacing: -.01em; white-space: nowrap; }
+.ycm-acc-logo { display: flex; align-items: center; gap: 7px; font-weight: 800; font-size: 15px; letter-spacing: -.01em; white-space: nowrap; }
 .ycm-acc-logo svg { width: 22px; height: 14px; }
 .ycm-acc-logo small { font-weight: 600; font-size: 13px; color: var(--ink-2); }
-.ycm-acc-cuerpo { display: flex; justify-content: center; align-items: flex-start; padding: 24px 16px 40px; }
-.ycm-acc-tarjeta { width: 100%; max-width: 440px; padding: 20px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--card);
-  box-shadow: 0 1px 2px #0000000d, 0 8px 24px #2b26200f; }
-.ycm-acc h1 { margin: 0 0 6px; font-size: 19px; letter-spacing: -.01em; }
-.ycm-acc h2 { margin: 0 0 4px; font-size: 14px; }
-.ycm-acc-sub, .ycm-acc-nota { margin: 0 0 14px; color: var(--ink-2); }
+.ycm-acc-cuerpo { display: flex; justify-content: center; align-items: flex-start; padding: 28px 16px 40px; }
+.ycm-acc-tarjeta { width: 100%; max-width: 420px; padding: 24px 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); box-shadow: var(--sombra);
+  animation: ycm-entra .3s ease-out both; }
+@keyframes ycm-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ycm-acc h1 { margin: 0 0 8px; font-size: 19px; font-weight: 650; letter-spacing: -.01em; }
+.ycm-acc h2 { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.ycm-acc-sub, .ycm-acc-nota { margin: 0 0 16px; color: var(--ink-2); }
 .ycm-acc-nota { font-size: 12px; color: var(--muted); }
-.ycm-acc-nv { display: inline-block; padding: 1px 5px; border-radius: 3px; background: var(--cit); color: #fff; font-weight: 800; font-size: 10px; letter-spacing: .05em; }
+.ycm-acc-nv { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; border-radius: 6px; background: var(--sunken); color: var(--ink); font-weight: 600; font-size: 12px; white-space: nowrap; }
+.ycm-acc-nv::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #e08a00; }
 .ycm-acc-estado { color: var(--muted); }
-.ycm-acc-pin { display: grid; gap: 10px; padding-top: 12px; border-top: 1px dashed var(--line-2); }
-.ycm-acc-pin label { display: grid; gap: 4px; font-weight: 600; }
-.ycm-acc-pin input { min-height: 40px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: 7px; background: #fff; color: var(--ink); font: inherit; font-size: 15px; }
-.ycm-acc-pin input:focus { border-color: var(--acc); }
-.ycm-acc-entrar { min-height: 42px; border: 0; border-radius: 8px; background: var(--acc); color: #fff; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; }
-.ycm-acc-entrar:hover { background: var(--ycm-acc-ink); }
+.ycm-acc-pin { display: grid; gap: 12px; padding-top: 18px; border-top: 1px solid var(--line); }
+.ycm-acc-pin label { display: grid; gap: 6px; font-weight: 600; }
+.ycm-acc-pin input { min-height: 40px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--input); color: var(--ink); font: inherit; font-size: 15px; transition: border-color .15s, box-shadow .15s; }
+.ycm-acc-pin input:hover { border-color: var(--muted); }
+.ycm-acc-pin input:focus { border-color: var(--ink-2); }
+.ycm-acc-entrar { min-height: 40px; margin-top: 4px; border: 0; border-radius: 8px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+  transition: background-color .15s, transform .1s; }
+.ycm-acc-entrar:hover { background: #a3400f; }
+.ycm-acc-entrar:active { transform: translateY(1px); }
 .ycm-acc-entrar:disabled { opacity: .6; cursor: progress; }
-.ycm-acc-error { margin: 0 0 10px; padding: 8px 10px; border-radius: 7px; background: var(--err-bg); color: var(--err); font-weight: 600; }
+.ycm-acc-error { margin: 0 0 10px; padding: 9px 12px; border-radius: 8px; background: var(--err-bg); color: var(--err); font-weight: 600; }
 .ycm-acc-pin .ycm-acc-error { margin: 0; }
 /* chip «PIN · nombre · Salir» para la cabecera (Sesion.montarBotonUsuario) */
-.ycm-acc-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 4px 0 10px; border-radius: 15px; border: 1px solid #cbbfa8;
+.ycm-acc-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 4px 0 11px; border-radius: 8px; border: 1px solid #cbbfa8;
   background: #fffdf9; color: #2b2620; font: 600 12px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; white-space: nowrap; }
-.ycm-acc-chip button { min-height: 24px; padding: 0 9px; border: 0; border-radius: 12px; background: #f9e5d6; color: #a3400f; font: inherit; font-weight: 800; cursor: pointer; }
-@media (min-width: 900px) { .ycm-acc-cuerpo { align-items: center; padding-bottom: 12vh; } .ycm-acc-tarjeta { padding: 26px 26px 22px; } }
+.ycm-acc-chip button { min-height: 24px; padding: 0 10px; border: 0; border-radius: 6px; background: #f9e5d6; color: #a3400f; font: inherit; font-weight: 800; cursor: pointer; }
+@media (min-width: 900px) { .ycm-acc-cuerpo { align-items: center; padding-bottom: 12vh; } .ycm-acc-tarjeta { padding: 28px 28px 26px; } }
+@media (max-width: 520px) { .ycm-acc .y-modo .y-modo-et { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
 @media (prefers-reduced-motion: reduce) { .ycm-acc * { transition: none !important; animation: none !important; } }

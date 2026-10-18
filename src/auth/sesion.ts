@@ -5,6 +5,7 @@
 // Contrato fijo del plan del Centro de monitoreo: Sesion + exigirSesion. Se carga con import dinámico desde main.ts.
 import './acceso.css';
 import { IC } from '../vista3d/ui/iconos';
+import { aplicarModo, montarSelectorModo } from '../vista3d/ui/modo';
 import { ROTULO_VECINAL } from '../poblador/textos';
 
 export interface Sesion {
@@ -154,6 +155,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 /** Si este equipo ya tiene una sesión válida, entra directo; si no, muestra la pantalla de acceso (estilo portal). */
 export async function exigirSesion(cont: HTMLElement): Promise<Sesion> {
+  aplicarModo(); // Claro / Oscuro / Sistema, el mismo que guarda el Centro de monitoreo
   const previa = await restaurarSesion();
   if (previa) { actual = previa; return previa; }
   const raiz = document.createElement('div');
@@ -171,6 +173,7 @@ export async function exigirSesion(cont: HTMLElement): Promise<Sesion> {
       </section>
     </main>`;
   cont.append(raiz);
+  montarSelectorModo(raiz.querySelector<HTMLElement>('.ycm-acc-top')!);
   const slot = raiz.querySelector<HTMLElement>('.ycm-acc-slot')!;
   const s = await formulario(slot);
   raiz.remove(); actual = s;
