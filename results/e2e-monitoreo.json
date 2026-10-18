@@ -1,0 +1,234 @@
+{
+  "fecha": "2026-10-18T02:23:34.555Z",
+  "servidor": "servidor-local (SQLite temporal, modo PIN)",
+  "checks": [
+    {
+      "name": "servidor protegido: GET /api/incidentes sin credencial = 401",
+      "ok": true
+    },
+    {
+      "name": "login con «Acceso con PIN (sin Clerk)» y sesión en la cabecera",
+      "ok": true,
+      "sesion": {
+        "modo": "pin",
+        "nombre": "Operador SIMULADO",
+        "rol": "operador"
+      }
+    },
+    {
+      "name": "cabecera: «Yaku 3D · Centro de monitoreo», chip del escenario, «En vivo · consulta cada 3 s», pestañas Incidentes · Campo · Escenario, Vista 2D",
+      "ok": true,
+      "cab": "Yaku 3D · Centro de monitoreo Piura · Aviso 421 / FEN 2027 Fuente: CENEPRED/SIGRID 23077 · 16/10/2026 En vivo · consulta cada 3 s · 21:23:38 Incidentes 1 Campo Escenario Activar sonido PIN · Operador SIMULADO Salir Vista 2D"
+    },
+    {
+      "name": "histórico real: el reporte previo ya está (sin vuelo ni tarjeta) y la línea arranca en él, no en 17–19/10",
+      "ok": true,
+      "rango": [
+        "2026-10-18T02:13:39.517Z",
+        "2026-10-18T02:23:39.517Z"
+      ],
+      "n": 1
+    },
+    {
+      "name": "sin datos fijos de demo: nada de «Modo demo», «Reproducir relevo» ni fichas de ensayo",
+      "ok": true
+    },
+    {
+      "name": "escena 3D con relieve, capas oficiales y marcadores coloreados por estado/prioridad",
+      "ok": true,
+      "terreno": true,
+      "cenepred": true,
+      "citizen": true,
+      "color": true
+    },
+    {
+      "name": "incidente nuevo: tarjeta flotante con tipo, «Reporte vecinal · por validar», «llegó hace N s», vecinos y respaldo",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar llegó hace 3 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 21:23 Respaldo 25 · N1 1 vecino lo reporta Sin fotos todavía. En revisión Validar Descartar Es un reporte de vecinos, no una alerta oficial. Para alertas, si"
+    },
+    {
+      "name": "aviso sonoro (WebAudio) y marcador pulsante sobre el incidente",
+      "ok": true,
+      "avisos": 1
+    },
+    {
+      "name": "la cámara vuela al incidente y queda en órbita lenta",
+      "ok": true,
+      "fase": "orbita",
+      "dLon": 1.4210854715202004e-14,
+      "dLat": 1.9539925233402755e-14,
+      "pitch": 64
+    },
+    {
+      "name": "2 reportes cercanos de 2 dispositivos = 1 incidente «2 vecinos»",
+      "ok": true,
+      "incidentes": [
+        {
+          "id": "inc-0x15zth0hlx",
+          "tipo": "vivienda",
+          "personas": 2,
+          "reportes": 2,
+          "nFotos": 0,
+          "puntaje": 60,
+          "estado": "nuevo",
+          "accion": null,
+          "abierto": true
+        },
+        {
+          "id": "inc-1f3wo0mxm4b",
+          "tipo": "agua",
+          "personas": 1,
+          "reportes": 1,
+          "nFotos": 0,
+          "puntaje": 24,
+          "estado": "nuevo",
+          "accion": null,
+          "abierto": true
+        }
+      ]
+    },
+    {
+      "name": "el contador se anima (rodillo 1 → 2) y avisa «Otro vecino coincide»",
+      "ok": true,
+      "rodillo": 1,
+      "toast": [
+        "Otro vecino coincide: Casa dañada o caída · ahora 2 vecinos"
+      ]
+    },
+    {
+      "name": "pestaña Incidentes: lista por prioridad con «2 vecinos · 0 fotos · primer reporte hh:mm», respaldo y estado",
+      "ok": true,
+      "lista": "Casa dañada o caída 2 vecinos · 0 fotos · primer reporte 21:23 Reporte vecinal · por validar Respaldo 60 · N2 llegó hace 2 s Acumulación de agua 1 vecino · 0 fotos · primer reporte 21:08 Reporte vecin"
+    },
+    {
+      "name": "acción con confirmación: «Validar» dice quién y a qué hora queda registrado",
+      "ok": true,
+      "conf": "Validar: Casa dañada o caída Casa dañada o caída (2 vecinos). Queda en el historial a nombre de Operador SIMULADO a las 21:23, y el vecino lo verá en su celular. Cancelar Validar"
+    },
+    {
+      "name": "servidor: en revisión → validado → bomberos, con quién y cuándo (cabecera X-Muni-Pin)",
+      "ok": true,
+      "historial": [
+        "en_revision",
+        "validado",
+        "accion_asignada"
+      ]
+    },
+    {
+      "name": "el poblador ve «Bomberos asignados» en /api/estado",
+      "ok": true,
+      "acuse": {
+        "id": "1asuq488awn",
+        "recibido": true,
+        "recibido_at": 1792290228836,
+        "incidente": "inc-0x15zth0hlx",
+        "estado": "accion_asignada",
+        "accion": "bomberos",
+        "motivo": "",
+        "cuando": 1792290232538,
+        "personas": 2
+      },
+      "textoPoblador": "Bomberos asignados"
+    },
+    {
+      "name": "Validar + «Bomberos» persiste tras recargar",
+      "ok": true,
+      "i5": {
+        "id": "inc-0x15zth0hlx",
+        "tipo": "vivienda",
+        "personas": 2,
+        "reportes": 2,
+        "nFotos": 0,
+        "puntaje": 60,
+        "estado": "accion_asignada",
+        "accion": "bomberos",
+        "abierto": true
+      }
+    },
+    {
+      "name": "línea de tiempo: marcas de los reportes recibidos y de los cambios de estado",
+      "ok": true,
+      "rep": 3,
+      "est": 3
+    },
+    {
+      "name": "cabezal entre A y B: el mapa y los contadores vuelven a ese momento (1 vecino, sin revisar)",
+      "ok": true,
+      "i6": {
+        "id": "inc-0x15zth0hlx",
+        "tipo": "vivienda",
+        "personas": 1,
+        "reportes": 1,
+        "nFotos": 0,
+        "puntaje": 60,
+        "estado": "nuevo",
+        "accion": null,
+        "abierto": true
+      },
+      "enVivo": false
+    },
+    {
+      "name": "gráficos sincronizados: «Reportes y vecinos» en ese momento (2 reportes de 2 vecinos)",
+      "ok": true,
+      "graf": "Reportes y vecinos POR VALIDAR 3 0 Reportes recibidos 2 Vecinos distintos 2"
+    },
+    {
+      "name": "en el histórico la tarjeta muestra el estado de ese momento y no deja actuar",
+      "ok": true,
+      "tarjeta": "Reporte vecinal · por validar llegó hace 10 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 21:23 Respaldo 60 · N2 1 vecino lo reporta Sin fotos todavía. Estás viendo el histórico: vuelve "
+    },
+    {
+      "name": "antes del primer reporte de A el incidente no existe",
+      "ok": true
+    },
+    {
+      "name": "«En vivo» vuelve al presente con el estado real",
+      "ok": true
+    },
+    {
+      "name": "gráficos: «Incidentes por estado» y «Cobertura OSIPTEL por nivel de exposición» (dato oficial)",
+      "ok": true,
+      "gEst": "Incidentes por estado 2 en total 2 0 Sin revisar 1 En revisión 0 Validado o con acción 1 Atendido o descartado 0",
+      "gCob": "Cobertura OSIPTEL por nivel de exposición 445 de 928 · 0 centros con reporte Muy alto 2 de 3 Alto 4 de 11 Medio 83 de 167 Bajo 10 de 24 Muy bajo 346 de 723 Sin cob. y con reporte Sin cob. garantizada Con cobertura Sin dato"
+    },
+    {
+      "name": "reproducir repite el histórico y «En vivo» lo corta",
+      "ok": true
+    },
+    {
+      "name": "pestaña Escenario: capas oficiales y resumen de escenario.ts, sin «Modo demo SIMULADO»",
+      "ok": true
+    },
+    {
+      "name": "pestaña Campo: centros poblados del escenario con incidentes cercanos",
+      "ok": true,
+      "campo": "Campo · centros poblados Centros poblados del escenario CENEPRED 0 de 930 Sin cobertura garantizada (OSIPTEL) Con incidentes cerca Ningún centro poblado coincid"
+    },
+    {
+      "name": "lecturas protegidas con la cabecera de la sesión (GET /api/incidentes y /api/reports?desde)",
+      "ok": true,
+      "n": 22
+    },
+    {
+      "name": "cero peticiones a CDN o servicios externos (sin Clerk activo)",
+      "ok": true,
+      "externas": []
+    },
+    {
+      "name": "sin errores de JavaScript en la página",
+      "ok": true,
+      "errores": []
+    },
+    {
+      "name": "?vista=municipalidad es alias del Centro de monitoreo",
+      "ok": true,
+      "pestana": "incidentes"
+    },
+    {
+      "name": "?vista=portal es alias del Centro de monitoreo",
+      "ok": true,
+      "pestana": "escenario"
+    }
+  ],
+  "ok": true
+}
