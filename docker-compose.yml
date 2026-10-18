@@ -1,0 +1,37 @@
+# Yaku detrás de Traefik: sin «ports:» publicados; Traefik entra por la red «traefik» al puerto 8080 del contenedor.
+# Variables (en .env junto a este archivo, nunca al repo):
+#   MUNI_PIN (obligatorio) · YAKU_HOST (p. ej. yaku.midominio.pe) · TRAEFIK_ENTRYPOINT (websecure)
+#   TRAEFIK_CERTRESOLVER (letsencrypt) · TRAEFIK_TLS (true) · TRAEFIK_NETWORK (traefik)
+#   TRAEFIK_EXTERNA=false si todavía no existe la red de Traefik (compose la crea y el servicio queda solo interno).
+services:
+  yaku:
+    build: .
+    image: yaku-local:latest
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      MUNI_PIN: ${MUNI_PIN:?Define MUNI_PIN en .env}
+      PORT: "8080"
+      YAKU_DATOS: /datos
+    volumes:
+      - yaku-datos:/datos
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.yaku.rule=Host(`${YAKU_HOST:-yaku.localhost}`)
+      - traefik.http.routers.yaku.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.yaku.tls=${TRAEFIK_TLS:-true}
+      - traefik.http.routers.yaku.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.yaku.service=yaku
+      - traefik.http.services.yaku.loadbalancer.server.port=8080
+
+networks:
+  traefik:
+    name: ${TRAEFIK_NETWORK:-traefik}
+    external: ${TRAEFIK_EXTERNA:-true}
+
+volumes:
+  yaku-datos:
