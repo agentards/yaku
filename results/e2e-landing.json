@@ -1,16 +1,16 @@
 {
-  "fecha": "2026-10-18T03:27:28.941Z",
+  "fecha": "2026-10-18T03:39:00.304Z",
   "checks": [
     {
       "name": "escritorio: LCP < 2500 ms (local)",
       "ok": true,
-      "lcp": 2048
+      "lcp": 336
     },
     {
       "name": "escritorio: h1 y título",
       "ok": true,
       "h1": "Cuando cae la señal, el reporte sigue viajando.",
-      "titulo": "Yaku: cadena de apoyo vecinal ante El Niño para municipalidades"
+      "titulo": "Yaku: reportes vecinales sin señal para municipalidades"
     },
     {
       "name": "escritorio: sin enlaces ni texto de repositorio/Clerk",
@@ -25,13 +25,13 @@
     {
       "name": "escritorio: todas las imágenes con alt",
       "ok": true,
-      "nImgs": 11,
+      "nImgs": 17,
       "sinAlt": []
     },
     {
       "name": "escritorio: cada fondo IA lleva su etiqueta",
       "ok": true,
-      "etiquetas": 6,
+      "etiquetas": 12,
       "fondos": 4
     },
     {
@@ -161,13 +161,13 @@
     {
       "name": "celular: LCP < 2500 ms (local)",
       "ok": true,
-      "lcp": 528
+      "lcp": 508
     },
     {
       "name": "celular: h1 y título",
       "ok": true,
       "h1": "Cuando cae la señal, el reporte sigue viajando.",
-      "titulo": "Yaku: cadena de apoyo vecinal ante El Niño para municipalidades"
+      "titulo": "Yaku: reportes vecinales sin señal para municipalidades"
     },
     {
       "name": "celular: sin enlaces ni texto de repositorio/Clerk",
@@ -182,13 +182,13 @@
     {
       "name": "celular: todas las imágenes con alt",
       "ok": true,
-      "nImgs": 11,
+      "nImgs": 17,
       "sinAlt": []
     },
     {
       "name": "celular: cada fondo IA lleva su etiqueta",
       "ok": true,
-      "etiquetas": 6,
+      "etiquetas": 12,
       "fondos": 4
     },
     {
@@ -217,7 +217,7 @@
       "name": "celular: sin scroll horizontal (scrollTo(80) deja scrollX = 0)",
       "ok": true,
       "scrollX": 0,
-      "anchoDoc": 393,
+      "anchoDoc": 390,
       "desbordan": []
     },
     {
@@ -317,36 +317,36 @@
     }
   ],
   "medidas": {
-    "escritorio.loadMs": 2175,
-    "escritorio.lcpMs": 2048,
+    "escritorio.loadMs": 480,
+    "escritorio.lcpMs": 336,
     "escritorio.recursosMasLentos": [
-      "lluvia-caserio-16x9.mp4 2507→2610",
-      "antena-sin-luz-16x9.mp4 2508→2596",
-      "icon-192.png 2096→2103",
-      "jetbrains-mono-latin-var.woff2 1714→1931"
+      "antena-sin-luz-16x9.mp4 887→909",
+      "lluvia-caserio-16x9.mp4 887→907",
+      "icon-192.png 476→482",
+      "antena-sin-luz-16x9.webp 211→228"
     ],
     "escritorio.navegacion": {
-      "responseStart": 610.1000000014901,
-      "responseEnd": 610.9000000022352,
-      "domContentLoadedEventEnd": 2070.900000002235
+      "responseStart": 20.699999999254942,
+      "responseEnd": 21.599999997764826,
+      "domContentLoadedEventEnd": 439.5
     },
     "escritorio.cls": 0,
-    "escritorio.bytesTrasRecorrer": 2101421,
-    "celular.loadMs": 742,
-    "celular.lcpMs": 528,
+    "escritorio.bytesTrasRecorrer": 2491306,
+    "celular.loadMs": 878,
+    "celular.lcpMs": 508,
     "celular.recursosMasLentos": [
-      "lluvia-caserio-9x16.mp4 1146→1186",
-      "antena-sin-luz-9x16.mp4 1147→1176",
-      "icon-192.png 733→740",
-      "antena-sin-luz-9x16.webp 510→530"
+      "antena-sin-luz-9x16.mp4 1269→1532",
+      "lluvia-caserio-9x16.mp4 1268→1522",
+      "icon-192.png 875→884",
+      "antena-sin-luz-9x16.webp 479→544"
     ],
     "celular.navegacion": {
-      "responseStart": 295.6000000014901,
-      "responseEnd": 301.20000000298023,
-      "domContentLoadedEventEnd": 708.9000000022352
+      "responseStart": 30.800000000745058,
+      "responseEnd": 31.700000002980232,
+      "domContentLoadedEventEnd": 832.5
     },
     "celular.cls": 0,
-    "celular.bytesTrasRecorrer": 2084026
+    "celular.bytesTrasRecorrer": 2423527
   },
   "resumen": "50/50"
 }
