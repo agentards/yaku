@@ -40,6 +40,16 @@ describe('/api/cartas («Estoy bien»)', () => {
     const c = (await buscar('luis')).j.cartas[0];
     assert.equal(idCarta(c), c.id); // lo que baja el celular se puede verificar igual
   });
+  it('/api/estamos-bien?nombre= (página de la familia): misma búsqueda, sin el código del celular', async () => {
+    const r = await api(new Request('http://x/api/estamos-bien?nombre=' + encodeURIComponent('josé')));
+    const j = (await r.json()) as any;
+    assert.equal(r.status, 200);
+    assert.deepEqual(j.cartas.map((c: any) => c.nombre), ['José Ñique']);
+    assert.equal('deviceId' in j.cartas[0], false);
+    assert.match(j.nota, /no lo verifica/);
+    assert.equal((await api(new Request('http://x/api/estamos-bien?nombre=jo'))).status, 400);
+    assert.equal(((await (await api(new Request('http://x/api/estamos-bien?nombre=%25%25%25'))).json()) as any).count, 0);
+  });
   it('/api/stats cuenta las cartas sin mostrarlas', async () => {
     const s = (await (await api(new Request('http://x/api/stats'))).json()) as any;
     assert.equal(s.cartas, 2);

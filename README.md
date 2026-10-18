@@ -11,7 +11,9 @@ Cadena de apoyo vecinal ante el Fenómeno El Niño. El vecino reporta un inciden
 |---|---|
 | `/` | Página pública |
 | `/reportar` | App del vecino (PWA, funciona sin internet) |
-| `/municipalidad` | Centro de monitoreo (nombre + PIN municipal) |
+| `/municipalidad` | Centro de monitoreo (usuario + contraseña municipal) |
+| `/estoy-bien` | El vecino deja su mensaje «Estoy bien» (también sin internet) |
+| `/estamos-bien` | La familia, también desde el extranjero, busca esos mensajes por nombre sin abrir la app (`GET /api/estamos-bien?nombre=`) |
 | `/app` | Vista técnica 2D |
 
 ## Desplegar en Dokploy

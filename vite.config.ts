@@ -1,6 +1,6 @@
 import { defineConfig, type Connect, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { ARCHIVO_APP, RUTAS_APP, esRutaApp, redireccionRuta } from './src/rutas';
+import { ARCHIVO_APP, RUTAS_APP, esRutaApp, paginaDeRuta, redireccionRuta } from './src/rutas';
 import { landingHtml } from './src/landing/plugin';
 const PHASE = Number(process.env.VITE_PHASE ?? 3);
 // Solo en local (dev/preview), a dónde va /api:
@@ -26,6 +26,7 @@ export const rutasMiddleware: Connect.NextHandleFunction = (req, res, next) => {
     const r = redireccionRuta(u.pathname, u.search);
     if (r) { res.statusCode = 302; res.setHeader('location', r); res.end(); return; }
     if (esRutaApp(u.pathname)) req.url = ARCHIVO_APP + u.search;
+    else { const pagina = paginaDeRuta(u.pathname); if (pagina) req.url = pagina + u.search; }
   }
   next();
 };
@@ -37,7 +38,7 @@ const rutasYaku = (): Plugin => ({
 
 export default defineConfig({
   define: { __BUILD__: JSON.stringify(new Date().toISOString()) },
-  build: { target: 'es2020', rollupOptions: { input: { landing: 'index.html', app: 'app.html' } } },
+  build: { target: 'es2020', rollupOptions: { input: { landing: 'index.html', app: 'app.html', estamosBien: 'estamos-bien.html' } } },
   server: { proxy: apiProxy },
   preview: { proxy: apiProxy },
   plugins: [

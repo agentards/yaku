@@ -2,7 +2,7 @@
 // Se empaqueta con esbuild en scripts/build-worker.mjs.
 import FILES from 'virtual:files';
 import { OBS_TYPES, makeObservation, type NewObservation } from '../src/codec';
-import { ARCHIVO_APP, esRutaApp, redireccionRuta } from '../src/rutas';
+import { ARCHIVO_APP, esRutaApp, paginaDeRuta, redireccionRuta } from '../src/rutas';
 
 interface D1Stmt { bind(...v: unknown[]): D1Stmt; run(): Promise<{ meta: { changes: number } }>; all<T>(): Promise<{ results: T[] }>; first<T>(): Promise<T | null> }
 interface KVLike { get(key: string, opts: { type: 'arrayBuffer'; cacheTtl?: number }): Promise<ArrayBuffer | null> }
@@ -117,7 +117,7 @@ export default {
     const destino = redireccionRuta(url.pathname, url.search);
     if (destino) return new Response(null, { status: 302, headers: { location: destino, 'cache-control': 'no-cache' } });
     let estado = 200;
-    let f = (FILES as any)[pathname] || (url.pathname === '/' ? (FILES as any)['/index.html'] : esRutaApp(url.pathname) ? (FILES as any)[ARCHIVO_APP] : null);
+    let f = (FILES as any)[pathname] || (url.pathname === '/' ? (FILES as any)['/index.html'] : esRutaApp(url.pathname) ? (FILES as any)[ARCHIVO_APP] : paginaDeRuta(url.pathname) ? (FILES as any)[paginaDeRuta(url.pathname)!] : null);
     if (!f && req.method === 'GET' && !url.pathname.includes('.')) { f = (FILES as any)['/index.html']; estado = 404; }
     if (!f) return new Response('no encontrado', { status: 404 });
     return new Response(f.b ? b64(f.d) : f.d, {

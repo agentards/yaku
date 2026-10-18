@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Estamos bien · Busca a tu familia en Piura | Yaku</title>
+  <meta name="description" content="¿Tienes familia en Piura? Busca por su nombre los mensajes «Estoy bien» que dejaron en Yaku, aunque se haya caído la señal. Sin instalar nada." />
+  <link rel="canonical" href="https://yaku.lat/estamos-bien" />
+  <meta property="og:title" content="Estamos bien · Busca a tu familia en Piura" />
+  <meta property="og:description" content="Busca por nombre los mensajes «Estoy bien» que dejaron tus familiares en Yaku." />
+  <meta property="og:url" content="https://yaku.lat/estamos-bien" />
+  <meta name="theme-color" content="#f6f5f3" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="/icon-192.png" />
+</head>
+<body>
+  <header class="eb-top">
+    <a class="eb-marca" href="/">Yaku</a>
+    <span class="eb-sep" aria-hidden="true">·</span>
+    <span>Estamos bien</span>
+  </header>
+
+  <main class="eb">
+    <h1>Busca a tu familia</h1>
+    <p class="eb-intro">Mensajes «Estoy bien» que dejaron vecinos de Piura en Yaku. Llegan aunque se haya caído la señal: pasan de celular en celular hasta que alguien con internet los sube.</p>
+    <p class="eb-en" lang="en">Looking for family in Piura? Search by their name.</p>
+
+    <form id="eb-form" class="eb-form" role="search" autocomplete="off" novalidate>
+      <label for="eb-nombre">Nombre o apellido</label>
+      <div class="eb-fila">
+        <input id="eb-nombre" name="nombre" type="search" inputmode="search" maxlength="40" placeholder="Ej.: Rosa Chunga" required />
+        <button type="submit">Buscar</button>
+      </div>
+      <p class="eb-ayuda">Mínimo 3 letras. También encuentra mensajes dirigidos a esa persona («Para …»).</p>
+    </form>
+
+    <p id="eb-estado" class="eb-estado" role="status" aria-live="polite"></p>
+    <ul id="eb-resultados" class="eb-resultados"></ul>
+
+    <section class="eb-nota">
+      <h2>Antes de buscar</h2>
+      <ul>
+        <li>Lo escribió quien firma; la municipalidad no lo verifica.</li>
+        <li>Si no aparece todavía, puede que su mensaje siga viajando de celular en celular hasta que alguien tenga internet. Vuelve a buscar más tarde.</li>
+        <li>Nunca se muestra una lista completa: solo lo que coincide con el nombre que escribes.</li>
+      </ul>
+      <p>¿Estás en Piura? Deja tu mensaje en <a href="/estoy-bien">yaku.lat/estoy-bien</a>, también sin internet.</p>
+      <p class="eb-emergencia">Emergencias en Perú: 116 (bomberos) · 105 (policía).</p>
+    </section>
+  </main>
+
+  <footer class="eb-pie"><a href="/">yaku.lat</a> · Reportes vecinales cuando cae la señal</footer>
+  <script type="module" src="/src/estamos-bien/main.ts"></script>
+</body>
+</html>

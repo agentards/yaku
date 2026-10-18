@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
-import { ARCHIVO_APP, esRutaApp, redireccionRuta } from '../src/rutas.ts';
+import { ARCHIVO_APP, esRutaApp, paginaDeRuta, redireccionRuta } from '../src/rutas.ts';
 
 const TIPOS: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -40,7 +40,8 @@ export function servirEstatico(raiz: string, req: IncomingMessage, res: ServerRe
   const destino = redireccionRuta(url.pathname, url.search);
   if (destino) { res.writeHead(302, { location: destino, 'cache-control': 'no-cache' }).end(); return; }
   let estado = 200;
-  let f = url.pathname === '/' ? resolver(raiz, '/index.html') : esRutaApp(url.pathname) ? resolver(raiz, ARCHIVO_APP) : resolver(raiz, url.pathname);
+  const pagina = paginaDeRuta(url.pathname);
+  let f = url.pathname === '/' ? resolver(raiz, '/index.html') : esRutaApp(url.pathname) ? resolver(raiz, ARCHIVO_APP) : pagina ? resolver(raiz, pagina) : resolver(raiz, url.pathname);
   if (!f && !url.pathname.includes('.')) { f = resolver(raiz, '/index.html'); estado = 404; } // ruta desconocida: la landing, con 404
   if (!f) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }).end('no encontrado'); return; }
   const ext = path.extname(f).toLowerCase();

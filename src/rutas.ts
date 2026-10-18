@@ -24,6 +24,10 @@ export const ARCHIVO_APP = '/app.html';
 
 const sinBarra = (p: string) => (p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p);
 
+/** Páginas propias, fuera de app.html: ruta → archivo de dist/. /estamos-bien = búsqueda de la familia, liviana. */
+export const PAGINAS: Readonly<Record<string, string>> = { '/estamos-bien': '/estamos-bien.html' };
+export const paginaDeRuta = (pathname: string): string | null => PAGINAS[sinBarra(pathname)] ?? null;
+
 export function esRutaApp(pathname: string): boolean {
   return (RUTAS_APP as readonly string[]).includes(sinBarra(pathname));
 }

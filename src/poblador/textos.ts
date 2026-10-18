@@ -121,7 +121,7 @@ export const T = {
   avisosTitulo: 'Avisos de la municipalidad',
   navBien: 'Estoy bien',
   bienTitulo: 'Estoy bien',
-  bienAyuda: 'Deja un mensaje para tu familia. Viaja de celular en celular por QR y, cuando alguien tenga internet, tu familia lo puede buscar por tu nombre en yaku.lat/estoy-bien.',
+  bienAyuda: 'Deja un mensaje para tu familia. Viaja de celular en celular por QR y, cuando alguien tenga internet, tu familia lo puede buscar por tu nombre en yaku.lat/estamos-bien, también desde el extranjero.',
   bienNombre: 'Tu nombre y apellido',
   bienPara: 'Para quién (opcional)',
   bienParaEj: 'Ej.: mi mamá, Rosa Chunga',
