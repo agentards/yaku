@@ -10,7 +10,7 @@ export type Pregunta = { p: string; r: string };
 export type Captura = { archivo: string; pestana: string; alt: string; pie: string };
 export type ImagenIA = { archivo: string; alt: string; ancho: number; alto: number };
 
-/** Contacto del CTA «Solicitar un piloto». Jorge pone aquí el correo o el WhatsApp (wa.me/51…) definitivo. */
+/** Contacto del CTA «Solicitar un piloto». Correo o WhatsApp (wa.me/51…) definitivo del equipo. */
 export const CONTACTO = {
   href: 'mailto:piloto@yaku.lat?subject=Piloto%20de%20Yaku%20en%20mi%20municipalidad',
   texto: 'piloto@yaku.lat',
@@ -22,7 +22,7 @@ export const SEO = {
   url: 'https://yaku.lat/',
   titulo: 'Yaku: cadena de apoyo vecinal ante El Niño para municipalidades',
   descripcion:
-    'Yaku permite que el vecino reporte sin señal, que el reporte pase de celular en celular por QR y que la municipalidad lo reciba agrupado, lo valide y responda.',
+    'Yaku permite que el vecino reporte sin internet, que el reporte pase de celular en celular por QR y que la municipalidad lo reciba agrupado, lo valide y responda.',
   ogImagen: 'https://yaku.lat/landing/og.jpg',
   ogAlt: 'Centro de monitoreo de Yaku con un reporte respaldado por dos vecinos en Piura',
   actualizado: '2026-10-17',
@@ -63,7 +63,7 @@ export const PROBLEMA = {
     },
   ],
   cierre:
-    'Sin señal, el vecino no puede avisar y la municipalidad no sabe a dónde ir primero. El aviso existe, pero se queda atrapado en un celular.',
+    'Si se cae la señal, el vecino no puede avisar y la municipalidad no sabe a dónde ir primero. El aviso existe, pero se queda atrapado en un celular.',
   etiquetaIA: 'Imagen generada con IA',
 };
 
@@ -73,7 +73,7 @@ export const CADENA = {
   pasos: [
     {
       n: '01',
-      titulo: 'El vecino reporta sin señal',
+      titulo: 'El vecino reporta sin internet',
       texto: 'Elige qué pasa, toma una foto y Yaku guarda la ubicación. El reporte queda en su celular, sin internet.',
       detalle: 'Personas atrapadas · Casa dañada · Agua en la calle · Huaico',
     },
@@ -98,7 +98,7 @@ export const CADENA = {
     {
       n: '05',
       titulo: 'La respuesta vuelve por la misma cadena',
-      texto: 'Bomberos, rescate, provisiones o maquinaria: la decisión baja al vecino por la misma cadena de celulares, aunque siga sin señal.',
+      texto: 'Bomberos, rescate, provisiones o maquinaria: la decisión baja al vecino por la misma cadena de celulares, aunque siga sin internet.',
       detalle: '«Bomberos asignados» en el celular del vecino',
     },
   ] satisfies Paso[],
@@ -175,7 +175,7 @@ export const VIDEOS = {
   antetitulo: 'En un minuto',
   titulo: 'Véalo funcionar sin red.',
   lista: [
-    { archivo: 'si-se-cae-la-red-voz-grok-9x16', titulo: 'Si se cae la red', descripcion: 'Por qué el reporte tiene que poder viajar sin señal.', etiquetaIA: 'Voz e imágenes generadas con IA' },
+    { archivo: 'si-se-cae-la-red-voz-grok-9x16', titulo: 'Si se cae la red', descripcion: 'Por qué el reporte tiene que poder viajar sin internet.', etiquetaIA: 'Voz e imágenes generadas con IA' },
     { archivo: 'modo-avion-qr-grok-audio-9x16', titulo: 'Modo avión y QR', descripcion: 'Un reporte que pasa de un celular a otro en modo avión.', etiquetaIA: 'Voz e imágenes generadas con IA' },
   ] satisfies Video[],
 };

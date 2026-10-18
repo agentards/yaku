@@ -47,7 +47,7 @@ export const figuraCadena = (titulo: string) => `<svg class="cadena-svg" viewBox
     <mask id="m-lluvia" maskContentUnits="userSpaceOnUse"><rect width="420" height="380" fill="url(#g-lluvia)"/></mask>
   </defs>
   <rect class="lluvia" x="0" y="0" width="420" height="380" fill="url(#p-lluvia)" mask="url(#m-lluvia)"/>
-  <g class="sin-senal" transform="translate(150 54)"><path d="M0 22a26 26 0 0 1 36 0M7 29a15 15 0 0 1 22 0" /><path d="M18 36v.01"/><path d="M2 4l32 36"/><text x="18" y="-6" text-anchor="middle">sin señal</text></g>
+  <g class="sin-senal" transform="translate(150 54)"><path d="M0 22a26 26 0 0 1 36 0M7 29a15 15 0 0 1 22 0" /><path d="M18 36v.01"/><path d="M2 4l32 36"/><text x="18" y="-6" text-anchor="middle">sin internet</text></g>
   <path class="camino-base" d="M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120"/>
   <path class="camino-ida" id="camino-ida" d="M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120"/>
   <path class="camino-vuelta" id="camino-vuelta" d="M70 270C130 270 135 150 205 150S290 280 345 280 455 120 560 120"/>
