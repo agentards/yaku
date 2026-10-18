@@ -6,11 +6,15 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 CI=1
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .
+# Clave PÚBLICA de Clerk para el login del front (opcional; sin ella el Centro de monitoreo usa PIN).
+ARG VITE_CLERK_PUBLISHABLE_KEY=
 RUN npx vite build && node servidor-local/empaquetar.mjs
 
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080 HOST=0.0.0.0 YAKU_DIST=/app/dist YAKU_DATOS=/datos
+# Login en runtime (servidor-local/README.md): CLERK_PUBLISHABLE_KEY o CLERK_JWT_KEY, CLERK_AUTHORIZED_PARTIES,
+# CLERK_ISSUER, YAKU_PERMITIR_PIN. La caché del JWKS queda en /datos/clerk-jwks.json (sigue validando sin red).
 COPY --from=compilar /src/dist ./dist
 COPY --from=compilar /src/servidor-local/salida/servidor.mjs ./servidor.mjs
 RUN mkdir -p /datos && chown node:node /datos

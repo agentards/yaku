@@ -3,9 +3,15 @@
 #   MUNI_PIN (obligatorio) · YAKU_HOST (p. ej. yaku.midominio.pe) · TRAEFIK_ENTRYPOINT (websecure)
 #   TRAEFIK_CERTRESOLVER (letsencrypt) · TRAEFIK_TLS (true) · TRAEFIK_NETWORK (traefik)
 #   TRAEFIK_EXTERNA=false si todavía no existe la red de Traefik (compose la crea y el servicio queda solo interno).
+#   Login (servidor-local/README.md): VITE_CLERK_PUBLISHABLE_KEY (pública: se hornea en el front y el servidor
+#   deriva el JWKS) · CLERK_JWT_KEY (PEM, verifica sin red) · CLERK_AUTHORIZED_PARTIES (por defecto https://$YAKU_HOST)
+#   · YAKU_PERMITIR_PIN=1 para que el PIN siga valiendo con Clerk activo. Sin clave de Clerk: acceso con PIN.
 services:
   yaku:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
     image: yaku-local:latest
     restart: unless-stopped
     expose:
@@ -14,6 +20,10 @@ services:
       MUNI_PIN: ${MUNI_PIN:?Define MUNI_PIN en .env}
       PORT: "8080"
       YAKU_DATOS: /datos
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-${VITE_CLERK_PUBLISHABLE_KEY:-}}
+      CLERK_JWT_KEY: ${CLERK_JWT_KEY:-}
+      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-https://${YAKU_HOST:-yaku.localhost}}
+      YAKU_PERMITIR_PIN: ${YAKU_PERMITIR_PIN:-0}
     volumes:
       - yaku-datos:/datos
     networks:
