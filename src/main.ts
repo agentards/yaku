@@ -14,13 +14,16 @@ import { fmtMB } from './basemap';
 import { montarVista3D } from './vista3d/conmutador';
 import { FEAT, PHASE } from './features';
 import { entornoActual, prepararVistaPoblador } from './poblador/ruta';
-import { decidirRuta } from './rutas';
+import { decidirRuta, redireccionRuta } from './rutas';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 registerSW({ immediate: true });
 history.scrollRestoration = 'manual';
+// Enlace viejo /?vista=… abierto sin red (el service worker sirve app.html): se pasa a la ruta nueva sin recargar.
+const rutaNueva = redireccionRuta(location.pathname, location.search, location.hash);
+if (rutaNueva) history.replaceState(null, '', rutaNueva);
 const ruta = decidirRuta(location.pathname, location.search, entornoActual()); // /reportar, /municipalidad, /app o ?vista= (src/rutas.ts)
 if (ruta.vista === 'poblador') { prepararVistaPoblador(); import('./poblador/app').then((m) => m.arrancar()); } // modo poblador (celular por defecto)
 

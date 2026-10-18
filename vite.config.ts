@@ -58,9 +58,10 @@ export default defineConfig({
           options: { cacheName: 'yaku-imagenes', expiration: { maxEntries: 60 } },
         }],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // maplibre-gl ~1 MB
-        // Sin red, solo /reportar, /municipalidad y /app caen en app.html; / sale del precache (index.html).
+        // Sin red, solo /reportar, /municipalidad y /app (con o sin ?parámetros: Workbox compara ruta + búsqueda) caen en
+        // app.html, y también un enlace viejo /?vista=… (app.html lo pasa a la ruta nueva); / sale del precache (index.html).
         navigateFallback: 'app.html',
-        navigateFallbackAllowlist: RUTAS_APP.map((r) => new RegExp(`^${r}/?$`)),
+        navigateFallbackAllowlist: [...RUTAS_APP.map((r) => new RegExp(`^${r}/?(\\?|$)`)), /^\/(index\.html)?\?(.*&)?vista=/],
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
