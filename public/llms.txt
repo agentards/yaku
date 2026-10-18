@@ -1,0 +1,20 @@
+# Yaku
+
+> Yaku es una cadena de apoyo vecinal para municipalidades y gobiernos regionales del Perú ante el Fenómeno El Niño. El vecino reporta desde su celular aunque no haya señal, el reporte pasa de celular en celular por código QR y el primero que encuentra señal lo sube. La municipalidad lo recibe como reporte vecinal por validar, agrupado y con cuántos vecinos lo respaldan, lo valida o lo descarta y responde por la misma cadena.
+
+Yaku no emite avisos oficiales: los avisos siguen siendo de SENAMHI e INDECI. Es una capa complementaria a la evaluación de daños (EDAN) y al SINPAD, que siguen su curso de siempre.
+
+## Qué ofrece
+- Para el vecino: reportar sin cuenta y sin datos (personas atrapadas, casa dañada, agua en la calle, huaico), con foto y ubicación, desde el navegador en /reportar o instalado en la pantalla de inicio. No pide nombre ni DNI.
+- Para la municipalidad: un Centro de monitoreo con los reportes del mismo lugar agrupados, validar o descartar con historial, y asignar bomberos, rescate, provisiones, maquinaria o un equipo de evaluación de daños. Entrada con nombre y PIN municipal; no hay registro abierto.
+- Capas oficiales con fuente y fecha: escenario de riesgo CENEPRED/SIGRID, pronóstico SENAMHI y cobertura móvil declarada a OSIPTEL. Hoy están cargadas las de Piura.
+- Para gobiernos regionales: empezar con un piloto en un distrito y extender la misma cadena a otras provincias, con el servidor instalado en la red de la municipalidad o del gobierno regional.
+- Por qué: con las lluvias de marzo de 2023 cayeron 275 antenas en seis regiones (OSIPTEL, nota de prensa 34-2023, 14-mar-2023).
+
+## Contacto
+- Solicitar un piloto: piloto@yaku.lat
+
+## Páginas
+- Inicio (para municipalidades y gobiernos regionales): https://yaku.lat/
+- Reportar un incidente (vecino): https://yaku.lat/reportar
+- Preguntas frecuentes: https://yaku.lat/#preguntas
