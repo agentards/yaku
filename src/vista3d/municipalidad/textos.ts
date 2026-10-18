@@ -1,5 +1,5 @@
 // Textos y reglas de producto de la pantalla de la municipalidad, en un solo lugar.
-// Fuente: agentards/producto/decision-confianza.md (17-oct-2026) §1 rótulo y textos, §2 respaldo y prioridad, §3 agrupación.
+// Fuente: la decisión de producto «confianza» (17-oct-2026) §1 rótulo y textos, §2 respaldo y prioridad, §3 agrupación.
 // Rótulo, detalle por nivel, acciones y pie legal vienen de src/poblador/textos.ts (fuente única que piden la
 // decisión y WP2); aquí solo lo propio del panel: chip por estado, respaldo con número, familias y fórmula.
 import { OBS_LABELS } from '../../codec';

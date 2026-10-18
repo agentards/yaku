@@ -1,5 +1,5 @@
 // Textos del modo poblador (?vista=poblador). Constantes únicas del rótulo vecinal y de los estados, según
-// agentards/producto/decision-confianza.md §1 (17-oct-2026). WP3 (pantalla de la municipalidad) usa los mismos
+// la decisión de producto «confianza» §1 (17-oct-2026). WP3 (pantalla de la municipalidad) usa los mismos
 // nombres: ROTULO_VECINAL, DETALLE, ESTADO, PIE_LEGAL. Reglas: un reporte vecinal nunca es una alerta oficial y
 // lo valida la municipalidad (CP art. 315-A); al vecino se le muestra el nivel en palabras, nunca el número
 // 0–100; nunca rojo para un reporte vecinal; «coinciden», no «confirman».

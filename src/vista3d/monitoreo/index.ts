@@ -2,7 +2,7 @@
 // (consulta cada 3 s, detección de nuevos, vuelo, marcador pulsante, sonido, tarjeta grande) y el panel de incidentes
 // (agrupación, respaldo, galería, prioridad, estados y acciones), sobre el HISTÓRICO REAL del servidor
 // (GET /api/reports y GET /api/incidentes, mismo origen, con las cabeceras de la Sesion). Sin IndexedDB del equipo,
-// sin fichas simuladas ni modo demo. Plan: agentards/producto/plan-centro-monitoreo.md.
+// sin fichas simuladas ni modo demo. Plan: el plan del Centro de monitoreo.
 import * as maplibregl from 'maplibre-gl';
 import '../ui/tema.css';
 import './monitoreo.css';

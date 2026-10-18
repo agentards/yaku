@@ -1,6 +1,6 @@
 // Configuración de la vista 3D (aditiva: el 2D sigue siendo el predeterminado).
 // DEM: teselas Terrarium (Terrain Tiles de Mapzen/Tilezen en AWS Open Data: SRTM, GMTED2010, ETOPO1),
-// recortadas a Piura z5–z9 con agentards/scripts/fetch-dem.mjs. Vive junto al mapa base en public/basemap/
+// recortadas a Piura z5–z9 con un script de preparación de datos (fuera del repo). Vive junto al mapa base en public/basemap/
 // para que en Cloudflare lo sirva la misma ruta KV (scripts/upload-basemap.mjs) y para quedar fuera del
 // precache del service worker (igual que el mapa base: se guarda completo en Cache Storage con sha256).
 import type { BasemapFile } from '../basemap-config';
@@ -18,7 +18,7 @@ export const DEM_CACHE = 'yaku-dem-v1';
 export const DEM_PROTOCOL = 'yakudem';
 export const DEM_SOURCE_URL = `${DEM_PROTOCOL}://piura`;
 export const DEM_ATTRIBUTION = 'Relieve: Terrain Tiles (Mapzen/AWS Open Data) · SRTM, GMTED2010, ETOPO1';
-/** Bbox del recorte (agentards/scripts/lib/comun.mjs BBOX_PIURA). */
+/** Bbox del recorte (BBOX_PIURA del script de preparación de datos). */
 export const DEM_BOUNDS: [number, number, number, number] = [-81.36, -6.4, -79.18, -4.05];
 
 /** Exageración vertical: 1,6× (rango pedido 1,4–1,8×). Los Andes de Piura llegan a ~3.900 m. */

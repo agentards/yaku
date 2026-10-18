@@ -1,6 +1,6 @@
 // Cuántos vecinos distintos reportan el mismo hecho, con lo que hay en ESTE celular (estimación local; el
 // servidor de WP1 agrupa con todos los reportes y su número manda cuando llega). Reglas de
-// agentards/producto/decision-confianza.md §3: familia de tipo, radio por familia medido al reporte de referencia,
+// la decisión de producto «confianza» §3: familia de tipo, radio por familia medido al reporte de referencia,
 // ventana por familia, device_id distintos del AUTOR (el relevo no suma). «otro» no agrupa entre personas.
 import { deCodec, type TipoPoblador } from './tipos';
 

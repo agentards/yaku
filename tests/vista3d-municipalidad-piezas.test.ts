@@ -1,5 +1,5 @@
 // Panel de la municipalidad (WP3): contador en rodillo 1 → 2 vecinos, desglose del respaldo, fotos pendientes y
-// textos tomados de src/poblador/textos.ts. Reglas: agentards/producto/decision-confianza.md §1, §2.1 y §2.4.
+// textos tomados de src/poblador/textos.ts. Reglas: la decisión de producto «confianza» §1, §2.1 y §2.4.
 import { describe, it, expect } from 'vitest';
 import { desgloseHtml, pendientesHtml, rodillo, tramos } from '../src/vista3d/municipalidad/piezas';
 import { ESTADO, estadoChip, esVerde, motivoDescarteTxt, respaldo, ROTULO_VECINAL, type Estado } from '../src/vista3d/municipalidad/textos';

@@ -11,3 +11,17 @@ results/qr-png
 CREDITOS.local.md
 .vercel/
 *.local.md
+
+# Salidas de pruebas y evidencias (se generan al correr los E2E; no van al repo)
+results/
+docs/
+*.webm
+coverage/
+test-results/
+# Datos locales y llaves
+*.db
+*.sqlite
+*.sqlite-*
+*.pem
+*.key
+ngrok.yml

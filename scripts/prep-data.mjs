@@ -2,7 +2,7 @@
 // repara/simplifica geometrías con mapshaper y mide tamaños. Uso: npm run prep:data
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-const SRC = process.env.DATA_DIR || '/workspace/hack-the-andes/data';
+const SRC = process.env.DATA_DIR || 'data/raw';
 const OUT = 'public/data';
 const TMP = '/tmp/yaku-prep';
 fs.mkdirSync(OUT, { recursive: true }); fs.mkdirSync(TMP, { recursive: true });

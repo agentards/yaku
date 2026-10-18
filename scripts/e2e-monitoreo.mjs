@@ -1,6 +1,6 @@
 // E2E del «Yaku 3D · Centro de monitoreo» (/municipalidad; /?vista=incidentes|municipalidad|portal redirigen) contra el SERVIDOR LOCAL REAL
 // (servidor-local/, SQLite temporal fuera del repo) con acceso por PIN. Criterios de
-// agentards/producto/plan-centro-monitoreo.md: login → 2 reportes cercanos de 2 dispositivos = 1 incidente «2 vecinos» →
+// el plan del Centro de monitoreo: login → 2 reportes cercanos de 2 dispositivos = 1 incidente «2 vecinos» →
 // vuelo + tarjeta + sonido → Validar + «Bomberos» persiste tras recargar → el poblador ve «Bomberos asignados» por
 // /api/estado → la línea de tiempo muestra los 2 reportes y el cambio de estado → cero peticiones a CDN externos.
 // Datos de prueba etiquetados SIMULADO. Capturas 1920×1080 en docs/evidencia-3d/monitoreo-*.jpg.

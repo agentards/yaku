@@ -52,7 +52,7 @@ try {
   if (!URL_PUB) {
     const sinToken = /ERR_NGROK_4018|authtoken|not authenticated/i.test(errNgrok);
     check('ngrok abre un túnel HTTPS', false, { error: errNgrok.split('\n')[0] || 'sin respuesta de ngrok en 20 s' });
-    if (sinToken) console.error('\nFalta el authtoken de ngrok: Jorge debe iniciar sesión en https://dashboard.ngrok.com/get-started/your-authtoken y ejecutar «ngrok config add-authtoken <token>» en esta laptop (queda fuera del repo).');
+    if (sinToken) console.error('\nFalta el authtoken de ngrok: inicia sesión en https://dashboard.ngrok.com/get-started/your-authtoken y ejecutar «ngrok config add-authtoken <token>» en este equipo (queda fuera del repo).');
     codigo = 2;
   } else {
     res.url = URL_PUB;

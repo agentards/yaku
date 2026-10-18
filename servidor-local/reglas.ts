@@ -1,5 +1,5 @@
 // Reglas de agrupación y de respaldo (0–100), en un solo objeto configurable.
-// Fuente: agentards/producto/decision-confianza.md §2.1–§3 (17-oct-2026). Cambiar aquí, no en el código.
+// Fuente: la decisión de producto «confianza» §2.1–§3 (17-oct-2026). Cambiar aquí, no en el código.
 
 export interface Familia {
   tipos: string[];

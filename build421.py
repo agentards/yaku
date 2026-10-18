@@ -50,7 +50,7 @@ k=pe.merge(r1[['k','NOM_ESTABLECIMIENTO','CATEGORIA','NORTE','ESTE']],on='k',how
 print('EESS match nombre+ubigeo (únicos)',k.NORTE.notna().sum(),'/',len(k),f"{k.NORTE.notna().mean()*100:.1f}%", 'claves ambiguas en RENIPRESS',dupk.sum())
 k.drop(columns='k').to_csv(O+'aviso421_piura_establecimientos_salud_INUN_georef_por_nombre.csv',index=False)
 # --- GeoJSON
-COMMON=dict(fuente='CENEPRED/SIGRID – anexo Excel del Aviso Meteorológico 421_2026 (descargado manualmente por Brayan desde Perú)',
+COMMON=dict(fuente='CENEPRED/SIGRID – anexo Excel del Aviso Meteorológico 421_2026',
   aviso='Aviso Meteorológico SENAMHI N° 421 (2026)', escenario_sigrid='23077 (según título del Excel y del PDF; ver RESUMEN)',
   vigencia='17-19 oct 2026', clasificacion='escenario hipotético basado en pronóstico', rotulo='Escenario de riesgo CENEPRED',
   nota='nivel de exposición/riesgo, no profundidad de agua', fecha_incorporacion='2026-10-17')
