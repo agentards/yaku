@@ -1,0 +1,203 @@
+{
+  "fecha": "2026-10-18T01:17:59.070Z",
+  "viewport": "412x915 Android",
+  "servidor": "/api simulado",
+  "checks": [
+    {
+      "name": "Primera vez: aviso de ubicación + código anónimo + art. 315-A, y la app técnica oculta",
+      "ok": true
+    },
+    {
+      "name": "Sin red: el chip dice SIN RED",
+      "ok": true
+    },
+    {
+      "name": "Letra ≥ 18 px y botones ≥ 48 px de alto; sin scroll horizontal",
+      "ok": true,
+      "n": 12,
+      "malos": [],
+      "minTexto": 18,
+      "scrollX": false
+    },
+    {
+      "name": "Atrapados: el aviso 116/105 sale antes del formulario, con enlaces tel:",
+      "ok": true,
+      "visible": true,
+      "detalleOculto": true,
+      "t116": "tel:116",
+      "t105": "tel:105"
+    },
+    {
+      "name": "A sin red: 2 reportes guardados en el celular (atrapados con «Muy grave»); heridos también avisa",
+      "ok": true,
+      "vista": "lista",
+      "total": 2,
+      "mios": 2,
+      "llevo": 0,
+      "pendientes": 2,
+      "frames": 0,
+      "recibidos": 0,
+      "estadosRecibidos": 0,
+      "completo": false,
+      "lector": "jsQR",
+      "fotos": [],
+      "sev3": "3",
+      "avisoHeridos": true
+    },
+    {
+      "name": "Tarjeta: rótulo «Reporte vecinal · por validar» y «Guardado en tu celular»",
+      "ok": true
+    },
+    {
+      "name": "Foto comprimida a ≤ 150 KB y guardada en el celular (IndexedDB), lado ≤ 1280 px",
+      "ok": true,
+      "original": 11140916,
+      "id": "0ycly841qv9",
+      "bytes": 128512,
+      "w": 1280,
+      "h": 960,
+      "subida": false,
+      "ms": 135
+    },
+    {
+      "name": "Intercambiar en un paso (mi QR + cámara frontal leyendo el del otro): los dos llevan los 3 reportes",
+      "ok": true,
+      "ms": 305,
+      "A": [
+        2,
+        1
+      ],
+      "B": [
+        1,
+        2
+      ],
+      "lector": "jsQR",
+      "camara": "{\"facingMode\":{\"ideal\":\"user\"},\"width\":{\"ideal\":1280},\"height\":{\"ideal\":720}}"
+    },
+    {
+      "name": "«Listo» visible en los dos celulares",
+      "ok": true
+    },
+    {
+      "name": "Casa dañada de A y B (40 m): «2 vecinos lo reportan · 1 foto» en ambas tarjetas",
+      "ok": true,
+      "coincide": [
+        [
+          "2",
+          "2 vecinos lo reportan · 1 foto"
+        ],
+        [
+          "2",
+          "2 vecinos lo reportan · 1 foto"
+        ]
+      ]
+    },
+    {
+      "name": "Al vecino nunca se le muestra el puntaje 0–100",
+      "ok": true
+    },
+    {
+      "name": "B con red: sincroniza solo los 3 (incluye los de A) y sube la foto JPEG ≤ 150 KB",
+      "ok": true,
+      "reportes": 3,
+      "fotos": [
+        {
+          "report_id": "0ycly841qv9",
+          "bytes": 128512,
+          "jpeg": true
+        }
+      ]
+    },
+    {
+      "name": "Servidor: las 2 casas dañadas (2 vecinos, 40 m) son 1 incidente; atrapados va aparte",
+      "ok": true,
+      "incidentes": 2,
+      "casasEnUno": true
+    },
+    {
+      "name": "B: estado de vuelta tras sincronizar: «Bomberos asignados · Asignado por la municipalidad · hh:mm» y atrapados «En revisión»",
+      "ok": true,
+      "chipsB": [
+        [
+          "vivienda",
+          "Bomberos asignados",
+          "Asignado por la municipalidad · 20:18"
+        ],
+        [
+          "atrapados",
+          "En revisión por la municipalidad",
+          "La municipalidad lo está revisando · 20:18"
+        ],
+        [
+          "vivienda",
+          "Bomberos asignados",
+          "Asignado por la municipalidad · 20:18"
+        ]
+      ]
+    },
+    {
+      "name": "Con estado municipal el vecino ve solo el estado (no el rótulo vecinal)",
+      "ok": true
+    },
+    {
+      "name": "A sin red recibe por QR el estado: «Bomberos asignados» y «En revisión por la municipalidad»",
+      "ok": true,
+      "ms": 1001,
+      "chipsA": [
+        [
+          "atrapados",
+          "En revisión por la municipalidad"
+        ],
+        [
+          "vivienda",
+          "Bomberos asignados"
+        ],
+        [
+          "vivienda",
+          "Bomberos asignados"
+        ]
+      ],
+      "estadosRecibidos": 3
+    },
+    {
+      "name": "A con red: sus reportes ya estaban (relevo) → el servidor sigue con 3, sin duplicados",
+      "ok": true,
+      "reportes": 3
+    },
+    {
+      "name": "Sin ?vista (E2E automatizado) y con ?vista=2d sigue la app técnica",
+      "ok": true,
+      "top": true,
+      "pb": false
+    },
+    {
+      "name": "Escritorio 1280×800: 9 botones de tipo en 3 columnas",
+      "ok": true
+    },
+    {
+      "name": "Ninguna petición fuera de localhost",
+      "ok": true,
+      "externas": []
+    }
+  ],
+  "medidas": {
+    "buildMs": 7813,
+    "fotoOriginalBytes": 11140916,
+    "compresionMs": 135,
+    "foto": {
+      "id": "0ycly841qv9",
+      "bytes": 128512,
+      "w": 1280,
+      "h": 960,
+      "subida": false
+    },
+    "intercambioMs": 305,
+    "peticionesApi": [
+      "POST /api/sync",
+      "GET /api/stats",
+      "POST /api/fotos",
+      "GET /api/estado"
+    ]
+  },
+  "resumen": "20/20"
+}
