@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-18T01:27:44.726Z",
+  "fecha": "2026-10-18T03:16:41.941Z",
   "viewport": "412x915 Android",
   "servidor": "/api simulado",
   "checks": [
@@ -51,18 +51,18 @@
     {
       "name": "Foto comprimida a ≤ 150 KB y guardada en el celular (IndexedDB), lado ≤ 1280 px",
       "ok": true,
-      "original": 11141408,
-      "id": "0p2i38ay4dj",
-      "bytes": 128926,
+      "original": 11140429,
+      "id": "1jcw78lbnq1",
+      "bytes": 128727,
       "w": 1280,
       "h": 960,
       "subida": false,
-      "ms": 225
+      "ms": 150
     },
     {
       "name": "Intercambiar en un paso (mi QR + cámara frontal leyendo el del otro): los dos llevan los 3 reportes",
       "ok": true,
-      "ms": 616,
+      "ms": 373,
       "A": [
         2,
         1
@@ -102,8 +102,8 @@
       "reportes": 3,
       "fotos": [
         {
-          "report_id": "0p2i38ay4dj",
-          "bytes": 128926,
+          "report_id": "1jcw78lbnq1",
+          "bytes": 128727,
           "jpeg": true
         }
       ]
@@ -121,17 +121,17 @@
         [
           "vivienda",
           "Bomberos asignados",
-          "Asignado por la municipalidad · 20:28"
-        ],
-        [
-          "vivienda",
-          "Bomberos asignados",
-          "Asignado por la municipalidad · 20:28"
+          "Asignado por la municipalidad · 22:17"
         ],
         [
           "atrapados",
           "En revisión por la municipalidad",
-          "La municipalidad lo está revisando · 20:28"
+          "La municipalidad lo está revisando · 22:17"
+        ],
+        [
+          "vivienda",
+          "Bomberos asignados",
+          "Asignado por la municipalidad · 22:17"
         ]
       ]
     },
@@ -142,15 +142,15 @@
     {
       "name": "A sin red recibe por QR el estado: «Bomberos asignados» y «En revisión por la municipalidad»",
       "ok": true,
-      "ms": 1049,
+      "ms": 1086,
       "chipsA": [
-        [
-          "vivienda",
-          "Bomberos asignados"
-        ],
         [
           "atrapados",
           "En revisión por la municipalidad"
+        ],
+        [
+          "vivienda",
+          "Bomberos asignados"
         ],
         [
           "vivienda",
@@ -165,10 +165,18 @@
       "reportes": 3
     },
     {
-      "name": "Sin ?vista (E2E automatizado) y con ?vista=2d sigue la app técnica",
+      "name": "/ abre la landing; /app y /?vista=2d (→ /app) abren la app técnica",
       "ok": true,
-      "top": true,
-      "pb": false
+      "landing": {
+        "landing": true,
+        "app": false,
+        "pb": false
+      },
+      "tecnica": {
+        "top": true,
+        "pb": false
+      },
+      "tecnica2d": true
     },
     {
       "name": "Escritorio 1280×800: 9 botones de tipo en 3 columnas",
@@ -181,17 +189,17 @@
     }
   ],
   "medidas": {
-    "buildMs": 21140,
-    "fotoOriginalBytes": 11141408,
-    "compresionMs": 225,
+    "buildMs": 8585,
+    "fotoOriginalBytes": 11140429,
+    "compresionMs": 150,
     "foto": {
-      "id": "0p2i38ay4dj",
-      "bytes": 128926,
+      "id": "1jcw78lbnq1",
+      "bytes": 128727,
       "w": 1280,
       "h": 960,
       "subida": false
     },
-    "intercambioMs": 616,
+    "intercambioMs": 373,
     "peticionesApi": [
       "POST /api/sync",
       "GET /api/stats",

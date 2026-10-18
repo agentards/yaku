@@ -21,6 +21,7 @@
     "e2e:incidentes": "vite build && node scripts/e2e-incidentes.mjs",
     "e2e:poblador": "node scripts/e2e-poblador.mjs",
     "e2e:poblador:real": "node scripts/e2e-poblador.mjs --real",
+    "e2e:rutas": "vite build && node scripts/e2e-rutas.mjs",
     "servidor": "vite build && node servidor-local/empaquetar.mjs && node servidor-local/salida/servidor.mjs",
     "servidor:dev": "node servidor-local/servidor.ts",
     "build:servidor": "node servidor-local/empaquetar.mjs",
@@ -32,8 +33,10 @@
   "type": "module",
   "dependencies": {
     "@protomaps/basemaps": "^5.7.2",
+    "gsap": "3.15.0",
     "idb": "^8.0.4",
     "jsqr": "^1.4.0",
+    "lenis": "1.3.26",
     "maplibre-gl": "^6.14.0",
     "pako": "^3.0.2",
     "pmtiles": "^4.5.0",

@@ -1,14 +1,17 @@
-// Sirve dist/ (la PWA ya compilada) con las mismas cabeceras que server/worker.ts, fallback SPA y Range para .pmtiles.
+// Sirve dist/ (landing + PWA ya compiladas) con las mismas cabeceras que server/worker.ts, rutas de src/rutas.ts y
+// Range para .pmtiles.
 import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
+import { ARCHIVO_APP, esRutaApp, redireccionRuta } from '../src/rutas.ts';
 
 const TIPOS: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
   '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.geojson': 'application/geo+json',
   '.pbf': 'application/x-protobuf', '.pmtiles': 'application/vnd.pmtiles', '.txt': 'text/plain; charset=utf-8',
-  '.woff2': 'font/woff2', '.wasm': 'application/wasm',
+  '.woff2': 'font/woff2', '.wasm': 'application/wasm', '.xml': 'application/xml; charset=utf-8', '.webp': 'image/webp',
+  '.mp4': 'video/mp4', '.webm': 'video/webm', '.avif': 'image/avif',
 };
 
 export function parseRange(h: string | undefined, size: number): [number, number] | null | 'invalid' {
@@ -33,8 +36,12 @@ function resolver(raiz: string, pathname: string): string | null {
 export function servirEstatico(raiz: string, req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url ?? '/', 'http://local');
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405, { allow: 'GET, HEAD' }).end(); return; }
-  let f = url.pathname === '/' ? resolver(raiz, '/index.html') : resolver(raiz, url.pathname);
-  if (!f && !url.pathname.includes('.')) f = resolver(raiz, '/index.html');
+  // Rutas (src/rutas.ts): / = landing; /reportar, /municipalidad, /app = app.html; /?vista=… viejo → 302 a la ruta nueva.
+  const destino = redireccionRuta(url.pathname, url.search);
+  if (destino) { res.writeHead(302, { location: destino, 'cache-control': 'no-cache' }).end(); return; }
+  let estado = 200;
+  let f = url.pathname === '/' ? resolver(raiz, '/index.html') : esRutaApp(url.pathname) ? resolver(raiz, ARCHIVO_APP) : resolver(raiz, url.pathname);
+  if (!f && !url.pathname.includes('.')) { f = resolver(raiz, '/index.html'); estado = 404; } // ruta desconocida: la landing, con 404
   if (!f) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }).end('no encontrado'); return; }
   const ext = path.extname(f).toLowerCase();
   const size = fs.statSync(f).size;
@@ -48,7 +55,7 @@ export function servirEstatico(raiz: string, req: IncomingMessage, res: ServerRe
   const r = parseRange(req.headers.range, size);
   if (r === 'invalid') { res.writeHead(416, { ...base, 'content-range': `bytes */${size}` }).end(); return; }
   const [a, b] = r ?? [0, size - 1];
-  res.writeHead(r ? 206 : 200, { ...base, 'content-length': String(size ? b - a + 1 : 0), ...(r ? { 'content-range': `bytes ${a}-${b}/${size}` } : {}) });
+  res.writeHead(r ? 206 : estado, { ...base, 'content-length': String(size ? b - a + 1 : 0), ...(r ? { 'content-range': `bytes ${a}-${b}/${size}` } : {}) });
   if (req.method === 'HEAD' || size === 0) { res.end(); return; }
   fs.createReadStream(f, { start: a, end: b }).pipe(res);
 }

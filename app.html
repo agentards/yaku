@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#14212b" />
+  <link rel="icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <title>Yaku Relay · campo</title>
+</head>
+<body data-tab="mapa">
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true">◆</span> Yaku Relay <span class="proto">prototipo</span></div>
+    <div class="status">
+      <span id="pending-pill" class="pill pill-relay" title="Registros aún no consolidados en el servidor"><b id="pending-count">0</b> en relevo</span>
+      <span id="net" class="pill net" role="status" aria-live="polite">…</span>
+    </div>
+  </header>
+
+  <div id="app">
+    <div id="mapwrap">
+      <div id="map" role="region" aria-label="Mapa de Piura"></div>
+      <div id="map-hint" class="map-hint" hidden></div>
+      <div id="basemap-pill" class="basemap-pill" role="status" aria-live="polite" hidden></div>
+    </div>
+
+    <aside id="panel">
+      <nav class="tabs" role="tablist" aria-label="Secciones">
+        <button role="tab" data-tab="mapa" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 2.2 6 2v11.6l-6-2V6.2Z"/></svg>Mapa</button>
+        <button role="tab" data-tab="registrar" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>Registrar</button>
+        <button role="tab" data-tab="relevo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm8-2h3v3h-3v-3Zm5 0h3v3h-3v-3Zm-5 5h3v3h-3v-3Zm5 0h3v3h-3v-3Z"/></svg>Relevo</button>
+        <button role="tab" data-tab="sync" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 0 1 7.7 5.8l1.8-1.1.9 1.7-4.4 2.6-2.6-4.4 1.7-1 .9 1.4A6 6 0 0 0 6.3 10H4.2A8 8 0 0 1 12 4Zm-7.4 7.6 2.6 4.4-1.7 1-.9-1.4A6 6 0 0 0 17.7 14h2.1A8 8 0 0 1 4.3 15.2l-1.8 1.1-.9-1.7 5-3Z"/></svg>Sync</button>
+      </nav>
+
+      <!-- MAPA / LEYENDA -->
+      <section class="pane" data-panel="mapa">
+        <h2>Capas</h2>
+        <ul class="legend" id="legend"></ul>
+        <div class="legend-item citizen-legend">
+          <label class="layer-toggle"><input type="checkbox" data-layer="citizen" checked />
+            <span class="sw sw-citizen" aria-hidden="true"></span>
+            <span><b>Reportes ciudadanos</b> <span class="badge-unverified">POR VALIDAR</span><br><small>Observaciones de este equipo y recibidas por relevo. No son alertas oficiales.</small></span>
+          </label>
+        </div>
+        <div class="legend-item basemap-legend">
+          <label class="layer-toggle"><input type="checkbox" data-layer="basemap" checked />
+            <span class="sw sw-basemap" aria-hidden="true"></span>
+            <span><b>Mapa base de referencia</b> (calles, ríos, costa, lugares)<br>
+              <small>© OpenStreetMap contributors (ODbL) · teselas Protomaps. No es información de riesgo.</small><br>
+              <small id="basemap-detail"></small><br>
+              <small id="basemap-status" class="basemap-status" aria-live="polite">…</small></span>
+          </label>
+        </div>
+        <p class="disclaimer">Los reportes ciudadanos no están verificados y no indican qué caminos tomar. Las capas oficiales muestran avisos y zonas evaluadas, no la situación actual del terreno.</p>
+      </section>
+
+      <!-- REGISTRAR -->
+      <section class="pane" data-panel="registrar" hidden>
+        <h2>Nueva observación</h2>
+        <div class="loc" id="loc">
+          <div><b>Ubicación</b> <span id="loc-status" aria-live="polite">esperando GPS…</span></div>
+          <button type="button" class="btn btn-ghost" id="gps">Reintentar GPS</button>
+        </div>
+        <p class="hint">Arrastre el marcador en el mapa para ajustar el punto.</p>
+        <form id="form">
+          <fieldset class="choices types" id="f-type">
+            <legend>¿Qué observa?</legend>
+          </fieldset>
+          <fieldset class="choices sev" id="f-sev">
+            <legend>Severidad</legend>
+            <label><input type="radio" name="sev" value="1" /><span>1<small>baja</small></span></label>
+            <label><input type="radio" name="sev" value="2" checked /><span>2<small>media</small></span></label>
+            <label><input type="radio" name="sev" value="3" /><span>3<small>alta</small></span></label>
+          </fieldset>
+          <label class="field">Nota breve (opcional)<input id="f-note" maxlength="140" placeholder="Ej.: agua hasta el tobillo frente al mercado" autocomplete="off" /></label>
+          <details class="fold" id="manual">
+            <summary>Coordenadas manuales (respaldo)</summary>
+            <div class="row2">
+              <label class="field">Latitud<input id="f-lat" type="number" inputmode="decimal" step="0.00001" min="-90" max="90" /></label>
+              <label class="field">Longitud<input id="f-lon" type="number" inputmode="decimal" step="0.00001" min="-180" max="180" /></label>
+            </div>
+          </details>
+          <button type="submit" id="save" class="btn btn-primary btn-block">Guardar observación</button>
+          <p class="hint" id="save-status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <!-- RELEVO -->
+      <section class="pane" data-panel="relevo" hidden>
+        <h2>Pasar registros a otro equipo</h2>
+        <div class="subhead"><span><b id="count">0</b> registros en este equipo</span><label class="check"><input type="checkbox" id="sel-all" checked /> todos</label></div>
+        <ul id="list" class="cards"></ul>
+        <button id="emit" type="button" class="btn btn-primary btn-block">Mostrar QR de los seleccionados</button>
+        <div id="emit-out" hidden>
+          <div class="qrwrap"><canvas id="qr" aria-label="Código QR"></canvas></div>
+          <div class="qrnav">
+            <button id="qr-prev" type="button" class="btn btn-ghost" aria-label="Fragmento anterior">◀</button>
+            <span id="qr-idx" class="mono"></span>
+            <button id="qr-next" type="button" class="btn btn-ghost" aria-label="Fragmento siguiente">▶</button>
+            <button id="qr-play" type="button" class="btn btn-ghost">Pausar</button>
+          </div>
+          <p id="emit-info" class="hint mono"></p>
+          <details class="fold">
+            <summary>Enlace relay (sin cámara)</summary>
+            <input id="link" readonly class="mono" aria-label="Enlace relay" />
+            <button id="copy-link" type="button" class="btn btn-ghost">Copiar enlace</button>
+          </details>
+        </div>
+
+        <h2 class="mt">Recibir de otro equipo</h2>
+        <div class="recv-actions">
+          <button id="cam-start" type="button" class="btn btn-primary">Escanear QR con cámara</button>
+          <label class="btn btn-ghost file-btn">Subir imagen del QR<input id="file" type="file" accept="image/*" multiple /></label>
+        </div>
+        <div id="cam-box" hidden>
+          <video id="video" muted playsinline></video>
+          <div class="row2">
+            <select id="cams" aria-label="Cámara"><option value="">Cámara trasera (por defecto)</option></select>
+            <button id="cam-stop" type="button" class="btn btn-ghost">Detener cámara</button>
+          </div>
+        </div>
+        <div id="recv-progress" class="progress" hidden><div class="bar" id="recv-bar"></div><span id="recv-progress-label"></span></div>
+        <p id="recv-status" class="hint" aria-live="polite"></p>
+      </section>
+
+      <!-- SYNC -->
+      <section class="pane" data-panel="sync" hidden>
+        <h2>Consolidación</h2>
+        <div class="counters">
+          <div class="counter relay"><b id="c-relay">0</b><span>en relevo</span></div>
+          <div class="counter done"><b id="c-done">0</b><span>consolidados</span></div>
+        </div>
+        <p class="hint">Los registros se consolidan solos cuando vuelve la conexión. Siguen <b>por validar</b> hasta que la municipalidad los valide.</p>
+        <button id="sync" type="button" class="btn btn-primary btn-block">Consolidar ahora</button>
+        <p id="sync-status" class="hint" aria-live="polite"></p>
+        <p id="server-stats" class="hint"></p>
+
+        <details class="fold" id="diag">
+          <summary>Ajustes y diagnóstico</summary>
+          <label class="field">Endpoint de sync<input id="endpoint" class="mono" autocomplete="off" /></label>
+          <small>Por defecto <code>/api/sync</code> (Worker + D1). <code>mock:local</code> = servidor simulado en este navegador.</small>
+          <label class="field">Caracteres por QR<input id="chunk" type="number" value="450" min="100" max="2000" step="50" /></label>
+          <dl class="diag mono" id="diag-info"></dl>
+          <button id="clear" type="button" class="btn btn-danger">Borrar registros de este equipo</button>
+        </details>
+      </section>
+    </aside>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -60,14 +60,16 @@ try {
     const salud = await get('/salud');
     check('túnel → /salud', salud.status === 200 && salud.texto.trim() === 'ok', { ms: salud.ms });
     const raiz = await get('/');
-    check('túnel → la PWA (index.html)', raiz.status === 200 && /<html/i.test(raiz.texto), { ms: raiz.ms });
+    check('túnel → la landing (index.html)', raiz.status === 200 && /<html/i.test(raiz.texto), { ms: raiz.ms });
+    const rep = await get('/reportar');
+    check('túnel → /reportar sirve la app (app.html)', rep.status === 200 && /id="app"/.test(rep.texto), { ms: rep.ms });
     for (const p of ['/sw.js', '/manifest.webmanifest', '/api/stats']) { const r = await get(p); check(`túnel → ${p}`, r.status === 200, { ms: r.ms, tipo: r.tipo }); }
 
     const browser = await chromium.launch({ executablePath: CHROME, headless: true });
     try {
       const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, locale: 'es-PE', extraHTTPHeaders: SALTA });
       const page = await ctx.newPage();
-      await page.goto(URL_PUB + '/?vista=poblador');
+      await page.goto(URL_PUB + '/reportar');
       await page.waitForFunction(() => document.querySelector('.pb')?.dataset.listo === '1', null, { timeout: 45000 });
       const seg = await page.evaluate(async () => {
         const sw = await Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 20000))]);
@@ -76,8 +78,8 @@ try {
       check('Chrome móvil por HTTPS: contexto seguro, cámara disponible y service worker activo', seg.seguro && seg.camara && seg.sw, seg);
     } finally { await browser.close(); }
 
-    console.log(`\nURL para los celulares: ${URL_PUB}/   (municipalidad: ${URL_PUB}/?vista=municipalidad · operador: ${URL_PUB}/?vista=incidentes)`);
-    console.log(await QRCode.toString(URL_PUB + '/', { type: 'terminal', small: true }));
+    console.log(`\nURL para los celulares: ${URL_PUB}/reportar   (municipalidad y operador: ${URL_PUB}/municipalidad · landing: ${URL_PUB}/)`);
+    console.log(await QRCode.toString(URL_PUB + '/reportar', { type: 'terminal', small: true }));
     if (process.env.MANTENER === '1') {
       console.log('Túnel abierto. La primera vez, en cada celular toca «Visit Site» en el aviso de ngrok. Ctrl+C para cerrar.');
       await new Promise((r) => process.on('SIGINT', r));

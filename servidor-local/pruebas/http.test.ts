@@ -10,6 +10,7 @@ import { iniciar } from '../servidor.ts';
 const datos = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-http-'));
 const dist = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-dist-'));
 fs.writeFileSync(path.join(dist, 'index.html'), '<h1>yaku</h1>');
+fs.writeFileSync(path.join(dist, 'app.html'), '<h1>app</h1>');
 let s: ReturnType<typeof iniciar>, base = '';
 before(async () => { s = iniciar({ puerto: 0, host: '127.0.0.1', datos, dist, pin: '2468', silencioso: true }); base = `http://127.0.0.1:${await s.listo}`; });
 after(async () => { await s.cerrar(); fs.rmSync(datos, { recursive: true, force: true }); fs.rmSync(dist, { recursive: true, force: true }); });
@@ -28,8 +29,18 @@ it('sync con text/plain (como src/sync.ts) → incidente → validar con PIN →
   assert.equal(e.status, 200);
   const { estados } = (await (await fetch(`${base}/api/estado?ids=${recs[0].id}`)).json()) as any;
   assert.equal(estados[0].estado, 'en_revision');
-  assert.equal((await fetch(base + '/ruta/de/la/app')).status, 200);
   assert.equal((await fetch(base + '/api/nada')).status, 404);
+});
+
+it('rutas: / landing, /reportar · /municipalidad · /app → app.html, /?vista= viejo → 302, desconocida → landing con 404', async () => {
+  const texto = async (p: string) => { const r = await fetch(base + p, { redirect: 'manual' }); return { s: r.status, t: await r.text(), l: r.headers.get('location') }; };
+  assert.deepEqual(await texto('/'), { s: 200, t: '<h1>yaku</h1>', l: null });
+  for (const p of ['/reportar', '/municipalidad', '/app', '/municipalidad?vista=portal']) assert.deepEqual(await texto(p), { s: 200, t: '<h1>app</h1>', l: null }, p);
+  assert.equal((await texto('/?vista=poblador')).l, '/reportar');
+  assert.equal((await texto('/?vista=incidentes')).l, '/municipalidad');
+  assert.equal((await texto('/?vista=2d&basemap=z12')).l, '/app?basemap=z12');
+  assert.equal((await texto('/reportar/')).l, '/reportar');
+  assert.deepEqual(await texto('/ruta/de/la/app'), { s: 404, t: '<h1>yaku</h1>', l: null });
 });
 
 it('foto binaria (image/jpeg) por POST /api/fotos?reporte=', async () => {

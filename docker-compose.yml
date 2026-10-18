@@ -7,7 +7,8 @@
 #   VPS limpio, sin proxy: el perfil «traefik» levanta también Traefik (80/443, HTTPS con Let's Encrypt):
 #     TRAEFIK_EXTERNA=false docker compose --profile traefik up -d --build
 #
-#   MUNI_PIN (obligatorio) · YAKU_HOST (p. ej. yaku.midominio.pe; el DNS debe apuntar al VPS) · ACME_EMAIL (perfil
+#   MUNI_PIN (obligatorio) · YAKU_HOST (yaku.lat por defecto; DNS: registros A de yaku.lat y www.yaku.lat a la IP del
+#   VPS, www redirige a yaku.lat) · ACME_EMAIL (perfil
 #   traefik) · TRAEFIK_ENTRYPOINT (websecure) · TRAEFIK_CERTRESOLVER (letsencrypt) · TRAEFIK_TLS (true)
 #   TRAEFIK_NETWORK (traefik) · TRAEFIK_EXTERNA=false si la red de Traefik no existe todavía (compose la crea).
 services:
@@ -28,12 +29,23 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
-      - traefik.http.routers.yaku.rule=Host(`${YAKU_HOST:-yaku.localhost}`)
+      - traefik.http.routers.yaku.rule=Host(`${YAKU_HOST:-yaku.lat}`)
       - traefik.http.routers.yaku.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.yaku.tls=${TRAEFIK_TLS:-true}
       - traefik.http.routers.yaku.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
       - traefik.http.routers.yaku.service=yaku
       - traefik.http.services.yaku.loadbalancer.server.port=8080
+      # www.<YAKU_HOST> → <YAKU_HOST> (301, conserva ruta y parámetros). Su propio certificado; DNS «www» al mismo VPS.
+      # «$$» es el «$» literal en compose: Traefik recibe «https://${1}».
+      - traefik.http.routers.yaku-www.rule=Host(`www.${YAKU_HOST:-yaku.lat}`)
+      - traefik.http.routers.yaku-www.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.yaku-www.tls=${TRAEFIK_TLS:-true}
+      - traefik.http.routers.yaku-www.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.yaku-www.middlewares=yaku-www-a-raiz
+      - traefik.http.routers.yaku-www.service=yaku
+      - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.regex=^https?://www\.(.+)
+      - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.replacement=https://$${1}
+      - traefik.http.middlewares.yaku-www-a-raiz.redirectregex.permanent=true
 
   # Solo con «--profile traefik» (VPS sin proxy). Es el único servicio que publica puertos: 80 (redirige a HTTPS) y 443.
   traefik:

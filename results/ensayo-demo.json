@@ -1,37 +1,37 @@
 {
-  "fecha": "2026-10-18T02:46:51.081Z",
+  "fecha": "2026-10-18T03:15:27.170Z",
   "servidor": "servidor-local real (SQLite temporal)",
   "datos": "SIMULADO",
   "pasos": [
     {
       "paso": 1,
       "nombre": "A reporta sin red",
-      "ms": 632
+      "ms": 1045
     },
     {
       "paso": 2,
       "nombre": "Intercambiar A ↔ B",
-      "ms": 4169
+      "ms": 3709
     },
     {
       "paso": 3,
       "nombre": "B reporta lo mismo cerca",
-      "ms": 946
+      "ms": 878
     },
     {
       "paso": 4,
       "nombre": "B recupera internet",
-      "ms": 972
+      "ms": 395
     },
     {
       "paso": 5,
       "nombre": "Pantalla municipal muestra el incidente",
-      "ms": 1355
+      "ms": 1515
     },
     {
       "paso": 6,
       "nombre": "Validar + Bomberos y acuse por QR",
-      "ms": 5050
+      "ms": 5451
     }
   ],
   "checks": [
@@ -44,7 +44,7 @@
     {
       "name": "2 · Intercambiar sin red: B ahora lleva el reporte de A",
       "ok": true,
-      "ms": 1897,
+      "ms": 1131,
       "lector": "jsQR"
     },
     {
@@ -68,7 +68,7 @@
       "personas": 2,
       "fotos": 1,
       "puntaje": 75,
-      "tarjeta": "Reporte vecinal · por validar\nllegó hace 2 s\n×\nCasa dañada o caída\n\n2 vecinos · 1 foto · primer reporte 21:47\n\nRespaldo 75 · N2 2 vecinos lo reportan · 1 foto\n\n"
+      "tarjeta": "Reporte vecinal · por validar\nllegó hace 1 s\n×\nCasa dañada o caída\n\n2 vecinos · 1 foto · primer reporte 22:15\n\nRespaldo 75 · N2 2 vecinos lo reportan · 1 foto\n\n"
     },
     {
       "name": "5 · El mapa 3D vuela al incidente",
@@ -82,7 +82,7 @@
     {
       "name": "6 · A sigue sin red y recibe el estado por QR: «Bomberos asignados»",
       "ok": true,
-      "ms": 1968,
+      "ms": 1421,
       "chipsA": [
         "Bomberos asignados",
         "Bomberos asignados"
@@ -101,5 +101,5 @@
   ],
   "procedenciaMunicipalidad": "Fuente: CENEPRED/SIGRID 23077 · 16/10/2026",
   "resumen": "10/10",
-  "totalPasosS": 13.1
+  "totalPasosS": 13
 }
