@@ -56,7 +56,7 @@ function camaraSimulada() {
   if (navigator.mediaDevices) navigator.mediaDevices.getUserMedia = async () => c.captureStream(15);
 }
 
-const srv = iniciar({ puerto: PORT, host: '127.0.0.1', dist: DIST, datos: path.join(TMP, 'datos'), pin: PIN, silencioso: true, clerk: {} });
+const srv = iniciar({ puerto: PORT, host: '127.0.0.1', dist: DIST, datos: path.join(TMP, 'datos'), pin: PIN, silencioso: true });
 await srv.listo;
 console.log('servidor ok', PORT);
 const stats = async () => (await (await fetch(BASE + 'api/stats')).json());
@@ -112,7 +112,7 @@ try {
   const M = await cM.newPage();
   vigilar(M);
   await M.goto(BASE + '?vista=incidentes');
-  await accederConPin(M, { pin: PIN }); // Centro de monitoreo: acceso con PIN (sin Clerk)
+  await accederConPin(M, { pin: PIN }); // Centro de monitoreo: acceso con nombre + PIN
   await M.waitForFunction(() => window.__yakuMonitoreo?.estado().sembrado, null, { timeout: 30000 });
   // Procedencia: ¿la pantalla municipal dice fuente y fecha de las capas? (se informa; no detiene el ensayo)
   res.procedenciaMunicipalidad = await M.evaluate(() => (document.body.innerText.match(/Fuente[^\n]{0,80}/) ?? [null])[0]);

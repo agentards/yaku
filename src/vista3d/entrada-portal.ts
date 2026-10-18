@@ -1,6 +1,6 @@
 // Entradas de la interfaz 3D completa. Se cargan con import dinámico desde main.ts: la vista 2D no paga nada si no se usan.
 //  · arrancarMonitoreo(sesion, { pestana }): «Yaku 3D · Centro de monitoreo» (?vista=portal|municipalidad|incidentes),
-//    histórico real del servidor + monitor en vivo + incidentes, con la Sesion (Clerk o PIN).
+//    histórico real del servidor + monitor en vivo + incidentes, con la Sesion (PIN municipal).
 //  · arrancar(): el portal de relevo de campo anterior (IndexedDB de este equipo y demo SIMULADO), en ?vista=portal-relevo.
 import { crearEscena, type EscenaYaku3D } from './escena';
 import { getMap } from '../map';

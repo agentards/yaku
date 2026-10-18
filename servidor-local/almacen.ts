@@ -46,7 +46,7 @@ export class Almacen {
     this.reglas = reglas;
     if (ruta !== ':memory:') this.db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;');
     this.db.exec(ESQUEMA);
-    // Migración: quién (sub de Clerk o 'pin') junto al nombre que manda el cliente.
+    // Migración: quién ('pin') junto al nombre que manda el cliente.
     for (const t of ['estados', 'ajustes']) {
       const cols = this.db.prepare(`PRAGMA table_info(${t})`).all() as unknown as { name: string }[];
       if (!cols.some((c) => c.name === 'usuario')) this.db.exec(`ALTER TABLE ${t} ADD COLUMN usuario TEXT`);

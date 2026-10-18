@@ -1,7 +1,7 @@
 // Red del Centro de monitoreo: SIEMPRE el mismo origen (/api del servidor local, servidor-local/).
 // En `vite dev`/`preview` el proxy de vite.config.ts decide a dónde va /api (local por defecto; producción solo
 // con YAKU_API=produccion y en solo lectura). Contrato: ./CONTRATO-API.md. Lecturas y escrituras protegidas llevan
-// las cabeceras de la Sesion (Bearer de Clerk o X-Muni-Pin).
+// las cabeceras de la Sesion (X-Muni-Pin).
 import { leerRespuesta, type ReporteApi } from './deteccion';
 import { agrupar, leerIncidentes, pasosHasta, type Incidente } from './incidentes';
 import type { Accion, Estado } from './textos';

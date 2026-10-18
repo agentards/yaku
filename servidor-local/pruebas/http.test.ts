@@ -11,7 +11,7 @@ const datos = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-http-'));
 const dist = fs.mkdtempSync(path.join(os.tmpdir(), 'yaku-dist-'));
 fs.writeFileSync(path.join(dist, 'index.html'), '<h1>yaku</h1>');
 let s: ReturnType<typeof iniciar>, base = '';
-before(async () => { s = iniciar({ puerto: 0, host: '127.0.0.1', datos, dist, pin: '2468', silencioso: true, clerk: {} }); base = `http://127.0.0.1:${await s.listo}`; });
+before(async () => { s = iniciar({ puerto: 0, host: '127.0.0.1', datos, dist, pin: '2468', silencioso: true }); base = `http://127.0.0.1:${await s.listo}`; });
 after(async () => { await s.cerrar(); fs.rmSync(datos, { recursive: true, force: true }); fs.rmSync(dist, { recursive: true, force: true }); });
 
 it('sync con text/plain (como src/sync.ts) → incidente → validar con PIN → acuse', async () => {

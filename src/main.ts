@@ -60,7 +60,7 @@ renderNet();
 // ---------- mapa + leyenda ----------
 initMap($('map'));
 montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
-// Centro de monitoreo: primero el acceso (Clerk o PIN, src/auth/), luego la interfaz unificada (src/vista3d/monitoreo/).
+// Centro de monitoreo: primero el acceso con PIN municipal (src/auth/), luego la interfaz unificada (src/vista3d/monitoreo/).
 // portal | municipalidad | incidentes son alias de la misma pantalla; «incidentes» y «municipalidad» abren la pestaña Incidentes.
 if (ruta.vista === 'monitoreo') import('./auth/sesion').then((a) => a.exigirSesion(document.body)).then(async (sesion) => {
   (await import('./vista3d/entrada-portal')).arrancarMonitoreo(sesion, { pestana: ruta.pestana === 'portal' ? 'escenario' : 'incidentes' });

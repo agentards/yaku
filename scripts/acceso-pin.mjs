@@ -1,5 +1,5 @@
-// Paso de acceso del Centro de monitoreo para las E2E (?vista=portal|municipalidad|incidentes): sin clave de Clerk
-// la pantalla pide «Acceso con PIN (sin Clerk)» (src/auth/sesion.ts). Con servidor real, pasar su PIN.
+// Paso de acceso del Centro de monitoreo para las E2E (?vista=portal|municipalidad|incidentes): la pantalla pide
+// nombre + PIN municipal (src/auth/sesion.ts). Con servidor real, pasar su PIN.
 export async function accederConPin(page, { nombre = 'Operador SIMULADO', pin = 'pin-e2e' } = {}) {
   await page.waitForSelector('.ycm-acc-pin', { timeout: 30000 });
   await page.fill('.ycm-acc-pin input[name="nombre"]', nombre);

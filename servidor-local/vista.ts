@@ -18,7 +18,7 @@ export interface IncidenteVista {
   puntaje: number; respaldo: number; nivel: Respaldo['nivel']; desglose: Respaldo['desglose']; respaldo_congelado: boolean;
   mediana_m: number | null;
   estado: Estado; accion: string | null; motivo: string;
-  /** quien = nombre que manda el cliente; usuario = sub de Clerk, 'pin' o null (antes de la migración). */
+  /** quien = nombre que manda el cliente; usuario = 'pin' o null (antes de la migración). */
   historial: { estado: Estado; accion: string | null; motivo: string; quien: string; usuario: string | null; cuando: number }[];
   ajustes: { tipo: string; detalle: string; quien: string; usuario: string | null; cuando: number }[];
   recurrencia_de: string | null; nuevos_tras_descarte: number; riesgo_vida: boolean;

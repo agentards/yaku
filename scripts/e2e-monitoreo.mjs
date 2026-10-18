@@ -1,5 +1,5 @@
 // E2E del «Yaku 3D · Centro de monitoreo» (?vista=incidentes|municipalidad|portal) contra el SERVIDOR LOCAL REAL
-// (servidor-local/, SQLite temporal fuera del repo) en modo PIN (sin clave de Clerk). Criterios de
+// (servidor-local/, SQLite temporal fuera del repo) con acceso por PIN. Criterios de
 // agentards/producto/plan-centro-monitoreo.md: login → 2 reportes cercanos de 2 dispositivos = 1 incidente «2 vecinos» →
 // vuelo + tarjeta + sonido → Validar + «Bomberos» persiste tras recargar → el poblador ve «Bomberos asignados» por
 // /api/estado → la línea de tiempo muestra los 2 reportes y el cambio de estado → cero peticiones a CDN externos.
@@ -23,9 +23,7 @@ fs.mkdirSync(OUT, { recursive: true }); fs.mkdirSync(EVID, { recursive: true });
 const res = { fecha: new Date().toISOString(), servidor: 'servidor-local (SQLite temporal, modo PIN)', checks: [] };
 const check = (name, ok, detail = {}) => { res.checks.push({ name, ok, ...detail }); console.log(`${ok ? '✅' : '❌'} ${name}`, JSON.stringify(detail).slice(0, 400)); };
 
-// Sin clave de Clerk: el servidor y la pantalla van en modo PIN.
-for (const k of ['CLERK_PUBLISHABLE_KEY', 'VITE_CLERK_PUBLISHABLE_KEY', 'CLERK_JWT_KEY']) delete process.env[k];
-const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: PIN, silencioso: true, clerk: {} });
+const srv = iniciar({ puerto: PORT, host: '127.0.0.1', datos: DATOS, pin: PIN, silencioso: true });
 await srv.listo;
 const api = (p, o = {}) => fetch(`http://127.0.0.1:${PORT}${p}`, o).then(async (r) => ({ status: r.status, body: await r.json().catch(() => null) }));
 const conPin = { 'x-muni-pin': PIN };
@@ -58,7 +56,7 @@ try {
   const est = () => page.evaluate(() => window.__yakuMonitoreo.estado());
   const esperar = (fn, arg, ms = 10000) => page.waitForFunction(fn, arg, { timeout: ms });
 
-  // 1) Acceso con PIN (sin Clerk) → Centro de monitoreo con el histórico real.
+  // 1) Acceso con PIN → Centro de monitoreo con el histórico real.
   await page.goto(BASE + '?vista=incidentes');
   const textoAcceso = await page.locator('.ycm-acc').innerText({ timeout: 30000 });
   await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
@@ -67,7 +65,7 @@ try {
   await esperar(() => document.body.dataset.v3d === 'listo', null, 30000);
   const s0 = await est();
   const tPrevio = (await api(`/api/reports?ids=${PREVIO.id}`)).body.reports[0].received_at;
-  check('login con «Acceso con PIN (sin Clerk)» y sesión en la cabecera', /Acceso con PIN \(sin Clerk\)/.test(textoAcceso) && s0.sesion.modo === 'pin' && /PIN · Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()), { sesion: s0.sesion });
+  check('login con «Acceso del personal municipal» (nombre + PIN) y sesión en la cabecera', /Acceso del personal municipal/.test(textoAcceso) && s0.sesion.modo === 'pin' && /PIN · Operador SIMULADO/.test(await page.locator('.mon-usuario').innerText()), { sesion: s0.sesion });
   const cab = (await page.locator('.v3d-top').innerText()).replace(/\s+/g, ' ');
   check('cabecera: «Yaku 3D · Centro de monitoreo», chip del escenario, «En vivo · consulta cada 3 s», pestañas Incidentes · Campo · Escenario, Vista 2D',
     /Yaku 3D · Centro de monitoreo/.test(cab) && /Aviso 421/.test(cab) && /En vivo · consulta cada 3 s · \d\d:\d\d:\d\d/.test(cab) && /Incidentes/.test(cab) && /Campo/.test(cab) && /Escenario/.test(cab) && /Vista 2D/.test(cab), { cab });
@@ -187,7 +185,7 @@ try {
   // 8) Red: lecturas protegidas con la cabecera de la sesión y cero CDN externos.
   const lecturas = apiPet.filter((x) => x.m === 'GET' && (x.p === '/api/incidentes' || x.p.startsWith('/api/reports')));
   check('lecturas protegidas con la cabecera de la sesión (GET /api/incidentes y /api/reports?desde)', lecturas.length > 4 && lecturas.every((x) => x.pin) && lecturas.some((x) => x.p === '/api/reports?desde'), { n: lecturas.length });
-  check('cero peticiones a CDN o servicios externos (sin Clerk activo)', externas.length === 0, { externas: externas.slice(0, 5) });
+  check('cero peticiones a CDN o servicios externos', externas.length === 0, { externas: externas.slice(0, 5) });
   check('sin errores de JavaScript en la página', errores.length === 0, { errores });
 
   // 9) Alias: ?vista=municipalidad y ?vista=portal abren el mismo Centro de monitoreo.

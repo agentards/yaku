@@ -5,7 +5,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { OBS_TYPES, makeObservation, type NewObservation } from '../src/codec.ts';
 import type { Almacen } from './almacen.ts';
-import type { VerificadorClerk } from './auth.ts';
 import { validarCambio } from './estados.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
@@ -38,11 +37,9 @@ export function tipoImagen(b: Uint8Array): { mime: string; ext: string } | null 
 
 export interface OpcionesApi {
   almacen: Almacen; pin: string; fotosDir: string; ahora?: () => number;
-  /** Con Clerk activo, lo protegido exige Bearer; el PIN solo vale si permitirPin (YAKU_PERMITIR_PIN=1). */
-  clerk?: VerificadorClerk; permitirPin?: boolean;
 }
-/** Quién hizo la petición protegida: sub de Clerk o 'pin'. */
-export interface Acceso { modo: 'clerk' | 'pin'; usuario: string; rol: 'operador' | 'monitor' }
+/** Quién hizo la petición protegida (hoy siempre el PIN municipal). */
+export interface Acceso { modo: 'pin'; usuario: string; rol: 'operador' }
 export const MAX_HISTORICO = 5000;
 
 export function crearApi(op: OpcionesApi) {
@@ -51,26 +48,13 @@ export function crearApi(op: OpcionesApi) {
   const pinHash = createHash('sha256').update(op.pin).digest();
   fs.mkdirSync(op.fotosDir, { recursive: true });
 
-  const clerk = op.clerk?.activo ? op.clerk : null;
-  const pinVale = !clerk || Boolean(op.permitirPin);
   const pinOk = (p: string) => timingSafeEqual(createHash('sha256').update(p).digest(), pinHash);
 
-  /** Acceso si la credencial vale (y el rol alcanza para escribir); si no, la respuesta 401 (falta) o 403 (inválida o rol). */
-  const autenticar = async (req: Request, escribe: boolean): Promise<Acceso | Response> => {
-    const m = /^Bearer\s+(\S+)$/i.exec(req.headers.get('authorization') ?? '');
+  /** Acceso si el PIN municipal vale; si no, la respuesta 401 (falta) o 403 (incorrecto). */
+  const autenticar = async (req: Request, _escribe: boolean): Promise<Acceso | Response> => {
     const p = req.headers.get('x-muni-pin');
-    if (clerk && m) {
-      const v = await clerk.verificar(m[1]);
-      if (!v.ok) return json({ error: v.error, codigo: v.codigo }, v.status);
-      if (escribe && v.rol !== 'operador') return json({ error: 'tu rol es «monitor»: solo puedes mirar; pide el rol «operador» para cambiar estados', codigo: 'rol' }, 403);
-      return { modo: 'clerk', usuario: v.sub, rol: v.rol };
-    }
-    if (p) {
-      if (!pinVale) return json({ error: 'con Clerk activo el PIN está desactivado: inicia sesión (o YAKU_PERMITIR_PIN=1 en el servidor)', codigo: 'pin_desactivado' }, 403);
-      return pinOk(p) ? { modo: 'pin', usuario: 'pin', rol: 'operador' } : json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
-    }
-    if (clerk) return json({ error: 'inicia sesión: falta la cabecera Authorization: Bearer <token de Clerk>' + (pinVale ? ' (o X-Muni-Pin)' : ''), codigo: 'sin_credencial' }, 401);
-    return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)' + (m ? ': este servidor no tiene Clerk configurado' : ''), codigo: 'sin_credencial' }, 401);
+    if (!p) return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)', codigo: 'sin_credencial' }, 401);
+    return pinOk(p) ? { modo: 'pin', usuario: 'pin', rol: 'operador' } : json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
   };
   const leerJson = async (req: Request, max: number): Promise<any | Response> => {
     const text = await req.text();

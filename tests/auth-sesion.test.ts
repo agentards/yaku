@@ -1,11 +1,10 @@
-// Acceso del Centro de monitoreo (src/auth/sesion.ts): modo PIN, clave de Clerk, Frontend API y rol.
+// Acceso del Centro de monitoreo (src/auth/sesion.ts): nombre + PIN municipal.
 import { describe, it, expect, vi } from 'vitest';
-import { entrarConPin, sesionPin, claveClerk, frontendApiDe, rolDeClaims, ROTULO_PIN, type Pedir } from '../src/auth/sesion';
+import { entrarConPin, sesionPin, ROTULO_PIN, type Pedir } from '../src/auth/sesion';
 
-const pk = (host: string, tipo = 'test') => `pk_${tipo}_${Buffer.from(host + '$').toString('base64')}`;
 
-describe('modo PIN (sin Clerk)', () => {
-  it('rótulo visible del plan B', () => expect(ROTULO_PIN).toBe('Acceso con PIN (sin Clerk)'));
+describe('acceso con PIN', () => {
+  it('rótulo visible', () => expect(ROTULO_PIN).toBe('Acceso del personal municipal'));
 
   it('PIN aceptado por el servidor: sesión operador con X-Muni-Pin en cada cabeceras()', async () => {
     const pedir = vi.fn<Pedir>(async () => ({ status: 200 }));
@@ -51,28 +50,5 @@ describe('modo PIN (sin Clerk)', () => {
     await s.salir();
     expect(alSalir).toHaveBeenCalledOnce();
     await expect(s.cabeceras()).rejects.toThrow(/cerrada/);
-  });
-});
-
-describe('Clerk: clave, Frontend API y rol', () => {
-  it('claveClerk: solo pk_test_/pk_live_; vacío o basura → null (PIN)', () => {
-    expect(claveClerk({})).toBeNull();
-    expect(claveClerk({ VITE_CLERK_PUBLISHABLE_KEY: '' })).toBeNull();
-    expect(claveClerk({ VITE_CLERK_PUBLISHABLE_KEY: 'sk_test_abc' })).toBeNull();
-    const k = pk('yaku-relay-12.clerk.accounts.dev');
-    expect(claveClerk({ VITE_CLERK_PUBLISHABLE_KEY: ` ${k} ` })).toBe(k);
-  });
-  it('frontendApiDe decodifica el host de la clave', () => {
-    expect(frontendApiDe(pk('yaku-relay-12.clerk.accounts.dev'))).toBe('yaku-relay-12.clerk.accounts.dev');
-    expect(frontendApiDe(pk('clerk.yaku.pe', 'live'))).toBe('clerk.yaku.pe');
-    expect(frontendApiDe('pk_test_' + Buffer.from('sin-dolar.dev').toString('base64'))).toBeNull();
-    expect(frontendApiDe('pk_test_%%%')).toBeNull();
-  });
-  it('rolDeClaims: «monitor» solo mira; sin claim o cualquier otro valor opera', () => {
-    expect(rolDeClaims({ rol: 'monitor' })).toBe('monitor');
-    expect(rolDeClaims({ rol: ' Monitor ' })).toBe('monitor');
-    expect(rolDeClaims({ rol: 'operador' })).toBe('operador');
-    expect(rolDeClaims({})).toBe('operador');
-    expect(rolDeClaims(null)).toBe('operador');
   });
 });

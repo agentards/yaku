@@ -11,7 +11,3 @@ results/qr-png
 CREDITOS.local.md
 .vercel/
 *.local.md
-
-# Clerk y demás claves locales (VITE_CLERK_PUBLISHABLE_KEY va aquí)
-.env.local
-!.env.example
