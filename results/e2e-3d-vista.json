@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-17T23:34:30.544Z",
+  "fecha": "2026-10-18T00:27:21.277Z",
   "checks": [
     {
       "name": "con red: / abre en 2D plano y guarda el DEM",
@@ -23,7 +23,7 @@
         "desdeCache": true,
         "msg": ""
       },
-      "ms": 4830
+      "ms": 4773
     },
     {
       "name": "sin red: color por altitud, sombreado y cielo con bruma",
@@ -56,11 +56,11 @@
     }
   ],
   "fps3D": {
-    "fps": 126.5,
-    "cuadros": 380,
-    "ms": 3003,
-    "p95ms": 10.6,
-    "peorMs": 17.9
+    "fps": 128.8,
+    "cuadros": 387,
+    "ms": 3005,
+    "p95ms": 12.4,
+    "peorMs": 19
   },
   "gpu": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)"
 }

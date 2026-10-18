@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-17T23:35:55.145Z",
+  "fecha": "2026-10-18T00:27:47.886Z",
   "viewport": "desktop",
   "checks": [
     {
@@ -28,7 +28,7 @@
       "red": "EN LÍNEA",
       "graficos": 3,
       "okFicha": true,
-      "ms": 8928
+      "ms": 8011
     },
     {
       "name": "(p2) capas: la casilla apaga la capa y el deslizador escala su opacidad de diseño",
@@ -58,7 +58,7 @@
     {
       "name": "(p6) relevo SIMULADO: arcos dibujados y aviso etiquetado SIMULADO / NO VERIFICADO",
       "ok": true,
-      "pixelesArco": 6928,
+      "pixelesArco": 8179,
       "toast": "SIMULADO · ficha pasó por QR de Tel. A a Tel. B (NO VERIFICADO)"
     },
     {
@@ -86,16 +86,16 @@
   ],
   "medidas": {
     "fpsPortal": {
-      "paginaFps": 75.4,
-      "escenaRenders": 75.4,
-      "miniRenders": 27.6,
-      "peorCuadroMs": 28
+      "paginaFps": 130.4,
+      "escenaRenders": 130.4,
+      "miniRenders": 30,
+      "peorCuadroMs": 21
     },
     "fpsRelevo": {
-      "paginaFps": 96,
-      "escenaRenders": 10,
+      "paginaFps": 129.7,
+      "escenaRenders": 4,
       "miniRenders": 0,
-      "peorCuadroMs": 35
+      "peorCuadroMs": 70
     },
     "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000468B) Direct3D11 vs_5_0 ps_5_0, D3D11)"
   }

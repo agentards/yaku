@@ -1,0 +1,106 @@
+{
+  "fecha": "2026-10-18T00:26:08.114Z",
+  "checks": [
+    {
+      "name": "título «Municipalidad · reportes de campo» y sin la palabra COE en pantalla",
+      "ok": true
+    },
+    {
+      "name": "al iniciar ignora los reportes existentes (2), sin tarjeta ni lista",
+      "ok": true,
+      "previos": 2
+    },
+    {
+      "name": "mapa 3D de Piura con relieve y capas reales (CENEPRED, SENAMHI, reportes)",
+      "ok": true,
+      "capas": {
+        "terreno": true,
+        "cenepred": true,
+        "senamhi": true,
+        "citizen": true
+      }
+    },
+    {
+      "name": "botón de sonido se activa con un clic",
+      "ok": true,
+      "sonido": "true"
+    },
+    {
+      "name": "detecta el reporte nuevo en ≤ 1 ciclo de consulta (3 s + margen)",
+      "ok": true,
+      "msDeteccion": 253
+    },
+    {
+      "name": "tarjeta: tipo, severidad, hora, NO VERIFICADO y «llegó hace N s»",
+      "ok": true,
+      "tarjeta": "NO VERIFICADO llegó hace 0 s × Huaico / flujo de lodo Severidad 3 de 3 (la marca quien reporta) Hora del reporte 07:25 p. m. reloj del celular Llegó al servidor 07:26:14 p. m. Ubicación -4.63860, -79.71420 «SIMULADO e2e:"
+    },
+    {
+      "name": "aviso sonoro disparado una vez",
+      "ok": true,
+      "avisos": 1
+    },
+    {
+      "name": "marcador pulsante en el mapa",
+      "ok": true
+    },
+    {
+      "name": "la cámara vuela hasta el reporte y queda en órbita lenta",
+      "ok": true,
+      "fase": "orbita",
+      "dLon": 0,
+      "dLat": 1.7763568394002505e-14,
+      "zoom": 11.6,
+      "pitch": 64
+    },
+    {
+      "name": "columna: más nuevo arriba y contador en 2",
+      "ok": true,
+      "ids": [
+        "nuevo000002",
+        "nuevo000001"
+      ],
+      "n": "2"
+    },
+    {
+      "name": "dos reportes nuevos = dos avisos",
+      "ok": true
+    },
+    {
+      "name": "«Visto» marca localmente, rotulado demo, sin llamar al servidor",
+      "ok": true,
+      "sinver": "1",
+      "rotulo": "✓ Visto demo"
+    },
+    {
+      "name": "consulta GET /api/reports cada 3 s (3 ± 1 en 9 s)",
+      "ok": true,
+      "consultas9s": 3
+    },
+    {
+      "name": "error del servidor visible y recuperación sin duplicar",
+      "ok": true,
+      "eErr": "error",
+      "eOk": "ok"
+    },
+    {
+      "name": "solo lectura: todas las peticiones a /api fueron GET a /api/reports",
+      "ok": true,
+      "total": 11,
+      "otras": []
+    },
+    {
+      "name": "cero peticiones a CDN o servicios externos",
+      "ok": true,
+      "externas": []
+    },
+    {
+      "name": "/ sigue en 2D sin la pantalla de la municipalidad",
+      "ok": true
+    }
+  ],
+  "fps": {
+    "cuadros": 225,
+    "fps": 75
+  }
+}
