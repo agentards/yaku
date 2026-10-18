@@ -10,6 +10,17 @@ npm run test:servidor     # 61 tests (los 7 de §3, respaldo, prioridad, estados
 # en un puerto libre y con PIN fijo:
 PORT=8790 MUNI_PIN=1234 node servidor-local/servidor.ts
 ```
+## Rutas (src/rutas.ts, también en server/worker.ts y en vite dev/preview)
+| URL | Qué sirve |
+|---|---|
+| `/` | Landing (`dist/index.html`) |
+| `/reportar` | `app.html`, modo poblador (vecino). Es el `start_url` de la PWA instalada |
+| `/municipalidad` | `app.html`, Centro de monitoreo (nombre + PIN). `?vista=portal` abre la pestaña Escenario |
+| `/app` | `app.html`, app técnica 2D (`?vista=3d`, `?vista=portal-relevo` siguen valiendo) |
+| `/?vista=…` (enlaces viejos) | **302** a la ruta nueva: `poblador`→`/reportar`, `municipalidad`/`incidentes`→`/municipalidad`, `portal`→`/municipalidad?vista=portal`, `2d`→`/app`, otra→`/app?vista=…`. Conserva los demás parámetros |
+| `/reportar/` (barra final) | 302 a `/reportar` |
+| Ruta desconocida sin extensión | La landing con **404** |
+
 Si no defines `MUNI_PIN`, la consola muestra un **PIN temporal** al arrancar. Datos en `servidor-local/datos/` (gitignored: `yaku.db` y `fotos/`). En esta laptop el 8080 lo ocupa `AgentService.exe` de Windows: usa `PORT=8787` u otro libre.
 
 | Variable | Por defecto | Para qué |
@@ -51,7 +62,7 @@ Lo protegido: `GET /api/incidentes`, `GET /api/fotos/:id` (fotos de casas: dato 
 `Dockerfile` (raíz, multi-etapa: compila la PWA y empaqueta el servidor; runtime `node:24-alpine` sin `node_modules`, usuario sin privilegios, healthcheck en `/salud`) y `docker-compose.yml`: la app **no publica puertos** (solo `expose: 8080` + labels de Traefik con el host en `YAKU_HOST`). Datos en el volumen `yaku-datos` → `/datos` (base SQLite y fotos): sobrevive a reinicios y a `--build`.
 ```bash
 git clone https://github.com/agentards/yaku && cd yaku && git checkout feat/poblador-municipio
-cp yaku.env.ejemplo .env          # completar MUNI_PIN, YAKU_HOST (DNS al VPS) y ACME_EMAIL
+cp yaku.env.ejemplo .env          # completar MUNI_PIN, ACME_EMAIL; YAKU_HOST=yaku.lat por defecto
 # A) el VPS ya tiene Traefik (Easypanel, Dokploy, Coolify o uno propio en la red «traefik»):
 docker compose up -d --build
 # B) VPS limpio: el perfil «traefik» levanta también Traefik v3 con HTTPS de Let's Encrypt (publica 80 y 443)
@@ -60,4 +71,5 @@ docker compose logs -f yaku        # «Yaku servidor local en http://localhost:8
 ```
 Respaldo: `docker run --rm -v yaku_yaku-datos:/datos -v "$PWD":/r alpine tar czf /r/yaku-datos.tgz -C /datos .` (el prefijo del volumen es el nombre de la carpeta).
 Los celulares necesitan **HTTPS** para la cámara y el modo sin conexión: por eso el dominio con certificado.
+**Dominio yaku.lat**: DNS con registros **A** de `yaku.lat` y `www.yaku.lat` a la IP del VPS (lo hace Jorge). El router `yaku-www` de `docker-compose.yml` pide su propio certificado y redirige `www.yaku.lat/...` → `https://yaku.lat/...` (301, middleware `redirectregex` de Traefik). Comprobar tras el despliegue: `curl -sI https://www.yaku.lat/reportar` → `301` con `location: https://yaku.lat/reportar`; `curl -sI "https://yaku.lat/?vista=poblador"` → `302` a `/reportar`.
 **No probado en este equipo** (Docker Desktop apagado y disco C: casi lleno): sí se validó `docker compose config` en ambos modos y el paquete `salida/servidor.mjs` (el mismo que corre la imagen) contra el `dist/` real. Tamaño esperado ≈ 180 MB, sin medir.

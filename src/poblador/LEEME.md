@@ -1,6 +1,6 @@
-# Modo poblador (WP2) — `?vista=poblador` y por defecto en celular
+# Modo poblador (WP2) — `/reportar` (y `?vista=poblador`)
 
-Pantalla simple para el vecino, con una mano, en el mismo PWA. La municipalidad usa `?vista=municipalidad` (monitor 3D en vivo) y `?vista=incidentes` (operador: incidentes, respaldo y acciones con PIN, WP3); el servidor es `servidor-local/` (WP1).
+Pantalla simple para el vecino, con una mano, en el mismo PWA. La municipalidad usa `/municipalidad` (Centro de monitoreo: monitor 3D en vivo, incidentes, respaldo y acciones con PIN, WP3); la landing es `/`; el servidor es `servidor-local/` (WP1).
 
 ## Qué hace
 | Pantalla | Qué ve el vecino |
@@ -37,10 +37,10 @@ Si la foto la toma A (que no recupera internet), la foto no viaja por QR y el pa
 ## Cómo verlo en local
 ```bash
 npm run servidor                      # build + servidor-local en http://localhost:8080 (MUNI_PIN en consola)
-# celular: http://localhost:8080/  (por defecto en pantalla táctil ≤ 760 px)
-# escritorio: http://localhost:8080/?vista=poblador   · app técnica: ?vista=2d   · municipalidad: ?vista=municipalidad · operador: ?vista=incidentes
+# vecino: http://localhost:8080/reportar   (también lo abre la PWA instalada: start_url)
+# landing: /   · municipalidad y operador: /municipalidad   · app técnica: /app   (los /?vista=… viejos redirigen)
 ```
-La cámara del celular necesita HTTPS (ngrok, WP4). En navegadores automatizados (`navigator.webdriver`) no se activa por defecto, para que las E2E de la vista técnica no cambien.
+La cámara del celular necesita HTTPS (ngrok, WP4). Tabla de rutas y redirecciones: `src/rutas.ts`.
 
 ## Pruebas
 - `npx vitest run tests/poblador.test.ts`: tipos ↔ codec, estado de vuelta, código YE1, vecinos que coinciden, ruta, compresión, textos.
