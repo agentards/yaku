@@ -1,5 +1,5 @@
 // Acceso al Centro de monitoreo con nombre + PIN municipal (MUNI_PIN del servidor). Contrato fijo del plan
-// (agentards/producto/plan-centro-monitoreo.md): Sesion + exigirSesion. Este módulo se carga con import dinámico desde
+// (el plan del Centro de monitoreo): Sesion + exigirSesion. Este módulo se carga con import dinámico desde
 // main.ts: el poblador y la vista 2D no lo descargan. El servidor es quien valida de verdad (X-Muni-Pin en cada
 // lectura o escritura protegida); esta pantalla solo ordena la entrada. El PIN vive solo en memoria de esta pestaña.
 import './acceso.css';
@@ -42,6 +42,7 @@ export async function entrarConPin(datos: { nombre: string; pin: string }, opc: 
       new Promise<never>((_, mal) => corte.signal.addEventListener('abort', () => mal(new Error('tiempo agotado')))),
     ]);
     if (r.status === 401 || r.status === 403) return { ok: false, error: 'PIN incorrecto. Pídelo al responsable del centro de monitoreo.' };
+    if (r.status === 429) return { ok: false, error: 'Demasiados intentos con PIN incorrecto desde esta conexión. Espera unos minutos y vuelve a intentar.' };
   } catch { /* sin servidor: el servidor valida en cada acción */ } finally { clearTimeout(t); }
   return { ok: true, sesion: sesionPin(nombre, pin, opc.alSalir) };
 }

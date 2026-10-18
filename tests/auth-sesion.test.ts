@@ -26,6 +26,11 @@ describe('acceso con PIN', () => {
     }
   });
 
+  it('429 del servidor → espera, sin sesión', async () => {
+    const r = await entrarConPin({ nombre: 'Rosa', pin: '1' }, { pedir: async () => ({ status: 429 }) });
+    expect(r).toEqual({ ok: false, error: expect.stringMatching(/Espera unos minutos/) });
+  });
+
   it('sin servidor (red caída) abre la sesión: el servidor valida en cada acción', async () => {
     const r = await entrarConPin({ nombre: 'Rosa', pin: '1' }, { pedir: async () => { throw new TypeError('Failed to fetch'); } });
     expect(r.ok).toBe(true);

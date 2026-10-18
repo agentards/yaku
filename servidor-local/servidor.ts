@@ -9,11 +9,29 @@ import http from 'node:http';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Almacen } from './almacen.ts';
-import { crearApi } from './api.ts';
+import { CABECERA_IP, crearApi } from './api.ts';
 import { servirEstatico } from './estaticos.ts';
 import { conCambios, REGLAS } from './reglas.ts';
 
 const MAX_LECTURA = 640 * 1024; // foto de 400 KB en base64 + JSON
+
+// Cabeceras de seguridad para todo (la PWA y la API). HSTS solo cuenta cuando se sirve por HTTPS (Traefik).
+const SEGURIDAD: Record<string, string> = {
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'x-frame-options': 'DENY',
+  'strict-transport-security': 'max-age=31536000',
+  'cross-origin-opener-policy': 'same-origin',
+};
+
+const PRIVADA = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1$|f[cd][0-9a-f]{2}:|::ffff:(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.))/i;
+/** IP del cliente. Si quien conecta es una red privada (Traefik u otro proxy en Docker), se usa el último salto de
+ *  X-Forwarded-For, que agrega ese proxy; si conecta directo desde internet, se ignora lo que mande el cliente. */
+function ipCliente(req: http.IncomingMessage): string {
+  const par = req.socket.remoteAddress ?? '';
+  const xff = String(req.headers['x-forwarded-for'] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  return PRIVADA.test(par) && xff.length ? xff[xff.length - 1] : par || 'desconocida';
+}
 
 export interface Opciones {
   puerto?: number; host?: string; dist?: string; datos?: string; pin?: string; reglas?: unknown; silencioso?: boolean;
@@ -25,6 +43,7 @@ export function iniciar(o: Opciones = {}) {
   const datos = path.resolve(o.datos ?? env.YAKU_DATOS ?? 'servidor-local/datos');
   fs.mkdirSync(datos, { recursive: true });
   let pin = o.pin ?? env.MUNI_PIN ?? '';
+  if (!o.pin && env.NODE_ENV === 'production' && pin.length < 8) throw new Error('MUNI_PIN es obligatorio en producción y debe tener al menos 8 caracteres');
   const pinTemporal = !pin;
   if (pinTemporal) pin = String(randomInt(100000, 1000000));
   let cambios: unknown = o.reglas;
@@ -33,6 +52,7 @@ export function iniciar(o: Opciones = {}) {
   const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos') });
 
   const server = http.createServer(async (req, res) => {
+    for (const [k, v] of Object.entries(SEGURIDAD)) res.setHeader(k, v);
     const pathname = (req.url ?? '/').split('?')[0];
     if (!pathname.startsWith('/api/')) {
       if (pathname === '/salud') { res.writeHead(200, { 'content-type': 'text/plain' }).end('ok'); return; }
@@ -48,6 +68,7 @@ export function iniciar(o: Opciones = {}) {
       }
       const headers = new Headers();
       for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v); else if (Array.isArray(v)) headers.set(k, v.join(', '));
+      headers.set(CABECERA_IP, ipCliente(req));
       const conCuerpo = req.method !== 'GET' && req.method !== 'HEAD';
       const r = await api(new Request(`http://${req.headers.host ?? 'local'}${req.url}`, { method: req.method, headers, body: conCuerpo ? Buffer.concat(chunks) : undefined }));
       const h: Record<string, string> = {};
@@ -56,7 +77,8 @@ export function iniciar(o: Opciones = {}) {
       res.end(req.method === 'HEAD' ? undefined : Buffer.from(await r.arrayBuffer()));
     } catch (e) {
       if (!res.headersSent) res.writeHead(500, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ error: String((e as Error).message) }));
+      console.error('error en', req.method, pathname, e);
+      res.end(JSON.stringify({ error: 'error interno del servidor' }));
     }
   });
 

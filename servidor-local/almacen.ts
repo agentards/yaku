@@ -165,6 +165,15 @@ export class Almacen {
     return Number(this.db.prepare('INSERT OR IGNORE INTO fotos (id,report_id,mime,bytes,received_at) VALUES (?,?,?,?,?)').run(f.id, f.report_id, f.mime, f.bytes, f.received_at).changes) > 0;
   }
 
+  /** Fotos ya guardadas de un reporte y totales (cuotas de subida). */
+  fotosDeReporte(reportId: string): number {
+    return Number((this.db.prepare('SELECT COUNT(*) AS n FROM fotos WHERE report_id = ?').get(reportId) as { n: number }).n);
+  }
+  totalFotos(): { n: number; bytes: number } {
+    const r = this.db.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(bytes), 0) AS bytes FROM fotos').get() as { n: number; bytes: number };
+    return { n: Number(r.n), bytes: Number(r.bytes) };
+  }
+
   foto(id: string): FilaFoto | null {
     return (this.db.prepare('SELECT * FROM fotos WHERE id = ?').get(id) as unknown as FilaFoto | undefined) ?? null;
   }

@@ -8,8 +8,9 @@ import type { Almacen } from './almacen.ts';
 import { validarCambio } from './estados.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
-const JSONH = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'no-store' };
-const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: JSONH });
+// Mismo origen que la PWA: sin CORS abierto. nosniff también en las respuestas JSON.
+const JSONH = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
+const json = (o: unknown, status = 200, extra: Record<string, string> = {}) => new Response(JSON.stringify(o), { status, headers: { ...JSONH, ...extra } });
 export const MAX_BODY = 128 * 1024, MAX_RECORDS = 200;
 export const MAX_FOTO = 400 * 1024;
 const ID_REP = /^[0-9a-z]{11}$/, ID_FOTO = /^[0-9a-f]{20}$/, ID_INC = /^inc-[0-9a-z]{11}(-[0-9a-z]{1,8})?$/;
@@ -37,7 +38,16 @@ export function tipoImagen(b: Uint8Array): { mime: string; ext: string } | null 
 
 export interface OpcionesApi {
   almacen: Almacen; pin: string; fotosDir: string; ahora?: () => number;
+  /** Bloqueo por PIN incorrecto: tras `max` fallos dentro de `ventanaMs`, esa IP espera `bloqueoMs` (429). */
+  intentosPin?: { max: number; ventanaMs: number; bloqueoMs: number };
+  /** Escrituras públicas (POST /api/sync y /api/fotos) por IP y minuto. */
+  postsPorMinuto?: number;
+  /** Cuotas de fotos: por reporte y en total (bytes). */
+  fotosPorReporte?: number; fotosMaxBytes?: number;
 }
+/** IP del cliente: la pone servidor.ts en esta cabecera (pisa cualquier valor que mande el cliente). */
+export const CABECERA_IP = 'x-yaku-ip';
+const ipDe = (req: Request) => req.headers.get(CABECERA_IP) || 'desconocida';
 /** Quién hizo la petición protegida (hoy siempre el PIN municipal). */
 export interface Acceso { modo: 'pin'; usuario: string; rol: 'operador' }
 export const MAX_HISTORICO = 5000;
@@ -50,11 +60,38 @@ export function crearApi(op: OpcionesApi) {
 
   const pinOk = (p: string) => timingSafeEqual(createHash('sha256').update(p).digest(), pinHash);
 
-  /** Acceso si el PIN municipal vale; si no, la respuesta 401 (falta) o 403 (incorrecto). */
-  const autenticar = async (req: Request, _escribe: boolean): Promise<Acceso | Response> => {
+  // ---- límites por IP (en memoria: se reinician con el proceso) ----
+  const LIM = { max: 5, ventanaMs: 15 * 60_000, bloqueoMs: 15 * 60_000, ...op.intentosPin };
+  const fallos = new Map<string, { n: number; desde: number; hasta: number }>();
+  const POSTS_MIN = op.postsPorMinuto ?? 120;
+  const posts = new Map<string, { n: number; desde: number }>();
+  const podar = <V>(m: Map<string, V>, vencido: (v: V) => boolean) => { if (m.size > 5000) for (const [k, v] of m) if (vencido(v)) m.delete(k); };
+  const esperar = (ms: number, error: string) => json({ error, codigo: 'limite' }, 429, { 'retry-after': String(Math.ceil(ms / 1000)) });
+
+  /** Acceso si el PIN municipal vale; si no, 401 (falta), 403 (incorrecto) o 429 (demasiados intentos desde esa IP). */
+  const autenticar = async (req: Request): Promise<Acceso | Response> => {
+    const ip = ipDe(req), t = ahora();
+    const f = fallos.get(ip);
+    if (f && f.hasta > t) return esperar(f.hasta - t, 'demasiados intentos con PIN incorrecto: espera unos minutos');
     const p = req.headers.get('x-muni-pin');
     if (!p) return json({ error: 'falta el PIN municipal (cabecera X-Muni-Pin)', codigo: 'sin_credencial' }, 401);
-    return pinOk(p) ? { modo: 'pin', usuario: 'pin', rol: 'operador' } : json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
+    if (pinOk(p)) { fallos.delete(ip); return { modo: 'pin', usuario: 'pin', rol: 'operador' }; }
+    const g = f && t - f.desde <= LIM.ventanaMs ? f : { n: 0, desde: t, hasta: 0 };
+    g.n++;
+    if (g.n >= LIM.max) { g.hasta = t + LIM.bloqueoMs; console.warn(`PIN incorrecto ${g.n} veces desde ${ip}: bloqueada ${Math.round(LIM.bloqueoMs / 60_000)} min`); }
+    fallos.set(ip, g);
+    podar(fallos, (v) => v.hasta <= t && t - v.desde > LIM.ventanaMs);
+    return json({ error: 'PIN incorrecto', codigo: 'pin' }, 403);
+  };
+  /** null si la IP aún puede escribir en lo público; si no, 429. */
+  const limitePost = (req: Request): Response | null => {
+    const ip = ipDe(req), t = ahora();
+    const c = posts.get(ip);
+    const v = c && t - c.desde < 60_000 ? c : { n: 0, desde: t };
+    v.n++;
+    posts.set(ip, v);
+    podar(posts, (x) => t - x.desde >= 60_000);
+    return v.n > POSTS_MIN ? esperar(60_000 - (t - v.desde), 'demasiadas peticiones: espera un minuto') : null;
   };
   const leerJson = async (req: Request, max: number): Promise<any | Response> => {
     const text = await req.text();
@@ -96,6 +133,10 @@ export function crearApi(op: OpcionesApi) {
     if (!tipo) return json({ error: 'solo JPEG, PNG o WebP' }, 415);
     // id = hash del contenido: subir la misma foto dos veces no la duplica.
     const id = createHash('sha256').update(bytes).digest('hex').slice(0, 20);
+    if (!A.foto(id)) {
+      if (A.fotosDeReporte(reportId) >= (op.fotosPorReporte ?? 3)) return json({ error: 'ese reporte ya tiene el máximo de fotos' }, 409);
+      if (A.totalFotos().bytes + bytes.length > (op.fotosMaxBytes ?? 2 * 1024 ** 3)) return json({ error: 'el servidor alcanzó su cuota de fotos' }, 507);
+    }
     const archivo = path.join(op.fotosDir, `${id}.${tipo.ext}`);
     if (!fs.existsSync(archivo)) fs.writeFileSync(archivo, bytes);
     const nueva = A.guardarFoto({ id, report_id: reportId, mime: tipo.mime, bytes: bytes.length, received_at: ahora() });
@@ -108,11 +149,11 @@ export function crearApi(op: OpcionesApi) {
     const ext = f.mime === 'image/png' ? 'png' : f.mime === 'image/webp' ? 'webp' : 'jpg';
     const archivo = path.join(op.fotosDir, `${f.id}.${ext}`);
     if (!fs.existsSync(archivo)) return json({ error: 'archivo de foto ausente en el volumen' }, 410);
-    return new Response(fs.readFileSync(archivo), { headers: { 'content-type': f.mime, 'cache-control': 'public, max-age=31536000, immutable', 'x-content-type-options': 'nosniff', 'access-control-allow-origin': '*' } });
+    return new Response(fs.readFileSync(archivo), { headers: { 'content-type': f.mime, 'cache-control': 'private, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' } });
   }
 
   async function cambiarEstado(req: Request, id: string) {
-    const acc = await autenticar(req, true);
+    const acc = await autenticar(req);
     if (acc instanceof Response) return acc;
     const body = await leerJson(req, 4096);
     if (body instanceof Response) return body;
@@ -127,7 +168,7 @@ export function crearApi(op: OpcionesApi) {
   }
 
   async function unir(req: Request, id: string) {
-    const acc = await autenticar(req, true);
+    const acc = await autenticar(req);
     if (acc instanceof Response) return acc;
     const body = await leerJson(req, 4096);
     if (body instanceof Response) return body;
@@ -140,7 +181,7 @@ export function crearApi(op: OpcionesApi) {
   }
 
   async function separar(req: Request, id: string) {
-    const acc = await autenticar(req, true);
+    const acc = await autenticar(req);
     if (acc instanceof Response) return acc;
     const body = await leerJson(req, 8192);
     if (body instanceof Response) return body;
@@ -157,8 +198,9 @@ export function crearApi(op: OpcionesApi) {
   return async function api(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const p = url.pathname;
-    if (req.method === 'OPTIONS') return new Response(null, { headers: { ...JSONH, 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-muni-pin, authorization' } });
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204 }); // mismo origen: no hay CORS que negociar
     try {
+      if (req.method === 'POST' && (p === '/api/sync' || p === '/api/fotos')) { const lim = limitePost(req); if (lim) return lim; }
       if (p === '/api/sync' && req.method === 'POST') return await sync(req);
       if (p === '/api/stats' && req.method === 'GET') {
         const { lista } = incidentes();
@@ -171,6 +213,9 @@ export function crearApi(op: OpcionesApi) {
           const rows = A.reportesPorId(list);
           return json({ count: rows.length, reports: rows });
         }
+        // El histórico tiene ubicación exacta y nota de cada vecino: solo para la municipalidad (PIN).
+        const acc = await autenticar(req);
+        if (acc instanceof Response) return acc;
         const desde = url.searchParams.get('desde');
         if (desde !== null) {
           // Histórico para la línea de tiempo: received_at ≥ desde (ms), del más antiguo al más nuevo.
@@ -178,17 +223,17 @@ export function crearApi(op: OpcionesApi) {
           if (desde === '' || !Number.isFinite(d) || d < 0) return json({ error: 'desde: milisegundos desde 1970 (número ≥ 0)' }, 400);
           const lim = Math.min(MAX_HISTORICO, Math.max(1, Math.floor(Number(url.searchParams.get('limit') || 1000)) || 1000));
           const rows = A.reportesDesde(d, lim);
-          return json({ count: rows.length, reports: rows, desde: d, hasta: rows.at(-1)?.received_at ?? null, truncado: rows.length === lim, note: 'Reportes ciudadanos NO VERIFICADOS' });
+          return json({ count: rows.length, reports: rows, desde: d, hasta: rows.at(-1)?.received_at ?? null, truncado: rows.length === lim, note: 'Reportes vecinales por validar' });
         }
         const limit = Math.min(200, Math.max(1, +(url.searchParams.get('limit') || 50)));
         const rows = A.ultimosReportes(limit);
-        return json({ count: rows.length, reports: rows, note: 'Reportes ciudadanos NO VERIFICADOS' });
+        return json({ count: rows.length, reports: rows, note: 'Reportes vecinales por validar' });
       }
       if (p === '/api/incidentes' && req.method === 'GET') {
-        const acc = await autenticar(req, false);
+        const acc = await autenticar(req);
         if (acc instanceof Response) return acc;
         const { lista } = incidentes();
-        return json({ count: lista.length, incidentes: lista, generado: ahora(), reglas: 'agentards/producto/decision-confianza.md (17-oct-2026)', nota: 'Reporte vecinal · por validar: lo valida la municipalidad' });
+        return json({ count: lista.length, incidentes: lista, generado: ahora(), reglas: 'la decisión de producto «confianza» (17-oct-2026)', nota: 'Reporte vecinal · por validar: lo valida la municipalidad' });
       }
       if (p === '/api/estado' && req.method === 'GET') {
         const ids = (url.searchParams.get('ids') ?? '').split(',').filter((x) => ID_REP.test(x)).slice(0, 200);
@@ -198,7 +243,7 @@ export function crearApi(op: OpcionesApi) {
       if (p === '/api/fotos' && req.method === 'POST') return await subirFoto(req, url);
       const mf = /^\/api\/fotos\/([^/]+)$/.exec(p);
       if (mf && (req.method === 'GET' || req.method === 'HEAD')) {
-        const acc = await autenticar(req, false);
+        const acc = await autenticar(req);
         return acc instanceof Response ? acc : verFoto(mf[1]);
       }
       const mi = /^\/api\/incidentes\/([^/]+)\/(estado|unir|separar)$/.exec(p);
@@ -209,7 +254,8 @@ export function crearApi(op: OpcionesApi) {
       }
       return json({ error: 'no encontrado' }, 404);
     } catch (e) {
-      return json({ error: String((e as Error).message) }, 500);
+      console.error('error en', req.method, p, e);
+      return json({ error: 'error interno del servidor' }, 500);
     }
   };
 }
