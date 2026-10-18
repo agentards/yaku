@@ -1,23 +1,13 @@
 // Textos y reglas de producto de la pantalla de la municipalidad, en un solo lugar.
 // Fuente: agentards/producto/decision-confianza.md (17-oct-2026) §1 rótulo y textos, §2 respaldo y prioridad, §3 agrupación.
-// La decisión pide importar los textos de src/poblador/textos.ts (WP2); mientras ese archivo no los publique,
-// viven aquí con los mismos nombres (ROTULO_VECINAL, DETALLE, ESTADO, PIE_LEGAL) para cambiarlos por un import.
+// Rótulo, detalle por nivel, acciones y pie legal vienen de src/poblador/textos.ts (fuente única que piden la
+// decisión y WP2); aquí solo lo propio del panel: chip por estado, respaldo con número, familias y fórmula.
 import { OBS_LABELS } from '../../codec';
+import { ACCION_TXT, DETALLE, PIE_LEGAL, ROTULO_VECINAL, type Accion, type Nivel } from '../../poblador/textos';
+export { ACCION_TXT, DETALLE, PIE_LEGAL, ROTULO_VECINAL, type Accion, type Nivel };
 
-/** §1: reemplaza «NO VERIFICADO». Mismo chip en N1, N2 y N3: ningún nivel vecinal se ve más oficial que otro. */
-export const ROTULO_VECINAL = 'Reporte vecinal · por validar';
-export const PIE_LEGAL = 'Es un reporte de vecinos, no una alerta oficial. Para alertas, sigue a SENAMHI e INDECI. Personas atrapadas o heridas: 116 (bomberos) o 105 (policía).';
-
-export type Nivel = 'N1' | 'N2' | 'N3';
 export const NIVELES = { n2: 45, n3: 80 };
 export const nivelDe = (n: number): Nivel => (n >= NIVELES.n3 ? 'N3' : n >= NIVELES.n2 ? 'N2' : 'N1');
-const fotosTxt = (f: number) => `${f} foto${f === 1 ? '' : 's'}`;
-/** «Coinciden», no «confirman»: «confirmado» suena a validación. */
-export const DETALLE: Record<Nivel, (n: number, f: number) => string> = {
-  N1: (n, f) => (n > 1 ? `${n} vecinos lo reportan` + (f ? ` · ${fotosTxt(f)}` : '') : f ? `1 vecino · ${fotosTxt(f)}` : '1 vecino lo reporta'),
-  N2: (n, f) => `${n} ${n === 1 ? 'vecino lo reporta' : 'vecinos lo reportan'}` + (f ? ` · ${fotosTxt(f)}` : ''),
-  N3: (n, f) => `${n} vecinos coinciden · ${fotosTxt(f)} · cerca uno del otro`,
-};
 export const vecinos = (n: number) => `${n} ${n === 1 ? 'vecino' : 'vecinos'}`;
 export const respaldoTxt = (n: number, nivel: Nivel = nivelDe(n)) => `Respaldo ${Math.round(n)} · ${nivel}`;
 
@@ -35,12 +25,7 @@ export const tipoTxt = (t: string) => TIPOS[t] ?? 'Otro';
 export const RIESGO_VIDA = ['atrapados', 'heridos'];
 
 export type Estado = 'nuevo' | 'en_revision' | 'validado' | 'descartado' | 'accion_asignada' | 'atendido';
-export type Accion = 'rescate' | 'bomberos' | 'provisiones' | 'maquinaria' | 'edan';
 export const ACCIONES: Record<Accion, string> = { rescate: 'Rescate', bomberos: 'Bomberos', provisiones: 'Provisiones', maquinaria: 'Maquinaria', edan: 'Evaluación EDAN' };
-// «asignado», no «en camino» (igual que src/poblador/textos.ts): Yaku solo sabe que la municipalidad asignó la acción.
-export const ACCION_TXT: Record<Accion, string> = {
-  rescate: 'Rescate asignado', bomberos: 'Bomberos asignados', provisiones: 'Provisiones asignadas', maquinaria: 'Maquinaria asignada', edan: 'Evaluación EDAN asignada',
-};
 /** §1: chip de estado. Sin estado municipal, el chip es el rótulo vecinal. Solo validado/acción/atendido van en verde. */
 export const ESTADO: Record<Estado, string> = {
   nuevo: ROTULO_VECINAL,
