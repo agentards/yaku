@@ -16,7 +16,8 @@
     "e2e:3d-vista": "vite build && node scripts/e2e-3d-vista.mjs",
     "screens": "node scripts/screens.mjs",
     "build:worker": "node scripts/build-worker.mjs",
-    "e2e:portal": "vite build && node scripts/e2e-portal.mjs"
+    "e2e:portal": "vite build && node scripts/e2e-portal.mjs",
+    "e2e:municipalidad": "vite build && node scripts/e2e-municipalidad.mjs"
   },
   "keywords": [],
   "author": "",
