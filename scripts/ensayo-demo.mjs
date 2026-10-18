@@ -75,7 +75,7 @@ async function celular(gps) {
   await ctx.addInitScript(camaraSimulada);
   const p = await ctx.newPage();
   vigilar(p);
-  await p.goto(BASE + '?vista=poblador');
+  await p.goto(BASE + 'reportar');
   await p.waitForFunction(() => document.querySelector('.pb')?.dataset.listo === '1', null, { timeout: 30000 });
   await p.click('#pb-consent-ok');
   return { ctx, p };
@@ -111,7 +111,7 @@ try {
   const cM = await browser.newContext({ viewport: { width: 1920, height: 1080 }, locale: 'es-PE', timezoneId: 'America/Lima', serviceWorkers: 'block' });
   const M = await cM.newPage();
   vigilar(M);
-  await M.goto(BASE + '?vista=incidentes');
+  await M.goto(BASE + 'municipalidad');
   await accederConPin(M, { pin: PIN }); // Centro de monitoreo: acceso con nombre + PIN
   await M.waitForFunction(() => window.__yakuMonitoreo?.estado().sembrado, null, { timeout: 30000 });
   // Procedencia: ¿la pantalla municipal dice fuente y fecha de las capas? (se informa; no detiene el ensayo)

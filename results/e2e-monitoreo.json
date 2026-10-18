@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-18T02:46:08.910Z",
+  "fecha": "2026-10-18T03:13:35.575Z",
   "servidor": "servidor-local (SQLite temporal, modo PIN)",
   "checks": [
     {
@@ -18,14 +18,14 @@
     {
       "name": "cabecera: «Yaku 3D · Centro de monitoreo», chip del escenario, «En vivo · consulta cada 3 s», pestañas Incidentes · Campo · Escenario, Vista 2D",
       "ok": true,
-      "cab": "Yaku 3D · Centro de monitoreo Piura · Aviso 421 / FEN 2027 Fuente: CENEPRED/SIGRID 23077 · 16/10/2026 En vivo · consulta cada 3 s · 21:46:13 Incidentes 1 Campo Escenario Activar sonido PIN · Operador SIMULADO Salir Vista 2D"
+      "cab": "Yaku 3D · Centro de monitoreo Piura · Aviso 421 / FEN 2027 Fuente: CENEPRED/SIGRID 23077 · 16/10/2026 En vivo · consulta cada 3 s · 22:13:40 Incidentes 1 Campo Escenario Activar sonido PIN · Operador SIMULADO Salir Vista 2D"
     },
     {
       "name": "histórico real: el reporte previo ya está (sin vuelo ni tarjeta) y la línea arranca en él, no en 17–19/10",
       "ok": true,
       "rango": [
-        "2026-10-18T02:36:15.612Z",
-        "2026-10-18T02:46:15.612Z"
+        "2026-10-18T03:03:42.057Z",
+        "2026-10-18T03:13:42.057Z"
       ],
       "n": 1
     },
@@ -44,7 +44,7 @@
     {
       "name": "incidente nuevo: tarjeta flotante con tipo, «Reporte vecinal · por validar», «llegó hace N s», vecinos y respaldo",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar llegó hace 2 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 21:45 Respaldo 25 · N1 1 vecino lo reporta Sin fotos todavía. En revisión Validar Descartar Es un reporte de vecinos, no una alerta oficial. Para alertas, si"
+      "tarjeta": "Reporte vecinal · por validar llegó hace 2 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 22:13 Respaldo 25 · N1 1 vecino lo reporta Sin fotos todavía. En revisión Validar Descartar Es un reporte de vecinos, no una alerta oficial. Para alertas, si"
     },
     {
       "name": "aviso sonoro (WebAudio) y marcador pulsante sobre el incidente",
@@ -64,7 +64,7 @@
       "ok": true,
       "incidentes": [
         {
-          "id": "inc-2fx7qx90ezz",
+          "id": "inc-1hh9s3lrvar",
           "tipo": "vivienda",
           "personas": 2,
           "reportes": 2,
@@ -75,7 +75,7 @@
           "abierto": true
         },
         {
-          "id": "inc-1gqecefdr77",
+          "id": "inc-266ikfv1lkg",
           "tipo": "agua",
           "personas": 1,
           "reportes": 1,
@@ -98,12 +98,12 @@
     {
       "name": "pestaña Incidentes: lista por prioridad con «2 vecinos · 0 fotos · primer reporte hh:mm», respaldo y estado",
       "ok": true,
-      "lista": "Casa dañada o caída 2 vecinos · 0 fotos · primer reporte 21:45 Reporte vecinal · por validar Respaldo 60 · N2 llegó hace 2 s Acumulación de agua 1 vecino · 0 fotos · primer reporte 21:31 Reporte vecin"
+      "lista": "Casa dañada o caída 2 vecinos · 0 fotos · primer reporte 22:13 Reporte vecinal · por validar Respaldo 60 · N2 llegó hace 2 s Acumulación de agua 1 vecino · 0 fotos · primer reporte 21:58 Reporte vecin"
     },
     {
       "name": "acción con confirmación: «Validar» dice quién y a qué hora queda registrado",
       "ok": true,
-      "conf": "Validar: Casa dañada o caída Casa dañada o caída (2 vecinos). Queda en el historial a nombre de Operador SIMULADO a las 21:46, y el vecino lo verá en su celular. Cancelar Validar"
+      "conf": "Validar: Casa dañada o caída Casa dañada o caída (2 vecinos). Queda en el historial a nombre de Operador SIMULADO a las 22:13, y el vecino lo verá en su celular. Cancelar Validar"
     },
     {
       "name": "servidor: en revisión → validado → bomberos, con quién y cuándo (cabecera X-Muni-Pin)",
@@ -118,14 +118,14 @@
       "name": "el poblador ve «Bomberos asignados» en /api/estado",
       "ok": true,
       "acuse": {
-        "id": "1so0k02q0ue",
+        "id": "1loy37zqmc9",
         "recibido": true,
-        "recibido_at": 1792291583989,
-        "incidente": "inc-2fx7qx90ezz",
+        "recibido_at": 1792293231245,
+        "incidente": "inc-1hh9s3lrvar",
         "estado": "accion_asignada",
         "accion": "bomberos",
         "motivo": "",
-        "cuando": 1792291588280,
+        "cuando": 1792293236799,
         "personas": 2
       },
       "textoPoblador": "Bomberos asignados"
@@ -134,7 +134,7 @@
       "name": "Validar + «Bomberos» persiste tras recargar",
       "ok": true,
       "i5": {
-        "id": "inc-2fx7qx90ezz",
+        "id": "inc-1hh9s3lrvar",
         "tipo": "vivienda",
         "personas": 2,
         "reportes": 2,
@@ -155,7 +155,7 @@
       "name": "cabezal entre A y B: el mapa y los contadores vuelven a ese momento (1 vecino, sin revisar)",
       "ok": true,
       "i6": {
-        "id": "inc-2fx7qx90ezz",
+        "id": "inc-1hh9s3lrvar",
         "tipo": "vivienda",
         "personas": 1,
         "reportes": 1,
@@ -175,7 +175,7 @@
     {
       "name": "en el histórico la tarjeta muestra el estado de ese momento y no deja actuar",
       "ok": true,
-      "tarjeta": "Reporte vecinal · por validar llegó hace 11 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 21:45 Respaldo 60 · N2 1 vecino lo reporta Sin fotos todavía. Estás viendo el histórico: vuelve "
+      "tarjeta": "Reporte vecinal · por validar llegó hace 18 s × Casa dañada o caída 1 vecino · 0 fotos · primer reporte 22:13 Respaldo 60 · N2 1 vecino lo reporta Sin fotos todavía. Estás viendo el histórico: vuelve "
     },
     {
       "name": "antes del primer reporte de A el incidente no existe",
@@ -220,13 +220,15 @@
       "errores": []
     },
     {
-      "name": "?vista=municipalidad es alias del Centro de monitoreo",
+      "name": "/?vista=municipalidad redirige a /municipalidad y abre el Centro de monitoreo",
       "ok": true,
+      "ruta": "/municipalidad",
       "pestana": "incidentes"
     },
     {
-      "name": "?vista=portal es alias del Centro de monitoreo",
+      "name": "/?vista=portal redirige a /municipalidad y abre el Centro de monitoreo",
       "ok": true,
+      "ruta": "/municipalidad",
       "pestana": "escenario"
     }
   ],

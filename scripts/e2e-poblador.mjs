@@ -1,4 +1,4 @@
-// E2E del modo poblador (?vista=poblador) en Android 412×915, flujo A ↔ B de la demo de 3 min:
+// E2E del modo poblador (/reportar; también ?vista=poblador) en Android 412×915, flujo A ↔ B de la demo de 3 min:
 // A y B sin red reportan (A: casa dañada + personas atrapadas con aviso 116/105; B: casa dañada a 40 m con
 // foto comprimida), «Intercambiar» en un paso con CÁMARA SIMULADA (cada cámara ve el QR que dibuja el otro
 // celular: canvas.captureStream), B recupera internet y sincroniza solo (sube la foto), la municipalidad
@@ -118,7 +118,7 @@ const servidor = {
       api.estado.set(atr.id, { estado: 'en_revision', cuando });
       return { incidentes: 2, casasEnUno: true };
     }
-    const { incidentes } = await (await fetch(BASE + 'api/incidentes')).json();
+    const { incidentes } = await (await fetch(BASE + 'api/incidentes', { headers: { 'x-muni-pin': PIN } })).json(); // protegido con PIN
     const post = async (id, body) => {
       const r = await fetch(BASE + `api/incidentes/${encodeURIComponent(id)}/estado`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-muni-pin': PIN }, body: JSON.stringify({ quien: 'Operador e2e', ...body }) });
       if (!r.ok) throw new Error(`POST estado ${r.status}: ${await r.text()}`);
@@ -147,7 +147,7 @@ async function celular(gps) {
   const p = await ctx.newPage();
   p.on('request', (r) => { const u = new URL(r.url()); if (!['localhost', '127.0.0.1'].includes(u.hostname) && !['data:', 'blob:'].includes(u.protocol)) externas.push(u.host); });
   p.on('pageerror', (e) => console.log('pageerror', e.message));
-  await p.goto(BASE + '?vista=poblador');
+  await p.goto(BASE + 'reportar');
   await p.waitForFunction(() => document.querySelector('.pb')?.dataset.listo === '1', null, { timeout: 30000 });
   return { ctx, p };
 }
@@ -306,20 +306,22 @@ try {
   await A.waitForFunction(() => window.__yakuPoblador.estado().pendientes === 0, null, { timeout: 15000 });
   check('A con red: sus reportes ya estaban (relevo) → el servidor sigue con 3, sin duplicados', (await servidor.reportes()) === rA && rA === 3, { reportes: rA });
 
-  // 10) regresiones: sin ?vista y en navegador automatizado sigue la app técnica; ?vista=2d también
+  // 10) rutas: / es la landing (no la app); /app y el enlace viejo /?vista=2d abren la app técnica
   const p2 = await cA.newPage();
-  await p2.goto(BASE); await p2.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 30000 });
+  await p2.goto(BASE); await p2.waitForFunction(() => document.body.dataset.landing === '1', null, { timeout: 30000 });
+  const landing = await p2.evaluate(() => ({ landing: true, app: !!document.querySelector('#app'), pb: !!document.querySelector('.pb') }));
+  await p2.goto(BASE + 'app'); await p2.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 30000 });
   const tecnica = await p2.evaluate(() => ({ top: !!document.querySelector('body > .top')?.offsetParent, pb: !!document.querySelector('.pb') }));
   await p2.goto(BASE + '?vista=2d'); await p2.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 30000 });
-  const tecnica2d = await p2.evaluate(() => !document.querySelector('.pb'));
-  check('Sin ?vista (E2E automatizado) y con ?vista=2d sigue la app técnica', tecnica.top && !tecnica.pb && tecnica2d, tecnica);
+  const tecnica2d = await p2.evaluate(() => !document.querySelector('.pb') && location.pathname === '/app');
+  check('/ abre la landing; /app y /?vista=2d (→ /app) abren la app técnica', !landing.app && !landing.pb && tecnica.top && !tecnica.pb && tecnica2d, { landing, tecnica, tecnica2d });
   await p2.close();
 
   // 11) escritorio también funciona (1280×800)
   const cD = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'es-PE', serviceWorkers: 'block' });
   if (!REAL) await cD.route('**/api/**', rutaApi);
   const D = await cD.newPage();
-  await D.goto(BASE + '?vista=poblador');
+  await D.goto(BASE + '?vista=poblador'); // enlace viejo: redirige a /reportar
   await D.waitForFunction(() => document.querySelector('.pb')?.dataset.listo === '1', null, { timeout: 30000 });
   await D.click('#pb-consent-ok');
   await D.screenshot({ path: path.join(EVID, 'poblador-1280-inicio.jpg'), type: 'jpeg', quality: 75 });

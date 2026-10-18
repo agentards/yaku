@@ -1,4 +1,4 @@
-// E2E del «Yaku 3D · Centro de monitoreo» (?vista=incidentes|municipalidad|portal) contra el SERVIDOR LOCAL REAL
+// E2E del «Yaku 3D · Centro de monitoreo» (/municipalidad; /?vista=incidentes|municipalidad|portal redirigen) contra el SERVIDOR LOCAL REAL
 // (servidor-local/, SQLite temporal fuera del repo) con acceso por PIN. Criterios de
 // agentards/producto/plan-centro-monitoreo.md: login → 2 reportes cercanos de 2 dispositivos = 1 incidente «2 vecinos» →
 // vuelo + tarjeta + sonido → Validar + «Bomberos» persiste tras recargar → el poblador ve «Bomberos asignados» por
@@ -57,7 +57,7 @@ try {
   const esperar = (fn, arg, ms = 10000) => page.waitForFunction(fn, arg, { timeout: ms });
 
   // 1) Acceso con PIN → Centro de monitoreo con el histórico real.
-  await page.goto(BASE + '?vista=incidentes');
+  await page.goto(BASE + 'municipalidad');
   const textoAcceso = await page.locator('.ycm-acc').innerText({ timeout: 30000 });
   await accederConPin(page, { nombre: 'Operador SIMULADO', pin: PIN });
   await esperar(() => window.__yakuMonitoreo?.estado().sembrado, null, 30000);
@@ -188,14 +188,15 @@ try {
   check('cero peticiones a CDN o servicios externos', externas.length === 0, { externas: externas.slice(0, 5) });
   check('sin errores de JavaScript en la página', errores.length === 0, { errores });
 
-  // 9) Alias: ?vista=municipalidad y ?vista=portal abren el mismo Centro de monitoreo.
+  // 9) Enlaces viejos: /?vista=municipalidad y /?vista=portal redirigen a /municipalidad (portal → pestaña Escenario).
   for (const v of ['municipalidad', 'portal']) {
     const pg = await ctx.newPage();
     await pg.goto(BASE + '?vista=' + v);
     await accederConPin(pg, { pin: PIN });
     await pg.waitForFunction(() => window.__yakuMonitoreo?.estado().sembrado, null, { timeout: 30000 });
     const pe = await pg.evaluate(() => window.__yakuMonitoreo.tienda.pestana);
-    check(`?vista=${v} es alias del Centro de monitoreo`, (await pg.locator('.mon').count()) === 1 && pe === (v === 'portal' ? 'escenario' : 'incidentes'), { pestana: pe });
+    const ruta = new URL(pg.url()).pathname;
+    check(`/?vista=${v} redirige a /municipalidad y abre el Centro de monitoreo`, ruta === '/municipalidad' && (await pg.locator('.mon').count()) === 1 && pe === (v === 'portal' ? 'escenario' : 'incidentes'), { ruta, pestana: pe });
     if (v === 'portal') { await pg.waitForTimeout(2500); await pg.screenshot({ path: path.join(EVID, 'monitoreo-6-portal-escenario.jpg'), type: 'jpeg', quality: 80 }); }
     await pg.close();
   }

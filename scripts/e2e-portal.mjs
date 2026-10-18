@@ -31,7 +31,7 @@ const sinProhibidos = async (page) => {
   return ['via segura', 'ruta segura', 'camino seguro', 'transitable', 'afectado', 'con danos', 'sin senal', 'centros poblados expuestos'].filter((b) => t.includes(b));
 };
 const entrar = async (page) => {
-  await page.goto(BASE + '?vista=portal-relevo'); // portal de relevo (IndexedDB + demo SIMULADO); ?vista=portal es el Centro de monitoreo
+  await page.goto(BASE + 'app?vista=portal-relevo'); // portal de relevo (IndexedDB + demo SIMULADO); /municipalidad es el Centro de monitoreo
   await page.waitForSelector('body[data-ready="1"]', { timeout: 30000 });
   await page.waitForSelector('body[data-v3d="listo"]', { timeout: 30000 });
   await page.waitForFunction(() => window.__yaku3dUI?.tienda.centros.length > 0, null, { timeout: 15000 });
@@ -62,7 +62,7 @@ try {
   page.on('request', (r) => { const u = new URL(r.url()); if (!['localhost', '127.0.0.1'].includes(u.hostname) && !/^(data|blob):/.test(u.protocol)) externas.push(r.url()); });
 
   // (0) 2D sigue por defecto: sin ?vista no se monta nada del portal
-  await page.goto(BASE); await page.waitForSelector('body[data-ready="1"]', { timeout: 30000 });
+  await page.goto(BASE + 'app'); await page.waitForSelector('body[data-ready="1"]', { timeout: 30000 });
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   check('(p0) 2D por defecto: sin ?vista=portal no hay interfaz 3D', !(await page.$('.v3d')) && !(await page.evaluate(() => !!window.__yaku3dUI)));
 
