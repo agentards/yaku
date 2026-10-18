@@ -21,6 +21,7 @@
     "e2e:incidentes": "vite build && node scripts/e2e-incidentes.mjs",
     "e2e:poblador": "node scripts/e2e-poblador.mjs",
     "e2e:poblador:real": "node scripts/e2e-poblador.mjs --real",
+    "e2e:rutas": "vite build && node scripts/e2e-rutas.mjs",
     "servidor": "vite build && node servidor-local/empaquetar.mjs && node servidor-local/salida/servidor.mjs",
     "servidor:dev": "node servidor-local/servidor.ts",
     "build:servidor": "node servidor-local/empaquetar.mjs",

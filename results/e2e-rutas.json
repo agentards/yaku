@@ -1,0 +1,150 @@
+{
+  "fecha": "2026-10-18T03:25:05.095Z",
+  "servidor": "servidor-local (SQLite temporal)",
+  "checks": [
+    {
+      "name": "/ sirve la landing (index.html, no la app)",
+      "ok": true,
+      "s": 200
+    },
+    {
+      "name": "/reportar, /municipalidad y /app sirven app.html",
+      "ok": true,
+      "s": [
+        200,
+        200,
+        200
+      ]
+    },
+    {
+      "name": "enlaces viejos /?vista=… → 302 a la ruta nueva (tabla del plan)",
+      "ok": true,
+      "reds": [
+        "/?vista=poblador → 302 /reportar",
+        "/?vista=municipalidad → 302 /municipalidad",
+        "/?vista=incidentes → 302 /municipalidad",
+        "/?vista=portal → 302 /municipalidad?vista=portal",
+        "/?vista=2d → 302 /app",
+        "/?vista=portal-relevo → 302 /app?vista=portal-relevo",
+        "/?vista=poblador&lang=qu → 302 /reportar?lang=qu",
+        "/reportar/ → 302 /reportar"
+      ]
+    },
+    {
+      "name": "ruta desconocida: la landing con 404",
+      "ok": true,
+      "s": 404
+    },
+    {
+      "name": "robots.txt (Sitemap de yaku.lat, sin /api/ ni /municipalidad) y sitemap.xml (application/xml)",
+      "ok": true,
+      "robots": 200,
+      "sitemap": "200 application/xml; charset=utf-8"
+    },
+    {
+      "name": "Yaku",
+      "ok": true,
+      "start_url": "/reportar",
+      "scope": "/"
+    },
+    {
+      "name": "landing: canonical https://yaku.lat/",
+      "ok": true
+    },
+    {
+      "name": "con red: / landing, /reportar poblador, /municipalidad acceso con PIN, /app técnica; service worker activo",
+      "ok": true,
+      "landing": {
+        "ruta": "/",
+        "landing": true,
+        "poblador": false,
+        "acceso": false,
+        "tecnica": false
+      },
+      "reportar": {
+        "ruta": "/reportar",
+        "landing": false,
+        "poblador": true,
+        "acceso": false,
+        "tecnica": false
+      },
+      "municipalidad": {
+        "ruta": "/municipalidad",
+        "landing": false,
+        "poblador": false,
+        "acceso": true,
+        "tecnica": true
+      },
+      "app": {
+        "ruta": "/app",
+        "landing": false,
+        "poblador": false,
+        "acceso": false,
+        "tecnica": true
+      },
+      "sw": {
+        "listo": true,
+        "controla": false
+      }
+    },
+    {
+      "name": "modo avión: /reportar, /municipalidad?vista=portal, /app?vista=2d y / abren desde la caché del service worker",
+      "ok": true,
+      "reportar": {
+        "ruta": "/reportar",
+        "landing": false,
+        "poblador": true,
+        "acceso": false,
+        "tecnica": false
+      },
+      "municipalidadPortal": {
+        "ruta": "/municipalidad?vista=portal",
+        "landing": false,
+        "poblador": false,
+        "acceso": true,
+        "tecnica": true
+      },
+      "app": {
+        "ruta": "/app?vista=2d",
+        "landing": false,
+        "poblador": false,
+        "acceso": false,
+        "tecnica": true
+      },
+      "landing": {
+        "ruta": "/",
+        "landing": true,
+        "poblador": false,
+        "acceso": false,
+        "tecnica": false
+      },
+      "viejo": {
+        "ruta": "/reportar",
+        "landing": false,
+        "poblador": true,
+        "acceso": false,
+        "tecnica": false
+      }
+    },
+    {
+      "name": "modo avión: el enlace viejo /?vista=poblador abre el poblador y la barra queda en /reportar",
+      "ok": true,
+      "ruta": "/reportar",
+      "landing": false,
+      "poblador": true,
+      "acceso": false,
+      "tecnica": false
+    },
+    {
+      "name": "cero peticiones a CDN o servicios externos sin red",
+      "ok": true,
+      "externas": []
+    },
+    {
+      "name": "sin errores de JavaScript",
+      "ok": true,
+      "errores": []
+    }
+  ],
+  "ok": true
+}
