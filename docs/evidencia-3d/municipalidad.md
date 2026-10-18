@@ -1,35 +1,46 @@
-# Pantalla de la municipalidad en vivo (`?vista=municipalidad`)
+# Pantalla de la municipalidad en vivo (`?vista=municipalidad`) — WP3
 
-Pantalla grande 16:9 para la demo: mapa 3D real de Piura (relieve DEM 1,6×, CENEPRED, SENAMHI, límites) +
-reportes de campo que llegan en vivo. Título en pantalla: «Municipalidad · reportes de campo».
+Pantalla grande 16:9: mapa 3D real de Piura (relieve DEM 1,6×, CENEPRED, SENAMHI, límites) + **incidentes**
+que llegan en vivo desde el **servidor local** (`servidor-local/`, mismo origen). Título: «Municipalidad · reportes de campo».
+Textos, respaldo, prioridad y agrupación: `agentards/producto/decision-confianza.md` (vía `src/vista3d/municipalidad/textos.ts`).
 
 ## Qué hace
-- Consulta `GET /api/reports?limit=50` cada 3 s (mismo origen en producción). Nunca escribe: solo GET.
-- Al abrir **ignora los reportes existentes** (la primera respuesta solo siembra; se muestra «N reportes anteriores no se muestran»).
-- Reporte nuevo = `id` no visto con `received_at` ≥ el más reciente al abrir (`src/vista3d/municipalidad/deteccion.ts`).
-- Por cada consulta con nuevos: la cámara vuela al más nuevo (acercamiento + órbita lenta, cancelable con el ratón),
-  marcador pulsante, aviso de dos tonos (WebAudio, sin archivos) y tarjeta grande: tipo, severidad «N de 3 (la marca quien reporta)»,
-  hora del reporte (reloj del celular), hora de llegada, «llegó hace N s», nota, **NO VERIFICADO**, «No es una alerta oficial».
-- Columna: últimos reportes (más nuevo arriba), contador de nuevos y de «sin marcar Visto». Clic en un reporte = volar a él.
-- «Visto **demo**» marca solo en esta pantalla (localStorage); el acuse de recibo real es un siguiente paso.
-- Sin WebGL 2: la lista sigue funcionando con aviso. Si el servidor falla: «Sin respuesta del servidor · reintentando cada 3 s».
-
-## Antes de la demo
-- **Haz un clic en «Activar sonido»**: el navegador no deja sonar audio sin un gesto del usuario.
-- Los reportes nuevos llegan a `/api/reports` cuando un celular sincroniza (M4). Las notas `prueba e2e …` también se muestran.
+- Consulta `GET /api/incidentes` cada 3 s. Cada incidente agrupa los reportes de varios vecinos sobre el mismo hecho
+  (agrupación y respaldo los calcula el servidor; contrato en `src/vista3d/municipalidad/CONTRATO-API.md`).
+- **Tarjeta del incidente**: chip «Reporte vecinal · por validar» (o el estado municipal), **Respaldo 0–100 · N1/N2/N3** con
+  su desglose (personas · fotos · cercanía · recencia), contador **«2 vecinos · 1 foto · primer reporte 20:03»**, severidad
+  máx. («la marca quien reporta»), notas, aviso **116 / 105** si hay atrapados o heridos, pie legal de la decisión.
+- **Galería**: miniaturas de `GET /api/fotos/:id`, pantalla completa con ← → y Esc; «N fotos pendientes de subir» si el
+  celular aún no las subió; «Foto aún no disponible» si falla.
+- **Prioridad** (columna): vida (atrapados > heridos) > severidad > respaldo > lo más reciente; cerrados al final.
+- **Flujo con PIN**: Revisar · Validar · Descartar (con motivo) → asignar Rescate / Bomberos / Provisiones / Maquinaria /
+  Evaluación EDAN → Marcar atendido; reabrir un descartado. `POST /api/incidentes/:id/estado` con `X-Muni-Pin` y «quién».
+  «Validar» desde Nuevo recorre el flujo paso a paso (en revisión → validado), así cada paso queda en el historial.
+  PIN incorrecto (403) → se vuelve a pedir. El PIN vive solo en la memoria de la pestaña; el nombre del operador se recuerda.
+- **Incidente nuevo** → vuelo de cámara (acercamiento + órbita lenta, cancelable con el ratón), marcador pulsante, aviso de
+  dos tonos. Si hay un diálogo abierto, el vuelo espera a que se cierre.
+- **Otro vecino coincide** (personas o fotos suben en un incidente existente) → el contador se anima, aviso «Otro vecino
+  coincide: … · ahora 2 vecinos» (clic = ir al incidente) y un tono.
+- Colores: **verde solo para estados municipales** (validado, acción, atendido); nunca rojo para un reporte vecinal.
+- Si el servidor **no tiene** `/api/incidentes` (404, p. ej. producción actual): agrupa `GET /api/reports` en la pantalla con
+  las mismas reglas (§3) y **desactiva las acciones** (solo lectura).
+- Sin WebGL 2: la lista sigue funcionando con aviso. Servidor caído: «Sin respuesta del servidor · reintentando cada 3 s».
 
 ## Ver en local
 ```
-npm run build
-npx vite preview --port 4173
-# abrir http://localhost:4173/?vista=municipalidad   (pantalla completa: F11)
+npm run servidor                       # build + servidor local en http://localhost:8080 (WP1); muestra el PIN si no hay MUNI_PIN
+# abrir http://localhost:8080/?vista=municipalidad   (F11 pantalla completa; clic en «Activar sonido»)
 ```
-`vite.config.ts` hace proxy de `/api` → `https://yaku-relay-proto.pages.dev` en `dev` y `preview`, **solo lectura**:
-todo método que no sea GET/HEAD responde 404 en el propio proxy (probado: GET 200, POST/DELETE 404).
+Con `vite dev`/`preview`, `/api` va por proxy a `http://localhost:8080` (o `YAKU_API_LOCAL`). Producción solo con
+`YAKU_API=produccion` y en **solo lectura** (POST/PUT/DELETE → 404 en el propio proxy).
 
 ## Pruebas
-- Unitario: `tests/vista3d-municipalidad.test.ts` (11): siembra, nuevos por id/received_at, orden, filas inválidas, «llegó hace», proxy solo lectura.
-- E2E: `npm run e2e:municipalidad` (`scripts/e2e-municipalidad.mjs`, `/api/reports` simulado con Playwright): 17/17,
-  detección en ~0,3 s tras la consulta, órbita sobre el reporte, ~75 fps en escritorio (GPU integrada, 1920×1080).
-- Capturas: `municipalidad-1920-reporte-nuevo.jpg`, `municipalidad-1920-columna.jpg` (datos SIMULADOS del E2E).
-- Peso: 8,8 kB JS + 6,8 kB CSS (carga diferida; la vista 2D no paga nada).
+- Unitario: `tests/vista3d-municipalidad-incidentes.test.ts` (25): lectura de la forma de `servidor-local/vista.ts`,
+  ejemplos A–G del respaldo (§2.4), prioridad, nuevos y coincidencias 1→2, flujo de estados, tests (a)–(g) de agrupación;
+  `tests/vista3d-municipalidad.test.ts` (13): detección, «llegó hace», proxy local / producción solo lectura.
+- E2E: `npm run e2e:municipalidad` (Node ≥ 23.6): **servidor local real** con SQLite temporal fuera del repo y PIN de prueba.
+  **21/21** (17-oct-2026): A reporta → incidente nuevo y vuelo; B sube su reporte + el de A (relevo) + foto → 1 incidente,
+  contador 1 → 2 animado, respaldo 75 · N2; galería; atrapados arriba con 116/105; PIN incorrecto → correcto; Validar +
+  «Bomberos» persiste en SQLite, tras recargar y en `/api/estado` (acuse al celular); descarte con motivo; modo solo lectura
+  sin `/api/incidentes`; cero CDN; `/` sigue en 2D. ~75 fps a 1920×1080 (GPU integrada de escritorio). Sin celular real medido.
+- Capturas (datos SIMULADOS del E2E): `municipalidad-1920-incidente-2-vecinos.jpg`, `municipalidad-1920-bomberos-asignados.jpg`.
