@@ -57,6 +57,7 @@ renderNet();
 initMap($('map'));
 montarVista3D(getMap()!); // conmutador 2D|3D (aditivo: 2D por defecto, ?vista=3d entra al relieve)
 if (new URLSearchParams(location.search).get('vista') === 'portal') import('./vista3d/entrada-portal').then((m) => m.arrancar()); // interfaz 3D completa con portal de campo
+if (new URLSearchParams(location.search).get('vista') === 'municipalidad') import('./vista3d/municipalidad/pantalla').then((m) => m.arrancar()); // pantalla grande en vivo, solo lectura
 const legend = $('legend');
 for (const l of OFFICIAL_LAYERS) {
   const li = document.createElement('li');
