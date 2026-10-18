@@ -13,12 +13,14 @@ import { initMap, setVisible, setCenepredSinCobertura, setCitizen, placeDraft, d
 import { fmtMB } from './basemap';
 import { montarVista3D } from './vista3d/conmutador';
 import { FEAT, PHASE } from './features';
+import { esVistaPoblador, entornoActual, prepararVistaPoblador } from './poblador/ruta';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 registerSW({ immediate: true });
 history.scrollRestoration = 'manual';
+if (esVistaPoblador(location.search, entornoActual())) { prepararVistaPoblador(); import('./poblador/app').then((m) => m.arrancar()); } // modo poblador (celular por defecto)
 
 function deviceId(): string {
   let d = localStorage.getItem('yaku-device');
