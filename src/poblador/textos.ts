@@ -64,7 +64,7 @@ export const T = {
   sinRed: 'SIN RED',
   porEnviar: (n: number) => (n === 1 ? '1 por enviar' : `${n} por enviar`),
   navReportar: 'Reportar',
-  navIntercambiar: 'Intercambiar',
+  navIntercambiar: 'Inter\u00ADcambiar', // guion suave: en celulares angostos parte «Inter-cambiar» en 2 líneas
   navLista: 'Mis reportes',
 
   consentimiento: 'Tus reportes guardan la ubicación del celular y un código anónimo del equipo. No pedimos nombre ni DNI. Avisar algo falso a propósito es delito (Código Penal, art. 315-A).',
