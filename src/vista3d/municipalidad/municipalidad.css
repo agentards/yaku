@@ -36,7 +36,7 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-aviso-mapa { position: absolute; top: 1em; left: 1em; right: 1em; padding: .8em 1em; border-radius: 8px; background: var(--card); border: 1px solid var(--line-2); font-weight: 700; }
 
 /* Tarjeta grande del reporte recién llegado */
-.muni-tarjeta { position: absolute; left: 1.2em; bottom: 1.2em; width: min(40em, calc(100% - 2.4em)); padding: 1.1em 1.3em; border-radius: 14px;
+.muni-tarjeta { position: absolute; left: 1.2em; top: 1.2em; max-height: calc(100% - 5.5em); overflow-y: auto; width: min(40em, calc(100% - 2.4em)); padding: 1.1em 1.3em; border-radius: 14px;
   background: var(--card); border: 2px solid var(--cit-line); box-shadow: 0 12px 40px rgba(43, 38, 32, .28); animation: muni-entra .45s ease-out; }
 .muni-t-cab { display: flex; align-items: center; gap: .8em; font-size: 1.15em; }
 .muni-t-hace { font-weight: 700; color: var(--ink-2); flex: 1; }
@@ -44,7 +44,7 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-t-tipo { margin: .25em 0 .1em; font-size: 2.7em; line-height: 1.05; letter-spacing: -.02em; }
 .muni-t-sev { margin: 0 0 .6em; font-size: 1.35em; font-weight: 800; }
 .muni-t-sev small { font-weight: 500; color: var(--muted); font-size: .7em; }
-.muni-t-sev.sev3 { color: #a63d1f; } .muni-t-sev.sev2 { color: #8a5a00; }
+.muni-t-sev.muni-sev3 { color: #a63d1f; } .muni-t-sev.muni-sev2 { color: #8a5a00; }
 .muni-t-datos { display: grid; grid-template-columns: repeat(3, auto); gap: .4em 1.6em; margin: 0; font-size: 1.05em; }
 .muni-t-datos dt { color: var(--muted); font-size: .85em; }
 .muni-t-datos dd { margin: 0; font-weight: 700; }
@@ -68,7 +68,8 @@ body.vista-muni > .top, body.vista-muni > #app { display: none !important; }
 .muni-previos { margin: 0; padding: 0 1.1em; color: var(--muted); }
 .muni-previos:not(:empty) { padding: 1em 1.1em; }
 .muni-lista { list-style: none; margin: 0; padding: .4em .6em 1em; overflow-y: auto; flex: 1; }
-.muni-lista li { display: flex; align-items: center; gap: .5em; padding: .55em .5em; border-radius: 10px; border: 1px solid transparent; animation: muni-entra .4s ease-out; }
+.muni-lista li { display: flex; align-items: center; gap: .5em; padding: .55em .5em; border-radius: 10px; border: 1px solid transparent; }
+.muni-lista li.entra { animation: muni-entra .4s ease-out; }
 .muni-lista li + li { border-top-color: var(--line); border-radius: 0; }
 .muni-lista li.actual { background: var(--acc-bg); border-color: var(--acc); border-radius: 10px; }
 .muni-lista li.visto .muni-item b { color: var(--muted); }

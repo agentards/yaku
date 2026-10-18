@@ -107,6 +107,7 @@ export function arrancar() {
   const det = new DetectorNuevos();
   const recibidos: ReporteApi[] = [];
   const vistos = leerVistos();
+  const animados = new Set<string>();
   const aviso = new Aviso();
   let actual: ReporteApi | null = null;
   let consultas = 0, errores = 0, enCurso = false, ultimaOk = 0;
@@ -137,9 +138,9 @@ export function arrancar() {
       <div class="muni-t-cab"><span class="muni-nv">NO VERIFICADO</span><span class="muni-t-hace" data-recibido="${r.received_at}">${esc(llegoHace(r.received_at))}</span>
         <button type="button" class="muni-cerrar" aria-label="Cerrar tarjeta">×</button></div>
       <h2 class="muni-t-tipo">${esc(tipoTxt(r.type))}</h2>
-      <p class="muni-t-sev sev${esc(r.severity)}">${esc(sevTxt(r.severity))} <small>(la marca quien reporta)</small></p>
+      <p class="muni-t-sev muni-sev${esc(r.severity)}">${esc(sevTxt(r.severity))} <small>(la marca quien reporta)</small></p>
       <dl class="muni-t-datos">
-        <div><dt>Hora del reporte</dt><dd>${Number.isFinite(r.ts) ? esc(hora(r.ts * 1000)) : '—'} <small>reloj del celular</small></dd></div>
+        <div><dt>Hora del reporte</dt><dd>${Number.isFinite(r.ts) && r.ts > 0 ? esc(hora(r.ts * 1000)) : '—'} <small>reloj del celular</small></dd></div>
         <div><dt>Llegó al servidor</dt><dd>${esc(hora(r.received_at, true))}</dd></div>
         <div><dt>Ubicación</dt><dd class="mono">${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}</dd></div>
       </dl>
@@ -158,7 +159,10 @@ export function arrancar() {
       : 'Conectando con el servidor…';
     lista.innerHTML = recibidos.map((r) => {
       const visto = vistos.has(r.id);
-      return `<li data-id="${esc(r.id)}" class="${visto ? 'visto' : ''}${actual?.id === r.id ? ' actual' : ''}">
+      // Solo la primera vez que se dibuja un reporte entra animado: repintar cada 3 s no debe parpadear.
+      const entra = !animados.has(r.id);
+      animados.add(r.id);
+      return `<li data-id="${esc(r.id)}" class="${visto ? 'visto' : ''}${actual?.id === r.id ? ' actual' : ''}${entra ? ' entra' : ''}">
         <button type="button" class="muni-item" title="Ver en el mapa"><b>${esc(tipoTxt(r.type))}</b>
           <span class="muni-i-meta"><span class="muni-nv">NO VERIFICADO</span> ${esc(sevTxt(r.severity))} · ${esc(hora(r.received_at, true))}</span>
           <span class="muni-i-hace" data-recibido="${r.received_at}">${esc(llegoHace(r.received_at))}</span></button>
@@ -180,6 +184,7 @@ export function arrancar() {
   function enfocar(r: ReporteApi) {
     actual = r;
     pintarTarjeta(); pintarLista();
+    tarjeta.style.animation = 'none'; void tarjeta.offsetWidth; tarjeta.style.animation = ''; // reanima la entrada
     if (!escena) return;
     const e = escena;
     e.listo.then(() => {
