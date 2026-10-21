@@ -55,7 +55,7 @@ flowchart LR
 | `auth-sesion.test.ts` | Acceso del Centro de monitoreo: sesión y PIN de respaldo |
 | `worker.test.ts` | `server/worker.ts` con un D1 falso en memoria |
 | `bundle.test.ts` | El `dist/` ya compilado |
-| `vista3d*.test.ts` | La vista 3D y el Centro de monitoreo sin DOM: cámara, modo claro y oscuro, monitoreo, municipalidad, portal, red, temas |
+| `vista3d*.test.ts` | La vista 3D y el Centro de monitoreo sin DOM: cámara, modo claro y oscuro, monitoreo, municipalidad, portal, red, temas, notas de zona (`vista3d-memoria.test.ts`) |
 
 ### Pruebas del servidor (`servidor-local/pruebas/`)
 
@@ -73,6 +73,7 @@ Usan SQLite real en una carpeta temporal fuera del repo o `:memory:`.
 | `seguridad.test.ts` | Modo MVP y modo estricto: bloqueo por intentos, histórico privado, CORS, cuotas de fotos, límite por IP |
 | `http.test.ts` | El servidor HTTP real en un puerto libre |
 | `arranque-env.test.ts` | Variables vacías como las pasa Dokploy: el servidor arranca igual |
+| `memoria.test.ts` | Notas de zona contra un fixture local de Atomic Memory (`memoria-fixture.ts`, no es el servicio real): apagadas por defecto, solo con usuario, guardar, volver a ver, corregir, borrar con `success: true`, aislamiento entre operadores, proveedor caído o lento, JSON roto, y que el incidente no cambia |
 
 Para correr uno solo: `node --test servidor-local/pruebas/agrupacion.test.ts`.
 

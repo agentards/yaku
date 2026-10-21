@@ -105,6 +105,7 @@ HSTS solo tiene efecto cuando se sirve por HTTPS, es decir, detrás de Traefik. 
 | Fotos | `/datos/fotos` | Solo se ven con sesión. La app re-dibuja la foto en un canvas antes de guardarla, lo que descarta los metadatos EXIF |
 | Nombre, mensaje y zona aproximada de «Estoy bien» | `cartas` | **Se pueden buscar públicamente por nombre.** La app pide aceptar y advierte que no se escriba teléfono ni dirección exacta |
 | Usuario y hash de contraseña, hash de sesión | `usuarios`, `sesiones` | Nunca la contraseña ni el token en claro |
+| Notas de zona del operador (texto, zona, id del incidente) | Atomic Memory, fuera del servidor (solo con `YAKU_MEMORIA=atomicmemory`) | Apagado por defecto. A nombre del usuario de la sesión; ningún otro usuario las ve. La pantalla pide no escribir datos personales de vecinos. No incluyen reportes, ubicaciones exactas ni fotos |
 
 El consentimiento que ve el vecino dice: «Tus reportes guardan la ubicación del celular y un código anónimo del equipo. No pedimos nombre ni DNI. Avisar algo falso a propósito es delito (Código Penal, art. 315-A)».
 
@@ -114,6 +115,7 @@ El consentimiento que ve el vecino dice: «Tus reportes guardan la ubicación de
 | --- | --- | --- |
 | `MUNI_PIN` | Variable de entorno de Dokploy | Largo (8 caracteres o más). Es obligatoria |
 | `MUNI_CLAVE` | Variable de entorno de Dokploy | Distinta del PIN. Si cambia, se cierran las sesiones |
+| `ATOMICMEMORY_API_KEY` | Variable de entorno de Dokploy | Solo la usa el servidor y solo viaja por HTTPS (o a `127.0.0.1`). Nunca va al navegador ni a los registros |
 | Clave privada de avisos | `/datos/avisos-clave.json` | Respáldala aparte. `servidor-local/.gitignore` ignora `datos/`, `.gitignore` ignora `.env`, `*.key` y `*.pem`, y `.dockerignore` deja `servidor-local/datos` fuera de la imagen |
 | Contraseña de producción para el QA | Variable `YAKU_CLAVE` en tu terminal | No la escribas en archivos |
 | Token de ngrok | Configuración propia de ngrok | Los scripts no lo leen |
@@ -135,6 +137,7 @@ Esto es lo que el código **no** hace hoy:
 - **Sin credenciales en el Worker de Cloudflare**: ahí `/api/reports` es público siempre.
 - **El histórico exacto es público en modo MVP**, y `GET /api/cartas?q=` devuelve también el `deviceId` de cada carta.
 - **No hay copias automáticas** de la base: ver [Datos](DATOS.md#cómo-respaldar-el-volumen).
+- **Notas de zona**: la búsqueda en Atomic Memory filtra por usuario y `source_site`, y el servidor descarta lo que no sea una nota de Yaku de esa zona exacta. Apagar `YAKU_MEMORIA` oculta las notas pero **no las borra** de Atomic Memory.
 
 ## Documentos relacionados
 
