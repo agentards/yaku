@@ -3,6 +3,7 @@
 //   node servidor-local/salida/servidor.mjs    (empaquetado con esbuild; lo usa la imagen Docker)
 // Variables: PORT (8080), HOST (0.0.0.0), YAKU_DIST (dist), YAKU_DATOS (servidor-local/datos),
 //            MUNI_PIN (si falta se genera uno temporal y se muestra en la consola), YAKU_REGLAS (JSON parcial).
+//            Notas de zona (opcional): YAKU_MEMORIA=atomicmemory + ATOMICMEMORY_API_URL + ATOMICMEMORY_API_KEY.
 import { randomInt } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -11,6 +12,7 @@ import { pathToFileURL } from 'node:url';
 import { Almacen } from './almacen.ts';
 import { CABECERA_IP, crearApi } from './api.ts';
 import { cargarFirmante } from './avisos.ts';
+import { configMemoria, crearMemoria } from './memoria.ts';
 import { asegurarUsuario } from './usuarios.ts';
 import { servirEstatico } from './estaticos.ts';
 import { conCambios, REGLAS } from './reglas.ts';
@@ -66,7 +68,11 @@ export function iniciar(o: Opciones = {}) {
   try { cambio = asegurarUsuario(almacen, { usuario: usuarioMuni, nombre: o.nombre?.trim() || env.MUNI_NOMBRE?.trim() || 'Municipio central', clave: claveMuni }, Date.now()); }
   catch (e) { console.error(`MUNI_USUARIO: ${(e as Error).message}. Se entra solo con el PIN.`); }
   const sesionHoras = Number(env.YAKU_SESION_HORAS) || 72;
-  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto, firmante: cargarFirmante(datos), sesionHoras });
+  // Atomic Memory es opcional: sin configurar (o mal configurado) el Centro de monitoreo funciona igual, sin notas de zona.
+  const mem = configMemoria(env);
+  if (mem.aviso) console.warn(mem.aviso);
+  const memoria = mem.config ? crearMemoria(mem.config) : null;
+  const api = crearApi({ almacen, pin, fotosDir: path.join(datos, 'fotos'), estricto, firmante: cargarFirmante(datos), sesionHoras, memoria });
 
   const server = http.createServer(async (req, res) => {
     res.setHeader('x-content-type-options', 'nosniff');
@@ -107,6 +113,7 @@ export function iniciar(o: Opciones = {}) {
     console.log(`Yaku servidor local en http://localhost:${p}  (dist: ${dist}, datos: ${datos})`);
     if (!fs.existsSync(path.join(dist, 'index.html'))) console.warn('  Ojo: no hay dist/index.html → corre «npm run build» (la API funciona igual).');
     if (cambio !== 'error') console.log(`  Centro de monitoreo: usuario «${usuarioMuni}» (${cambio === 'igual' ? 'contraseña sin cambios' : cambio === 'creado' ? 'creado' : 'contraseña actualizada: se cerraron sus sesiones'}${claveMuni === pin ? ', contraseña = MUNI_PIN' : ''}).`);
+    console.log(mem.config ? `  Notas de zona: Atomic Memory en ${new URL(mem.config.url).host} (límite ${mem.config.timeoutMs} ms).` : '  Notas de zona: apagadas (YAKU_MEMORIA no configurado).');
     console.log(pinTemporal ? `  MUNI_PIN no definido: PIN temporal de esta sesión = ${pin}` : '  MUNI_PIN definido por variable de entorno.');
   });
   const cerrar = () => new Promise<void>((ok) => server.close(() => { almacen.cerrar(); ok(); }));

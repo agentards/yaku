@@ -211,7 +211,7 @@ export function montarMonitoreo(sesion: Sesion, opc: OpcionesMonitoreo) {
     accionar: (id, d, a) => void accionar(id, d as Estado, a as Accion | undefined),
     abrirGaleria: (fotos, k) => { galeria = { fotos, k }; pintarGaleria(); },
     eventos: () => linea.eventos(), irA: (t) => { vivo.soltarVivo(); tienda.setT(t); }, cerrarCajon,
-    hidratar: (el) => hidratarFotos(el, cab),
+    hidratar: (el) => hidratarFotos(el, cab), cabeceras: cab,
   });
   tienda.setPestana(opc.pestana ?? 'incidentes');
 

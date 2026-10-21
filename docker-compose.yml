@@ -15,6 +15,11 @@ services:
       MUNI_NOMBRE: ${MUNI_NOMBRE:-Municipio central}
       YAKU_SESION_HORAS: ${YAKU_SESION_HORAS:-72}
       YAKU_MODO_ESTRICTO: ${YAKU_MODO_ESTRICTO:-0}
+      # Notas de zona en Atomic Memory (opcional; apagadas si YAKU_MEMORIA está vacía).
+      YAKU_MEMORIA: ${YAKU_MEMORIA:-}
+      ATOMICMEMORY_API_URL: ${ATOMICMEMORY_API_URL:-}
+      ATOMICMEMORY_API_KEY: ${ATOMICMEMORY_API_KEY:-}
+      YAKU_MEMORIA_TIMEOUT_MS: ${YAKU_MEMORIA_TIMEOUT_MS:-}
       PORT: "8080"
       YAKU_DATOS: /datos
     volumes:

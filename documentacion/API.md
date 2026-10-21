@@ -67,6 +67,7 @@ Si llega un `Bearer`, **solo** se mira el token: nunca se cae al PIN.
 | `POST /api/incidentes/:id/estado` | Sesión o PIN | Cambiar el estado, con acción | No |
 | `POST /api/incidentes/:id/unir` | Sesión o PIN | Unir dos incidentes | No |
 | `POST /api/incidentes/:id/separar` | Sesión o PIN | Sacar reportes a un incidente nuevo | No |
+| `GET /api/memoria/notas?zona=&tipo=`, `POST /api/memoria/notas`, `DELETE /api/memoria/notas/:id` | Sesión de usuario (no PIN) | Notas de zona en Atomic Memory, opcionales | No |
 
 ## Reportes
 
@@ -318,6 +319,26 @@ Mueve los reportes de `con` al incidente `:id`. Responde `{"ok": true, "incident
 ```
 
 Hasta 200 ids de reporte. Responde `{"ok": true, "nuevo": "inc-1xw46aex7px-s"}`. Si no hay reportes válidos o el incidente no existe: `400 faltan reportes o el incidente no existe`. El id del incidente en la ruta debe tener la forma `inc-…`, si no, 400.
+
+## Notas de zona
+
+Opcionales: ver [Configuración](CONFIGURACION.md#notas-de-zona-atomic-memory). Piden `Authorization: Bearer` de un usuario; sin credencial 401, con `X-Muni-Pin` 403 `memoria_sin_usuario`. Si el servidor no tiene Atomic Memory configurado, las tres rutas responden `{"activa": false}` (200) y no hacen nada. Si Atomic Memory falla, no responde a tiempo o devuelve algo inesperado: 502 `{"activa": true, "error": "Atomic Memory no respondió…: la nota NO se guardó.", "codigo": "memoria"}`. Las notas nunca cambian el incidente.
+
+### `GET /api/memoria/notas?zona=Castilla%20(Castilla)&tipo=agua`
+
+Responde `{"activa": true, "zona": "…", "notas": [{"id", "texto", "zona", "incidente", "creada"}]}`, hasta 5, solo del usuario de la sesión y de esa zona exacta. `zona` es obligatoria (2 a 80 caracteres).
+
+### `POST /api/memoria/notas`
+
+```json
+{ "zona": "Castilla (Castilla)", "texto": "Puente Cáceres cerrado; entrar por Av. Guardia Civil.", "incidente": "inc-1xw46aex7px", "reemplaza": "id-de-la-nota-anterior" }
+```
+
+`texto` de 3 a 280 caracteres; `incidente` y `reemplaza` son opcionales. Responde 201 `{"activa": true, "guardada": true, "nota": {…}, "anterior": null}`. Con `reemplaza` (corregir) se guarda la nueva y después se borra la anterior; `anterior` dice cómo terminó: `borrada`, `no_existe` o `no_borrada` (quedan las dos y hay que borrar la vieja a mano). Cualquier `user_id` en el cuerpo se ignora.
+
+### `DELETE /api/memoria/notas/:id`
+
+Responde `{"activa": true, "borrada": true, "resultado": "borrada"}` solo si Atomic Memory confirmó con `success: true`. Si la nota no existe o es de otro usuario: `{"borrada": false, "resultado": "no_existe"}`.
 
 ## Límites y modo estricto
 

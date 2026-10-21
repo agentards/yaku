@@ -163,7 +163,7 @@ export function incidentesCerca(p: { lat: number; lon: number }, lista: Incident
 }
 
 /** Centro poblado más cercano (≤ km) para cada incidente: id → cod. */
-export function centroDeIncidentes(lista: Incidente[], centros: { cod: string; lat: number; lon: number }[], km = 3) {
+export function centroDeIncidentes(lista: Pick<Incidente, 'id' | 'lat' | 'lon'>[], centros: { cod: string; lat: number; lon: number }[], km = 3) {
   const out = new Map<string, string>();
   for (const i of lista) {
     let best = '', bd = Infinity;

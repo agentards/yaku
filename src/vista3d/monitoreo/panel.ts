@@ -13,6 +13,8 @@ import { cerrado, type Incidente } from '../municipalidad/incidentes';
 import { ESTADO, ORDEN_TXT, tipoTxt } from '../municipalidad/textos';
 import { centroDeIncidentes, incidentesCerca, type EventoMon } from './historico';
 import { chipEstado, claseEstado, detalleHtml, filaHtml, tono, type Ctx } from './piezas';
+import { montarNotasZona, zonaDe } from './memoria';
+import type { Cabeceras } from '../municipalidad/api';
 
 const TITULOS: Partial<Record<Pestana, string>> = { incidentes: 'Incidentes', campo: 'Campo · centros poblados', escenario: 'Escenario oficial' };
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -31,6 +33,8 @@ export interface Enlace {
   cerrarCajon(): void;
   /** Descarga con la sesión las fotos (<img data-foto>) recién pintadas en `el` (./fotos.ts). */
   hidratar(el: ParentNode): void;
+  /** Cabeceras de la sesión (notas de zona, ./memoria.ts). */
+  cabeceras: Cabeceras;
 }
 
 export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena: EscenaYaku, en: Enlace) {
@@ -41,6 +45,7 @@ export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena:
         <div class="v3d-kpis mon-kpis" data-kpis></div>
         <p class="mon-orden">${esc(ORDEN_TXT)} <span data-momento></span></p>
         <section class="v3d-card mon-det" data-det hidden></section>
+        <section class="v3d-card mon-memoria" data-memoria hidden aria-label="Notas de zona"></section>
         <ol class="mon-lista" data-lista aria-live="polite"></ol>
         <p class="v3d-mas" data-vacia></p>
       </div>
@@ -63,6 +68,7 @@ export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena:
     </div>`;
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => aside.querySelector<T>(s)!;
   $<HTMLButtonElement>('[data-cerrar]').onclick = en.cerrarCajon;
+  const notas = montarNotasZona($('[data-memoria]'), en.cabeceras);
 
   function pestana(p: Pestana) {
     $('[data-titulo]').textContent = TITULOS[p] ?? '';
@@ -100,6 +106,7 @@ export function montarPanelMonitoreo(aside: HTMLElement, tienda: Tienda, escena:
     const i = xs.find((x) => x.id === actual) ?? null;
     const det = $('[data-det]');
     det.hidden = !i;
+    notas.mostrar(i, i && zonaDe(i, tienda.centros, tienda.porCod));
     if (!i) { firmaDet = ''; return; }
     const c = en.ctx(i);
     const fd = `${i.id}|${i.estado}|${i.accion}|${i.personas}|${i.fotos.join(',')}|${i.historial.length}|${i.puntaje}|${c.puede}|${c.motivoNo}|${!!c.antes}`;

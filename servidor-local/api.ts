@@ -8,6 +8,7 @@ import type { Almacen } from './almacen.ts';
 import { idAviso, limpiarTexto, redondear, type AccionAviso, type Firmante } from './avisos.ts';
 import { validarCambio } from './estados.ts';
 import { limpiar, sinTildes, validarCarta } from './cartas.ts';
+import { LIMITES_NOTA, sujetoDe, type Fallo, type Memoria } from './memoria.ts';
 import { claveOk, hashToken, nuevoToken, TOKEN } from './usuarios.ts';
 import { armarIncidentes, estadoDeReportes } from './vista.ts';
 
@@ -54,6 +55,8 @@ export interface OpcionesApi {
   postsPorMinuto?: number;
   /** Cuotas de fotos: por reporte y en total (bytes). */
   fotosPorReporte?: number; fotosMaxBytes?: number;
+  /** Notas de zona en Atomic Memory (./memoria.ts). Sin esto, /api/memoria/* responde «activa: false». */
+  memoria?: Memoria | null;
 }
 /** IP del cliente: la pone servidor.ts en esta cabecera (pisa cualquier valor que mande el cliente). */
 export const CABECERA_IP = 'x-yaku-ip';
@@ -234,6 +237,51 @@ export function crearApi(op: OpcionesApi) {
     } catch (e) { return json({ error: String((e as Error).message) }, 400); }
   }
 
+  // ---- notas de zona (Atomic Memory, opcional): solo con sesión de usuario; nunca deciden nada del incidente ----
+  const ID_MEM = /^[0-9A-Za-z_-]{1,64}$/;
+  const falloMemoria = (f: Fallo, que: string) => {
+    console.warn(`memoria: ${que} (${f.motivo}${f.status ? ' ' + f.status : ''})`);
+    return json({ activa: true, error: `Atomic Memory no respondió${f.motivo === 'tiempo' ? ' a tiempo' : ''}: ${que}.`, codigo: 'memoria' }, 502);
+  };
+  const zonaDe = (x: unknown) => limpiar(x, LIMITES_NOTA.zona);
+
+  async function memoria(req: Request, url: URL, id: string | null): Promise<Response> {
+    const acc = await autenticar(req);
+    if (acc instanceof Response) return acc;
+    const M = op.memoria;
+    if (!M) return json({ activa: false });
+    // Solo con sesión de usuario: el PIN es compartido y no identifica a nadie, así que no tiene notas.
+    if (acc.modo !== 'usuario') return json({ activa: true, error: 'Las notas de zona necesitan entrar con usuario y contraseña (no con el PIN).', codigo: 'memoria_sin_usuario' }, 403);
+    const s = sujetoDe(acc.usuario);
+    if (req.method === 'GET' && id === null) {
+      const zona = zonaDe(url.searchParams.get('zona')), tipo = limpiar(url.searchParams.get('tipo'), 40) || 'otro';
+      if (zona.length < 2) return json({ error: 'falta la zona' }, 400);
+      const r = await M.buscar(s, { zona, tipo });
+      return r.ok ? json({ activa: true, zona, notas: r.valor }) : falloMemoria(r, 'no se pudieron leer las notas de zona');
+    }
+    if (req.method === 'POST' && id === null) {
+      const body = await leerJson(req, 4096);
+      if (body instanceof Response) return body;
+      const zona = zonaDe(body?.zona), texto = limpiar(body?.texto, LIMITES_NOTA.texto + 1);
+      const incidente = typeof body?.incidente === 'string' && ID_INC.test(body.incidente) ? body.incidente : null;
+      const reemplaza = typeof body?.reemplaza === 'string' && ID_MEM.test(body.reemplaza) ? body.reemplaza : null;
+      if (zona.length < 2) return json({ error: 'falta la zona' }, 400);
+      if (texto.length < LIMITES_NOTA.minTexto || texto.length > LIMITES_NOTA.texto) return json({ error: `la nota debe tener de ${LIMITES_NOTA.minTexto} a ${LIMITES_NOTA.texto} caracteres` }, 400);
+      const r = await M.guardar(s, { zona, texto, incidente });
+      if (!r.ok) return falloMemoria(r, 'la nota NO se guardó');
+      // Corregir = guardar la nueva y borrar la anterior. Si el borrado falla, se dice (quedan las dos).
+      let anterior: 'borrada' | 'no_existe' | 'no_borrada' | null = null;
+      if (reemplaza) { const b = await M.borrar(s, reemplaza); anterior = b.ok ? b.valor : 'no_borrada'; }
+      return json({ activa: true, guardada: true, nota: r.valor, anterior }, 201);
+    }
+    if (req.method === 'DELETE' && id !== null) {
+      if (!ID_MEM.test(id)) return json({ error: 'id de nota inválido' }, 400);
+      const r = await M.borrar(s, id);
+      return r.ok ? json({ activa: true, borrada: r.valor === 'borrada', resultado: r.valor }) : falloMemoria(r, 'la nota NO se borró');
+    }
+    return json({ error: 'no encontrado' }, 404);
+  }
+
   return async function api(req: Request): Promise<Response> {
     const r = await responder(req);
     if (estricto) r.headers.delete('access-control-allow-origin');
@@ -342,6 +390,8 @@ export function crearApi(op: OpcionesApi) {
         const acc = await autenticar(req);
         return acc instanceof Response ? acc : verFoto(mf[1]);
       }
+      const mm = /^\/api\/memoria\/notas(?:\/([^/]+))?$/.exec(p);
+      if (mm) return await memoria(req, url, mm[1] === undefined ? null : decodeURIComponent(mm[1]));
       const mi = /^\/api\/incidentes\/([^/]+)\/(estado|unir|separar)$/.exec(p);
       if (mi && req.method === 'POST') {
         const id = decodeURIComponent(mi[1]);

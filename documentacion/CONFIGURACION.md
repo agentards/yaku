@@ -26,8 +26,12 @@ Las lee `servidor-local/servidor.ts`. Una variable **vacía cuenta como no defin
 | `YAKU_DIST` | `dist` | Carpeta de la PWA compilada. La imagen usa `/app/dist` |
 | `YAKU_DATOS` | `servidor-local/datos` | Carpeta de la base, las fotos y la clave de avisos. La imagen usa `/datos` |
 | `NODE_ENV` | — | Con `production`, el servidor avisa si `MUNI_PIN` es corto. La imagen lo fija |
+| `YAKU_MEMORIA` | — (apagado) | Solo el valor exacto `atomicmemory` activa las notas de zona del Centro de monitoreo. Ver [Notas de zona](#notas-de-zona-atomic-memory) |
+| `ATOMICMEMORY_API_URL` | — | URL de Atomic Memory. Debe ser `https://`; `http://` solo en `127.0.0.1`, `localhost` o `[::1]` |
+| `ATOMICMEMORY_API_KEY` | — | **Secreta.** Clave de Atomic Memory. Solo la usa el servidor; nunca llega al navegador |
+| `YAKU_MEMORIA_TIMEOUT_MS` | `2500` | Límite de cada llamada a Atomic Memory, entre 500 y 10000 ms |
 
-**Qué pasa el compose.** `docker-compose.yml` reenvía `MUNI_PIN`, `MUNI_USUARIO`, `MUNI_CLAVE`, `MUNI_NOMBRE`, `YAKU_SESION_HORAS` y `YAKU_MODO_ESTRICTO`, y fija `PORT=8080` y `YAKU_DATOS=/datos`. **`YAKU_REGLAS` no está en el compose**: para usarla en Dokploy hay que agregarla a `environment`.
+**Qué pasa el compose.** `docker-compose.yml` reenvía `MUNI_PIN`, `MUNI_USUARIO`, `MUNI_CLAVE`, `MUNI_NOMBRE`, `YAKU_SESION_HORAS`, `YAKU_MODO_ESTRICTO` y las cuatro variables de notas de zona, y fija `PORT=8080` y `YAKU_DATOS=/datos`. **`YAKU_REGLAS` no está en el compose**: para usarla en Dokploy hay que agregarla a `environment`.
 
 ### Cómo se resuelve el usuario municipal
 
@@ -48,6 +52,18 @@ flowchart TD
 ```
 
 El PIN sigue sirviendo siempre como credencial de respaldo (`X-Muni-Pin`), aunque haya usuario y contraseña distintos.
+
+### Notas de zona (Atomic Memory)
+
+Opcional y apagado por defecto. Con `YAKU_MEMORIA=atomicmemory`, `ATOMICMEMORY_API_URL` y `ATOMICMEMORY_API_KEY`, el detalle de un incidente muestra la sección «Notas de zona»: el operador guarda una nota corta (3 a 280 caracteres) sobre la zona, la vuelve a ver al abrir otro incidente de esa zona y puede corregirla o borrarla.
+
+- **Zona**: el centro poblado más cercano al incidente (≤ 3 km) o, si no hay, la celda de ~1 km (`Cerca de -5.19, -80.63`).
+- **De quién son**: del usuario de la sesión (`yaku-operador:<usuario>` en Atomic Memory). Con el PIN compartido no hay notas (403 `memoria_sin_usuario`). El servidor ignora cualquier `user_id` que mande el navegador.
+- **Qué no hacen**: no cambian el respaldo, el estado, el historial ni los avisos del incidente. SQLite sigue siendo la fuente de verdad.
+- **Si falla**: con Atomic Memory caído, lento (más de `YAKU_MEMORIA_TIMEOUT_MS`) o con una respuesta inesperada, la API responde 502 y la pantalla dice que la nota **no** se guardó o **no** se borró. Una nota solo cuenta como guardada si Atomic Memory devuelve su id, y como borrada si responde `success: true`.
+- **Configuración incompleta** (falta URL o clave, URL no válida o `http://` fuera de este equipo): el servidor avisa en la consola, arranca igual y la sección no aparece.
+
+Para probar sin el servicio real hay un fixture local (`node servidor-local/memoria-fixture.ts`, puerto 4604, clave `fixture-local`) que imita las tres rutas que se usan. **No es Atomic Memory**: guarda en la memoria del proceso y no va en la imagen.
 
 ## Variables de compilación (PWA)
 
